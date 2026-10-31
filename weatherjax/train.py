@@ -118,7 +118,7 @@ def main():
         # Exploratory only: test-set quantile computed from test truth, not usable for model tuning.
         threshold=float(np.quantile(truth,.95))
         hot=truth>=threshold
-        metrics['paired_block_bootstrap']=paired_time_block_ci(pred*std+mean,persistence,truth)
+        metrics['paired_block_bootstrap']=paired_time_block_ci(pred,persistence,truth)
         metrics['group_evaluation']={'monthly':records,'hot_test_p95_kelvin':threshold,'hot_gridcell_count':int(hot.sum()),'hot_cnn_rmse_k':float(np.sqrt(np.mean((pred[hot]-truth[hot])**2))),'hot_persistence_rmse_k':float(np.sqrt(np.mean((persistence[hot]-truth[hot])**2))),'hot_quantile_note':'Descriptive test-tail metric; not a pre-registered climatic extreme threshold'}
 
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
