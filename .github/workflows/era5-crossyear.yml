@@ -1,0 +1,37 @@
+name: ERA5 independent-year 2022 holdout
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-crossyear.yml'
+      - 'weatherjax/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: era5-crossyear-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  independent-year:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - name: Fetch four years of public ERA5
+        run: python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --output input/era5_2019_2022.nc
+      - name: Check ERA5 timestamps and units
+        run: python -m weatherjax.preflight input/era5_2019_2022.nc --timestep-hours 6 --lead-hours 24 --report outputs/era5-crossyear/preflight.json
+      - name: CNN train 2019-2020, validate 2021, evaluate independent 2022
+        run: python -m weatherjax --data input/era5_2019_2022.nc --lead-steps 4 --history-steps 4 --zero-residual --time-features --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --group-metrics --lr 0.001 --output outputs/era5-crossyear/cnn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-2022-era5-metrics
+          path: outputs/era5-crossyear/**/*.json
+          if-no-files-found: warn
