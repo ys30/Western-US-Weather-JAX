@@ -119,6 +119,8 @@ def main():
         threshold=float(np.quantile(truth,.95))
         hot=truth>=threshold
         metrics['paired_block_bootstrap']=paired_time_block_ci(pred,persistence,truth)
+        metrics['bootstrap_block_sensitivity']=[paired_time_block_ci(pred,persistence,truth,block_steps=block,draws=1000,seed=42) for block in (4,12,28,56)]
+        metrics['bootstrap_sensitivity_note']='Block lengths 1, 3, 7, 14 days at 6-hourly sampling; intervals are exploratory, not evidence of cross-year generalization.'
         metrics['group_evaluation']={'monthly':records,'hot_test_p95_kelvin':threshold,'hot_gridcell_count':int(hot.sum()),'hot_cnn_rmse_k':float(np.sqrt(np.mean((pred[hot]-truth[hot])**2))),'hot_persistence_rmse_k':float(np.sqrt(np.mean((persistence[hot]-truth[hot])**2))),'hot_quantile_note':'Descriptive test-tail metric; not a pre-registered climatic extreme threshold'}
 
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
