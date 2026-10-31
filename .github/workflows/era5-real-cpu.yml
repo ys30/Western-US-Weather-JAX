@@ -1,10 +1,22 @@
-name: Real ERA5 CPU experiment (manual)
+name: Real ERA5 CPU experiment
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'weatherjax/**'
+      - 'scripts/fetch_arco_era5.py'
+      - '.github/workflows/era5-real-cpu.yml'
+      - 'pyproject.toml'
   workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: era5-real-cpu-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   real-era5:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
