@@ -25,10 +25,11 @@ jobs:
       - run: pip install -e '.[test,zarr]' gcsfs
       - run: python scripts/fetch_arco_era5.py --start 2021-06-01 --end 2021-08-31 --stride 6 --output input/real_era5.nc
       - run: python -m weatherjax.preflight input/real_era5.nc --timestep-hours 6 --lead-hours 24 --report outputs/real-era5/preflight.json
-      - run: python -m weatherjax --data input/real_era5.nc --lead-steps 4 --epochs 12 --output outputs/real-era5
+      - run: python -m weatherjax --data input/real_era5.nc --lead-steps 4 --history-steps 1 --epochs 40 --lr 0.001 --output outputs/real-era5/single-frame
+      - run: python -m weatherjax --data input/real_era5.nc --lead-steps 4 --history-steps 4 --epochs 40 --lr 0.001 --output outputs/real-era5/four-frame
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: real-era5-cpu-metrics
-          path: outputs/real-era5/*.json
+          path: outputs/real-era5/**/*.json
           if-no-files-found: warn

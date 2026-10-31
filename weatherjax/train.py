@@ -18,20 +18,25 @@ def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, 
         return jax.tree_util.tree_map(lambda p,grad:p-lr*grad,params,g),val
     rng=np.random.default_rng(seed)
     history=[]; start=time.perf_counter()
+    best_params=params; best_val=float('inf'); best_epoch=0
     for epoch in range(epochs):
         losses=[]
         for ids in np.array_split(rng.permutation(len(xt)),max(1,int(np.ceil(len(xt)/batch)))):
             params,loss=update(params,jnp.asarray(xt[ids]),jnp.asarray(yt[ids]))
             losses.append(float(loss))
         val_rmse=float(np.sqrt(np.mean((np.asarray(predict(params,jnp.asarray(xv)))-yv)**2))*std)
+        if val_rmse < best_val:
+            best_val=val_rmse; best_epoch=epoch+1
+            best_params=jax.tree_util.tree_map(lambda p: jnp.array(p),params)
         history.append({'epoch':epoch+1,'train_mse_normalized':float(np.mean(losses)),'val_rmse_kelvin':val_rmse})
         print(f'epoch {epoch+1}/{epochs} train_loss={history[-1]["train_mse_normalized"]:.4f} val_rmse_K={val_rmse:.3f}',flush=True)
+    params=best_params
     pred=np.asarray(predict(params,jnp.asarray(xe)))
     model_rmse=float(np.sqrt(np.mean((pred-ye)**2))*std)
     persistence_rmse=float(np.sqrt(np.mean((xe[...,-1:]-ye)**2))*std)
     metrics={'test_rmse_kelvin':model_rmse,'persistence_test_rmse_kelvin':persistence_rmse,
              'test_mae_kelvin':float(np.mean(np.abs(pred-ye))*std),
-             'history_steps':history_steps,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
+             'history_steps':history_steps,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
              'elapsed_seconds':time.perf_counter()-start,'device':str(jax.devices()[0]),
              'normalization_train_mean_kelvin':mean,'normalization_train_std_kelvin':std,
              'history':history}
@@ -44,6 +49,7 @@ def main():
     ap.add_argument('--lead-steps',type=int,default=4,help='For 6-hour data, 4 steps = 24 h; for hourly ERA5, use 24')
     ap.add_argument('--history-steps',type=int,default=4,help='Input temperature frames spaced at the data timestep')
     ap.add_argument('--epochs',type=int,default=4)
+    ap.add_argument('--lr',type=float,default=0.001)
     ap.add_argument('--batch',type=int,default=8)
     ap.add_argument('--channels',type=int,default=12)
     ap.add_argument('--output',default='outputs/smoke')
@@ -52,7 +58,7 @@ def main():
     else:
         da=load_era5(args.data,variable=args.variable)
         arr=da.values
-    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps)
+    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr)
     out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
     np.savez(out/'model_weights.npz',**{k:np.asarray(v) for k,v in params.items()})
