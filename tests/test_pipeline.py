@@ -18,3 +18,13 @@ def test_prediction_shape_gradient():
     assert predict(p,x).shape==x.shape
     g=jax.grad(lambda params:jnp.mean(predict(params,x)**2))(p)
     assert all(np.isfinite(np.asarray(v)).all() for v in g.values())
+
+def test_multiframe_inputs_do_not_leak_future():
+    a=synthetic_data(100,8,8)
+    (tr,va,te),_=prepare_splits(a,lead_steps=4,history_steps=4)
+    assert tr[0].shape[-1]==4
+    assert len(tr[0])==63
+    assert np.allclose(tr[0][0,...,-1],(a[3]-a[:70].mean())/a[:70].std())
+    assert np.allclose(tr[1][0,...,0],(a[7]-a[:70].mean())/a[:70].std())
+    p=init_model(jax.random.PRNGKey(0),4,input_channels=4)
+    assert predict(p,jnp.asarray(tr[0][:2])).shape==(2,8,8,1)
