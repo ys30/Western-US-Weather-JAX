@@ -10,7 +10,7 @@ def compare(cpu,gpu,relative_rmse_tolerance=0.05):
         raise ValueError("GPU parameter platform audit must contain only gpu")
     if audit.get("jax_backend") != "gpu":
         raise ValueError("JAX default backend is not GPU")
-    for k in ("history_steps","hot_weight","hot_threshold_kelvin","train_end_index","validation_end_index","zero_residual","time_features","train_samples","validation_samples","test_samples"):
+    for k in ("epochs_requested","batch_size","learning_rate","channels","random_seed","lead_steps","history_steps","hot_weight","hot_threshold_kelvin","train_end_index","validation_end_index","zero_residual","time_features","train_samples","validation_samples","test_samples"):
         if cpu.get(k)!=gpu.get(k): raise ValueError(f"Mismatched CPU/GPU experiment config: {k}")
     a=float(cpu["test_rmse_kelvin"]);b=float(gpu["test_rmse_kelvin"])
     elapsed_cpu=float(cpu["elapsed_seconds"]);elapsed_gpu=float(gpu["elapsed_seconds"])

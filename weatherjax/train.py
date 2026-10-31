@@ -66,7 +66,7 @@ def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, 
     persistence_rmse=float(np.sqrt(np.mean((xe[...,-1:]-ye)**2))*std)
     metrics={'test_rmse_kelvin':model_rmse,'persistence_test_rmse_kelvin':persistence_rmse,
              'test_mae_kelvin':float(np.mean(np.abs(pred-ye))*std),
-             'train_end_index':train_end,'validation_end_index':val_end,'history_steps':history_steps,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'zero_residual':zero_residual,'time_features':time_features,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'best_validation_fixed_heat_rmse_kelvin':validation_hot_rmse,'validation_fixed_heat_gridcell_count':int(np.count_nonzero(validation_hot_mask)),'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
+             'train_end_index':train_end,'validation_end_index':val_end,'epochs_requested':epochs,'batch_size':batch,'learning_rate':lr,'channels':channels,'random_seed':seed,'lead_steps':lead_steps,'history_steps':history_steps,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'zero_residual':zero_residual,'time_features':time_features,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'best_validation_fixed_heat_rmse_kelvin':validation_hot_rmse,'validation_fixed_heat_gridcell_count':int(np.count_nonzero(validation_hot_mask)),'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
              'elapsed_seconds':time.perf_counter()-start,'device':str(jax.devices()[0]),
              'normalization_train_mean_kelvin':mean,'normalization_train_std_kelvin':std,
              'history':history}
