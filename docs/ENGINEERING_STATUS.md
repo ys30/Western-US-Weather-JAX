@@ -61,6 +61,12 @@ All four exploratory intervals are below zero on the 2022 holdout. This is encou
 
 Action: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41233856494
 
+## Fixed-threshold heat-weighted experiment (run 41234785888)
+
+On the 2022 independent holdout, both runs succeeded with the same temporal split and seed. Baseline 4-frame CNN: overall RMSE **3.18849 K**, exploratory P95 RMSE **2.22494 K**. The 305 K heat-weighted model (additional weight 2, total hot weight 3): overall RMSE **3.19116 K**, P95 RMSE **2.12150 K**. Thus P95 error improved by about 4.65%, while aggregate RMSE degraded by 0.00267 K. Persistence P95 RMSE remains better at **2.06231 K**.
+
+Important: 305 K is a fixed training-temperature threshold selected before this comparison; P95 remains test-derived exploratory stratification. The next run explicitly exports test-set RMSE at the fixed 305 K threshold as well.
+
 ## Not verified
 - An actual CUDA-backed JAX GPU training run. The GPU training entry point and its unit-level hardware checks exist, but hosted GitHub Actions currently run on CPU.
 - Reproducible CPU vs GPU throughput/latency comparison.
