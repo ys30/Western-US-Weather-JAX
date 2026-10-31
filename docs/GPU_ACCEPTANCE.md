@@ -22,3 +22,7 @@ python scripts/compare_gpu_cpu.py outputs/cpu-parity/metrics.json outputs/gpu-pa
 ```
 
 The verifier refuses a missing/incomplete GPU hardware audit, divergent data splits or model settings, nonfinite metrics, and CPU/GPU test RMSE deviations greater than 5% by default. Speedup is reported descriptively, not claimed without repeated measurements. Tests use synthetic audit fixtures and **do not** represent GPU execution.
+
+## Opt-in GPU Actions workflow
+
+[Real ERA5 GPU hardware acceptance](https://github.com/ys30/Western-US-Weather-JAX/actions/workflows/era5-gpu-acceptance.yml) is `workflow_dispatch` only. It does not run on ordinary pushes, and requires a configured self-hosted Linux x64 runner carrying the `gpu` label and a compatible NVIDIA CUDA driver. The runner owner is responsible for compute provisioning and costs. The workflow installs JAX CUDA support, fails if an actual GPU is not detected, trains matched CPU and GPU configurations on the same ERA5 years and uploads the parity audit. **This workflow has not yet run; no GPU benchmark result is claimed.**
