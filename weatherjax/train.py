@@ -7,8 +7,8 @@ import jax.numpy as jnp
 from .data import synthetic_data, load_era5, prepare_splits
 from .model import init_model, predict
 
-def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False):
-    splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features)
+def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None):
+    splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end)
     (xt,yt),(xv,yv),(xe,ye)=splits
     params=init_model(jax.random.PRNGKey(seed),channels,input_channels=history_steps+(2 if time_features else 0),zero_residual=zero_residual)
     @jax.jit
@@ -36,7 +36,7 @@ def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, 
     persistence_rmse=float(np.sqrt(np.mean((xe[...,-1:]-ye)**2))*std)
     metrics={'test_rmse_kelvin':model_rmse,'persistence_test_rmse_kelvin':persistence_rmse,
              'test_mae_kelvin':float(np.mean(np.abs(pred-ye))*std),
-             'history_steps':history_steps,'zero_residual':zero_residual,'time_features':time_features,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
+             'train_end_index':train_end,'validation_end_index':val_end,'history_steps':history_steps,'zero_residual':zero_residual,'time_features':time_features,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
              'elapsed_seconds':time.perf_counter()-start,'device':str(jax.devices()[0]),
              'normalization_train_mean_kelvin':mean,'normalization_train_std_kelvin':std,
              'history':history}
@@ -50,6 +50,8 @@ def main():
     ap.add_argument('--history-steps',type=int,default=4,help='Input temperature frames spaced at the data timestep')
     ap.add_argument('--time-features',action='store_true',help='Add cyclic target UTC-hour channels')
     ap.add_argument('--zero-residual',action='store_true',help='Initialize CNN output at persistence baseline')
+    ap.add_argument('--train-until',help='exclusive UTC train cutoff, e.g. 2021-01-01')
+    ap.add_argument('--validate-until',help='exclusive UTC validation cutoff, e.g. 2021-07-01')
     ap.add_argument('--epochs',type=int,default=4)
     ap.add_argument('--lr',type=float,default=0.001)
     ap.add_argument('--batch',type=int,default=8)
@@ -63,7 +65,17 @@ def main():
         da=load_era5(args.data,variable=args.variable)
         arr=da.values
         timestamps=da.time.values
-    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual,timestamps=timestamps,time_features=args.time_features)
+    if bool(args.train_until) != bool(args.validate_until):
+        ap.error('Specify both --train-until and --validate-until')
+    if args.train_until:
+        ts=np.asarray(timestamps).astype('datetime64[ns]')
+        if not np.all(np.diff(ts)>np.timedelta64(0,'ns')):
+            raise ValueError('Expected strictly increasing timestamps')
+        train_end=int(np.searchsorted(ts,np.datetime64(args.train_until)))
+        val_end=int(np.searchsorted(ts,np.datetime64(args.validate_until)))
+    else:
+        train_end=val_end=None
+    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual,timestamps=timestamps,time_features=args.time_features,train_end=train_end,val_end=val_end)
     out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
     np.savez(out/'model_weights.npz',**{k:np.asarray(v) for k,v in params.items()})

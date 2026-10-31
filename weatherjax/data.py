@@ -28,11 +28,11 @@ def load_era5(path, variable='t2m', lat_min=30, lat_max=50, lon_min=-125, lon_ma
     if da.sizes['lat']==0 or da.sizes['lon']==0: raise ValueError('Empty region after crop')
     return da
 
-def prepare_splits(arr, lead_steps=4, train_fraction=.7, val_fraction=.15, history_steps=1, timestamps=None, time_features=False):
+def prepare_splits(arr, lead_steps=4, train_fraction=.7, val_fraction=.15, history_steps=1, timestamps=None, time_features=False, train_end=None, val_end=None):
     """Chronological disjoint TARGET periods. Input at t; target at t+lead_steps."""
     arr=np.asarray(arr,dtype=np.float32)
     if arr.ndim!=3 or not np.isfinite(arr).all(): raise ValueError('Expected finite [time,height,width] array')
-    n=len(arr); a=int(n*train_fraction); b=int(n*(train_fraction+val_fraction))
+    n=len(arr); a=int(train_end) if train_end is not None else int(n*train_fraction); b=int(val_end) if val_end is not None else int(n*(train_fraction+val_fraction))
     if not (0<lead_steps<a<b<n) or history_steps<1 or lead_steps+history_steps-1>=a: raise ValueError('Insufficient steps')
     if time_features:
         if timestamps is None: raise ValueError('Real timestamps required for time features')
