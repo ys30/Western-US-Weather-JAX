@@ -24,6 +24,19 @@ The four-frame CNN's overall RMSE is about 0.80% lower than persistence on this 
 ### Important extreme-heat caveat
 The four-frame CNN's exploratory test-truth P95-temperature RMSE is **2.12745 K**, versus **1.97670 K** for persistence (~7.63% worse). The P95 threshold, 307.234 K, was calculated from the test-set truth and is descriptive, **not** a fixed operational threshold or a pre-registered heatwave definition. Overall skill must not be presented as superior extreme-heat forecasting.
 
+## Temporal block-size sensitivity (GitHub Actions run 41233159820)
+
+Paired circular block bootstrap with 1,000 resamples for each block length. The four-frame model's CNN-minus-persistence test RMSE difference is −0.02360 K:
+
+| Temporal block | 95% bootstrap interval (K) | Includes zero? |
+| --- | --- | --- |
+| 1 day | [−0.04863, −0.00010] | No |
+| 3 days | [−0.04917, +0.00238] | **Yes** |
+| 7 days | [−0.04257, −0.00426] | No |
+| 14 days | [−0.04209, −0.00323] | No |
+
+The 3-day sensitivity interval crosses zero; improvement is **not** robust across all block lengths. Interpretation remains exploratory, not proof of statistical significance across future years.
+
 ## Not verified
 - An actual CUDA-backed JAX GPU training run. The GPU training entry point and its unit-level hardware checks exist, but hosted GitHub Actions currently run on CPU.
 - Reproducible CPU vs GPU throughput/latency comparison.
