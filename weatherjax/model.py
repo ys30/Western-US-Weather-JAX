@@ -2,13 +2,13 @@
 import jax
 import jax.numpy as jnp
 
-def init_model(key, channels=12, input_channels=1):
+def init_model(key, channels=12, input_channels=1, zero_residual=False):
     ks=jax.random.split(key,3)
     def w(k,shape):
         return jax.random.normal(k,shape)*jnp.sqrt(2/(shape[0]*shape[1]*shape[2]))
     return {'w1':w(ks[0],(3,3,input_channels,channels)), 'b1':jnp.zeros((channels,)),
             'w2':w(ks[1],(3,3,channels,channels)), 'b2':jnp.zeros((channels,)),
-            'w3':w(ks[2],(1,1,channels,1)), 'b3':jnp.zeros((1,))}
+            'w3':(jnp.zeros((1,1,channels,1)) if zero_residual else w(ks[2],(1,1,channels,1))), 'b3':jnp.zeros((1,))}
 
 def conv(x,w,b):
     return jax.lax.conv_general_dilated(x,w,(1,1),'SAME',dimension_numbers=('NHWC','HWIO','NHWC'))+b

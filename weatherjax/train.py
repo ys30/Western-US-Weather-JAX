@@ -7,10 +7,10 @@ import jax.numpy as jnp
 from .data import synthetic_data, load_era5, prepare_splits
 from .model import init_model, predict
 
-def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4):
+def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False):
     splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps)
     (xt,yt),(xv,yv),(xe,ye)=splits
-    params=init_model(jax.random.PRNGKey(seed),channels,input_channels=history_steps)
+    params=init_model(jax.random.PRNGKey(seed),channels,input_channels=history_steps,zero_residual=zero_residual)
     @jax.jit
     def update(params,x,y):
         def loss(p): return jnp.mean((predict(p,x)-y)**2)
@@ -36,7 +36,7 @@ def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, 
     persistence_rmse=float(np.sqrt(np.mean((xe[...,-1:]-ye)**2))*std)
     metrics={'test_rmse_kelvin':model_rmse,'persistence_test_rmse_kelvin':persistence_rmse,
              'test_mae_kelvin':float(np.mean(np.abs(pred-ye))*std),
-             'history_steps':history_steps,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
+             'history_steps':history_steps,'zero_residual':zero_residual,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
              'elapsed_seconds':time.perf_counter()-start,'device':str(jax.devices()[0]),
              'normalization_train_mean_kelvin':mean,'normalization_train_std_kelvin':std,
              'history':history}
@@ -48,6 +48,7 @@ def main():
     ap.add_argument('--variable',default='t2m')
     ap.add_argument('--lead-steps',type=int,default=4,help='For 6-hour data, 4 steps = 24 h; for hourly ERA5, use 24')
     ap.add_argument('--history-steps',type=int,default=4,help='Input temperature frames spaced at the data timestep')
+    ap.add_argument('--zero-residual',action='store_true',help='Initialize CNN output at persistence baseline')
     ap.add_argument('--epochs',type=int,default=4)
     ap.add_argument('--lr',type=float,default=0.001)
     ap.add_argument('--batch',type=int,default=8)
@@ -58,7 +59,7 @@ def main():
     else:
         da=load_era5(args.data,variable=args.variable)
         arr=da.values
-    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr)
+    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual)
     out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
     np.savez(out/'model_weights.npz',**{k:np.asarray(v) for k,v in params.items()})
