@@ -17,7 +17,7 @@ def require_gpu(devices=None):
         raise RuntimeError("No JAX GPU backend detected: GPU training was NOT performed.")
     return gpu
 
-def run(data, output, epochs=20, stride_hours=6, history_steps=4, train_until="2021-01-01", validate_until="2021-07-01"):
+def run(data, output, epochs=20, stride_hours=6, history_steps=4, train_until="2021-01-01", validate_until="2021-07-01", hot_weight=0.0, hot_threshold_kelvin=305.0):
     gpu=require_gpu()
     report=inspect_era5(data,expected_step_hours=stride_hours)
     da=load_era5(data)
@@ -26,7 +26,7 @@ def run(data, output, epochs=20, stride_hours=6, history_steps=4, train_until="2
     ve=int(np.searchsorted(ts,np.datetime64(validate_until)))
     with jax.default_device(gpu[0]):
         params, metrics=train(da.values,epochs=epochs,lead_steps=24//stride_hours,history_steps=history_steps,
-                              zero_residual=True,time_features=True,timestamps=ts,train_end=te,val_end=ve)
+                              zero_residual=True,time_features=True,timestamps=ts,train_end=te,val_end=ve,hot_weight=hot_weight,hot_threshold_kelvin=hot_threshold_kelvin)
         jax.block_until_ready(params)
         parameter_devices={d for p in jax.tree_util.tree_leaves(params) for d in p.devices()}
         if not parameter_devices or any(d.platform != 'gpu' for d in parameter_devices):
@@ -48,9 +48,11 @@ def main():
     p.add_argument("--epochs",type=int,default=20)
     p.add_argument("--stride-hours",type=int,default=6)
     p.add_argument("--history-steps",type=int,default=4)
+    p.add_argument("--hot-weight",type=float,default=0.0)
+    p.add_argument("--hot-threshold-kelvin",type=float,default=305.0)
     p.add_argument("--train-until",default="2021-01-01")
     p.add_argument("--validate-until",default="2021-07-01")
     a=p.parse_args()
     if 24%a.stride_hours: p.error("stride-hours must divide 24")
-    run(a.data,a.output,a.epochs,a.stride_hours,a.history_steps,a.train_until,a.validate_until)
+    run(a.data,a.output,a.epochs,a.stride_hours,a.history_steps,a.train_until,a.validate_until,a.hot_weight,a.hot_threshold_kelvin)
 if __name__=="__main__": main()
