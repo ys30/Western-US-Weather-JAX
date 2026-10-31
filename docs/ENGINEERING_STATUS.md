@@ -67,6 +67,18 @@ On the 2022 independent holdout, both runs succeeded with the same temporal spli
 
 Important: 305 K is a fixed training-temperature threshold selected before this comparison; P95 remains test-derived exploratory stratification. The next run explicitly exports test-set RMSE at the fixed 305 K threshold as well.
 
+## Fixed 305 K high-temperature evaluation (run 41235424599)
+
+For the independent 2022 test, the same 210,130 gridcell-times have target temperature >= 305 K.
+
+| Forecast | Fixed-threshold high-temperature RMSE (K) |
+| --- | ---: |
+| Persistence | **2.08005** |
+| Original four-frame CNN | 2.23366 |
+| Heat-weighted four-frame CNN | 2.13841 |
+
+The weighted model improves over the original CNN by ~4.26% on this heat subset but remains ~2.81% worse than persistence. Its whole-year RMSE is also slightly worse than the unweighted CNN. Do not portray this as achieving heat-tail skill.
+
 ## Not verified
 - An actual CUDA-backed JAX GPU training run. The GPU training entry point and its unit-level hardware checks exist, but hosted GitHub Actions currently run on CPU.
 - Reproducible CPU vs GPU throughput/latency comparison.
