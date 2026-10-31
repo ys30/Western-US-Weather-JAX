@@ -7,7 +7,7 @@ import jax.numpy as jnp
 from .data import synthetic_data, load_era5, prepare_splits
 from .model import init_model, predict
 
-def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None):
+def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None, return_predictions=False):
     splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end)
     (xt,yt),(xv,yv),(xe,ye)=splits
     params=init_model(jax.random.PRNGKey(seed),channels,input_channels=history_steps+(2 if time_features else 0),zero_residual=zero_residual)
@@ -40,6 +40,10 @@ def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, 
              'elapsed_seconds':time.perf_counter()-start,'device':str(jax.devices()[0]),
              'normalization_train_mean_kelvin':mean,'normalization_train_std_kelvin':std,
              'history':history}
+    if return_predictions:
+        n=len(arr); b=val_end if val_end is not None else int(n*.85)
+        target_indices=np.arange(max(b,lead_steps+history_steps-1),n)
+        return params,metrics,{'target_indices':target_indices,'pred_kelvin':pred*std+mean,'truth_kelvin':ye*std+mean,'persistence_kelvin':xe[...,-1:]*std+mean}
     return params,metrics
 
 def main():
@@ -56,6 +60,7 @@ def main():
     ap.add_argument('--lr',type=float,default=0.001)
     ap.add_argument('--batch',type=int,default=8)
     ap.add_argument('--channels',type=int,default=12)
+    ap.add_argument('--group-metrics',action='store_true',help='Export independent test metrics by month and hot-temperature quantiles')
     ap.add_argument('--output',default='outputs/smoke')
     args=ap.parse_args()
     if args.data=='synthetic':
@@ -75,8 +80,24 @@ def main():
         val_end=int(np.searchsorted(ts,np.datetime64(args.validate_until)))
     else:
         train_end=val_end=None
-    params,metrics=train(arr,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual,timestamps=timestamps,time_features=args.time_features,train_end=train_end,val_end=val_end)
+    result=train(arr,return_predictions=args.group_metrics,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual,timestamps=timestamps,time_features=args.time_features,train_end=train_end,val_end=val_end)
+    if args.group_metrics:
+        params,metrics,details=result
+    else:
+        params,metrics=result
     out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
+    if args.group_metrics:
+        truth=details['truth_kelvin']; pred=details['pred_kelvin']; persistence=details['persistence_kelvin']
+        target_times=np.asarray(timestamps)[details['target_indices']].astype('datetime64[M]')
+        records=[]
+        for month in np.unique(target_times):
+            mask=target_times==month
+            records.append({'month':str(month),'n_times':int(mask.sum()),'cnn_rmse_k':float(np.sqrt(np.mean((pred[mask]-truth[mask])**2))),'persistence_rmse_k':float(np.sqrt(np.mean((persistence[mask]-truth[mask])**2)))})
+        # Exploratory only: test-set quantile computed from test truth, not usable for model tuning.
+        threshold=float(np.quantile(truth,.95))
+        hot=truth>=threshold
+        metrics['group_evaluation']={'monthly':records,'hot_test_p95_kelvin':threshold,'hot_gridcell_count':int(hot.sum()),'hot_cnn_rmse_k':float(np.sqrt(np.mean((pred[hot]-truth[hot])**2))),'hot_persistence_rmse_k':float(np.sqrt(np.mean((persistence[hot]-truth[hot])**2))),'hot_quantile_note':'Descriptive test-tail metric; not a pre-registered climatic extreme threshold'}
+
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
     np.savez(out/'model_weights.npz',**{k:np.asarray(v) for k,v in params.items()})
     print(json.dumps({k:v for k,v in metrics.items() if k!='history'},indent=2))
