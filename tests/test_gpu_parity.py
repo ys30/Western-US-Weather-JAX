@@ -7,7 +7,7 @@ def valid():
         "time_features":True,"train_samples":90,"validation_samples":100,
         "test_samples":100,"test_rmse_kelvin":3.1,"elapsed_seconds":120}
     gpu={**base,"test_rmse_kelvin":3.11,"elapsed_seconds":50,
-        "hardware_audit":{"training_verified_on_gpu":True,"gpu_devices":["GPU:0"],"parameter_devices":["GPU:0"]}}
+        "hardware_audit":{"training_verified_on_gpu":True,"gpu_devices":["GPU:0"],"parameter_devices":["GPU:0"],"parameter_platforms":["gpu"],"jax_backend":"gpu"}}
     return base,gpu
 
 def test_parity_comparison_with_complete_audit():
@@ -25,3 +25,11 @@ def test_reject_mismatched_splits():
 def test_reject_large_accuracy_difference():
     cpu,gpu=valid();gpu["test_rmse_kelvin"]=4.0
     assert compare(cpu,gpu)["rmse_parity_pass"] is False
+
+def test_reject_false_gpu_platform_claim():
+    cpu,gpu=valid();gpu["hardware_audit"]["parameter_platforms"]=["cpu"]
+    with pytest.raises(ValueError,match="platform"): compare(cpu,gpu)
+
+def test_reject_cpu_backend():
+    cpu,gpu=valid();gpu["hardware_audit"]["jax_backend"]="cpu"
+    with pytest.raises(ValueError,match="backend"): compare(cpu,gpu)

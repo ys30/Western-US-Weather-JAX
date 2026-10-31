@@ -6,8 +6,10 @@ def compare(cpu,gpu,relative_rmse_tolerance=0.05):
     audit=gpu.get("hardware_audit",{})
     if audit.get("training_verified_on_gpu") is not True or not audit.get("gpu_devices") or not audit.get("parameter_devices"):
         raise ValueError("GPU hardware audit absent or incomplete; parity NOT verified")
-    if any("cpu" in str(x).lower() for x in audit["parameter_devices"]):
-        raise ValueError("CPU parameter device in purported GPU training")
+    if audit.get("parameter_platforms") != ["gpu"]:
+        raise ValueError("GPU parameter platform audit must contain only gpu")
+    if audit.get("jax_backend") != "gpu":
+        raise ValueError("JAX default backend is not GPU")
     for k in ("history_steps","hot_weight","hot_threshold_kelvin","train_end_index","validation_end_index","zero_residual","time_features","train_samples","validation_samples","test_samples"):
         if cpu.get(k)!=gpu.get(k): raise ValueError(f"Mismatched CPU/GPU experiment config: {k}")
     a=float(cpu["test_rmse_kelvin"]);b=float(gpu["test_rmse_kelvin"])
