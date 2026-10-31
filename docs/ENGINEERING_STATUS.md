@@ -37,10 +37,34 @@ Paired circular block bootstrap with 1,000 resamples for each block length. The 
 
 The 3-day sensitivity interval crosses zero; improvement is **not** robust across all block lengths. Interpretation remains exploratory, not proof of statistical significance across future years.
 
+## Independent calendar-year evaluation: 2022 (run 41233856494)
+
+Data: real public ERA5 2019–2022; train 2019–2020, validation 2021, independent holdout 2022. Four-frame residual CNN with known UTC-hour features.
+
+| Method | 2022 test RMSE (K) |
+| --- | ---: |
+| Persistence | 3.22027 |
+| Four-frame CNN | 3.18849 |
+
+CNN is 0.03178 K (~0.99%) better in aggregate. Paired moving-block bootstrap (1,000 draws per setting):
+
+| Block | 95% RMSE difference CI (K) |
+| --- | --- |
+| 1 day | [−0.05163, −0.01172] |
+| 3 days | [−0.05450, −0.00791] |
+| 7 days | [−0.05263, −0.00996] |
+| 14 days | [−0.05077, −0.00954] |
+
+All four exploratory intervals are below zero on the 2022 holdout. This is encouraging cross-year generalization evidence but is **not** a claim of operational forecasting skill or universal significance.
+
+**Heat-tail limitation persists:** test-truth P95 subset CNN RMSE 2.22494 K versus persistence 2.06231 K (~7.9% worse). The P95 cutoff is test-derived exploratory diagnostics, not a predeclared heatwave criterion.
+
+Action: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41233856494
+
 ## Not verified
 - An actual CUDA-backed JAX GPU training run. The GPU training entry point and its unit-level hardware checks exist, but hosted GitHub Actions currently run on CPU.
 - Reproducible CPU vs GPU throughput/latency comparison.
-- Independent evaluation over additional held-out years, regions or random seeds.
+- Generalization to additional independent years beyond 2022, other regions, or random seeds.
 - U-Net performance, any operational weather forecasting claim, or publication-ready evidence.
 
 ## Acceptance gates
