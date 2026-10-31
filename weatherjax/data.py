@@ -28,17 +28,27 @@ def load_era5(path, variable='t2m', lat_min=30, lat_max=50, lon_min=-125, lon_ma
     if da.sizes['lat']==0 or da.sizes['lon']==0: raise ValueError('Empty region after crop')
     return da
 
-def prepare_splits(arr, lead_steps=4, train_fraction=.7, val_fraction=.15, history_steps=1):
+def prepare_splits(arr, lead_steps=4, train_fraction=.7, val_fraction=.15, history_steps=1, timestamps=None, time_features=False):
     """Chronological disjoint TARGET periods. Input at t; target at t+lead_steps."""
     arr=np.asarray(arr,dtype=np.float32)
     if arr.ndim!=3 or not np.isfinite(arr).all(): raise ValueError('Expected finite [time,height,width] array')
     n=len(arr); a=int(n*train_fraction); b=int(n*(train_fraction+val_fraction))
     if not (0<lead_steps<a<b<n) or history_steps<1 or lead_steps+history_steps-1>=a: raise ValueError('Insufficient steps')
+    if time_features:
+        if timestamps is None: raise ValueError('Real timestamps required for time features')
+        times=np.asarray(timestamps).astype('datetime64[h]')
+        if len(times)!=n: raise ValueError('timestamps length mismatch')
+        hours=(times.astype('datetime64[h]').astype('int64')%24).astype('float32')
+        extra=np.stack((np.sin(2*np.pi*hours/24),np.cos(2*np.pi*hours/24)),axis=-1).astype('float32')
     mean=float(arr[:a].mean()); std=float(arr[:a].std()); std=max(std,1e-6)
     def make(lo,hi):
         targets=np.arange(max(lo,lead_steps+history_steps-1),hi)
         input_times=targets[:,None]-lead_steps-np.arange(history_steps-1,-1,-1)[None,:]
         x=np.moveaxis((arr[input_times]-mean)/std,1,-1)
+        if time_features:
+            # Forecast target UTC hour is known in advance; do not use target temperature.
+            cycle=np.broadcast_to(extra[targets,None,None,:],(*x.shape[:3],2))
+            x=np.concatenate((cycle,x),axis=-1)
         y=(arr[targets]-mean)/std
         return x,y[...,None]
     return (make(lead_steps,a),make(a,b),make(b,n)),(mean,std)
