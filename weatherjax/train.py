@@ -7,6 +7,28 @@ import jax.numpy as jnp
 from .data import synthetic_data, load_era5, prepare_splits
 from .model import init_model, predict
 
+def paired_time_block_ci(pred, reference, truth, block_steps=4, draws=400, seed=42):
+    """Paired block bootstrap over forecast valid times, preserving spatial correlation."""
+    pred=np.asarray(pred); reference=np.asarray(reference); truth=np.asarray(truth)
+    if pred.shape!=reference.shape or pred.shape!=truth.shape or pred.ndim<2:
+        raise ValueError("Expected matching [time, ...] arrays")
+    n=len(pred)
+    if n<2 or block_steps<1 or draws<1: raise ValueError("Insufficient data or invalid bootstrap configuration")
+    p=np.mean((pred-truth)**2,axis=tuple(range(1,pred.ndim)))
+    r=np.mean((reference-truth)**2,axis=tuple(range(1,pred.ndim)))
+    rng=np.random.default_rng(seed)
+    k=int(np.ceil(n/block_steps))
+    values=[]
+    for _ in range(draws):
+        starts=rng.integers(0,n,size=k)
+        ids=((starts[:,None]+np.arange(block_steps))%n).reshape(-1)[:n]
+        values.append(float(np.sqrt(p[ids].mean())-np.sqrt(r[ids].mean())))
+    lo,hi=np.quantile(values,[.025,.975])
+    return {'rmse_difference_kelvin':float(np.sqrt(p.mean())-np.sqrt(r.mean())),
+            'ci95_lower_kelvin':float(lo),'ci95_upper_kelvin':float(hi),
+            'bootstrap_draws':draws,'block_steps':block_steps,
+            'interpretation':'Negative differences favor CNN; exploratory block bootstrap, not formal spatial inference'}
+
 def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None, return_predictions=False):
     splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end)
     (xt,yt),(xv,yv),(xe,ye)=splits
@@ -96,6 +118,7 @@ def main():
         # Exploratory only: test-set quantile computed from test truth, not usable for model tuning.
         threshold=float(np.quantile(truth,.95))
         hot=truth>=threshold
+        metrics['paired_block_bootstrap']=paired_time_block_ci(pred*std+mean,persistence,truth)
         metrics['group_evaluation']={'monthly':records,'hot_test_p95_kelvin':threshold,'hot_gridcell_count':int(hot.sum()),'hot_cnn_rmse_k':float(np.sqrt(np.mean((pred[hot]-truth[hot])**2))),'hot_persistence_rmse_k':float(np.sqrt(np.mean((persistence[hot]-truth[hot])**2))),'hot_quantile_note':'Descriptive test-tail metric; not a pre-registered climatic extreme threshold'}
 
     (out/'metrics.json').write_text(json.dumps(metrics,indent=2))
