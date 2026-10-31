@@ -12,6 +12,8 @@ def compare(cpu,gpu,relative_rmse_tolerance=0.05):
         raise ValueError("JAX default backend is not GPU")
     for k in ("epochs_requested","batch_size","learning_rate","channels","random_seed","lead_steps","history_steps","hot_weight","hot_threshold_kelvin","train_end_index","validation_end_index","zero_residual","time_features","train_samples","validation_samples","test_samples"):
         if cpu.get(k)!=gpu.get(k): raise ValueError(f"Mismatched CPU/GPU experiment config: {k}")
+    if not cpu.get("input_sha256") or cpu["input_sha256"]!=gpu.get("input_sha256"):
+        raise ValueError("CPU/GPU dataset SHA256 mismatch or missing")
     a=float(cpu["test_rmse_kelvin"]);b=float(gpu["test_rmse_kelvin"])
     elapsed_cpu=float(cpu["elapsed_seconds"]);elapsed_gpu=float(gpu["elapsed_seconds"])
     if not all(math.isfinite(x) and x>0 for x in (a,b,elapsed_cpu,elapsed_gpu)):

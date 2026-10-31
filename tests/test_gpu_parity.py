@@ -2,7 +2,7 @@ import pytest
 from scripts.compare_gpu_cpu import compare
 
 def valid():
-    base={"epochs_requested":40,"batch_size":8,"learning_rate":0.001,"channels":12,"random_seed":42,"lead_steps":4,"history_steps":4,"hot_weight":2,"hot_threshold_kelvin":305,
+    base={"input_sha256":"a"*64,"epochs_requested":40,"batch_size":8,"learning_rate":0.001,"channels":12,"random_seed":42,"lead_steps":4,"history_steps":4,"hot_weight":2,"hot_threshold_kelvin":305,
         "train_end_index":100,"validation_end_index":200,"zero_residual":True,
         "time_features":True,"train_samples":90,"validation_samples":100,
         "test_samples":100,"test_rmse_kelvin":3.1,"elapsed_seconds":120}
@@ -39,3 +39,7 @@ def test_reject_different_model_or_optimization_settings():
     for key,new in (("channels",24),("learning_rate",0.002),("random_seed",7),("epochs_requested",20),("batch_size",16)):
         copy={**gpu,key:new}
         with pytest.raises(ValueError,match=key):compare(cpu,copy)
+
+def test_reject_different_era5_files():
+    cpu,gpu=valid();gpu["input_sha256"]="b"*64
+    with pytest.raises(ValueError,match="SHA256"):compare(cpu,gpu)

@@ -2,7 +2,7 @@
 
 Requires an actual GPU. Exits nonzero rather than silently falling back to CPU.
 """
-import argparse, json, platform
+import argparse, json, platform, hashlib
 from pathlib import Path
 import jax
 from weatherjax.data import load_era5
@@ -32,6 +32,10 @@ def run(data, output, epochs=20, stride_hours=6, history_steps=4, train_until="2
         if not parameter_devices or any(d.platform != 'gpu' for d in parameter_devices):
             raise RuntimeError(f'Trained parameters are not resident on a GPU: {sorted(map(str, parameter_devices))}')
         used=sorted(map(str, parameter_devices))
+    digest=hashlib.sha256()
+    with open(data,'rb') as source:
+        for chunk in iter(lambda:source.read(1024*1024),b''): digest.update(chunk)
+    metrics["input_sha256"]=digest.hexdigest()
     metrics["hardware_audit"]={"jax_backend":jax.default_backend(),"gpu_devices":[str(d) for d in gpu],"parameter_devices":used,"parameter_platforms":sorted({d.platform for d in parameter_devices}),
           "jax_version":jax.__version__,"python":platform.python_version(),
           "preflight":report,"training_verified_on_gpu":True}

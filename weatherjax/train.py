@@ -1,5 +1,5 @@
 """Reproducible training and held-out verification."""
-import argparse, json, time
+import argparse, json, time, hashlib
 from pathlib import Path
 import numpy as np
 import jax
@@ -117,6 +117,11 @@ def main():
         params,metrics,details=result
     else:
         params,metrics=result
+    if args.data!='synthetic':
+        digest=hashlib.sha256()
+        with open(args.data,'rb') as source:
+            for chunk in iter(lambda:source.read(1024*1024),b''): digest.update(chunk)
+        metrics['input_sha256']=digest.hexdigest()
     out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
     if args.group_metrics:
         truth=details['truth_kelvin']; pred=details['pred_kelvin']; persistence=details['persistence_kelvin']
