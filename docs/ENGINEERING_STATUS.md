@@ -106,3 +106,11 @@ Prespecified additional target-temperature weights 0/1/2 at 305 K were evaluated
 The selected weight is **2**, corresponding to 3x total weight for hot training targets. On the independent 2022 test, its fixed 305 K heat RMSE is **2.13841 K**, still worse than persistence **2.08005 K**. No model offers verified improvement over persistence on this hot subset. The selection script reads **only validation metrics**; a separate reporting script evaluates the frozen choice on the test set.
 
 Action: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41238730272
+
+## Frozen validation selection and independently reported 2022 test (run 41239658291)
+
+The complete workflow **passed**: Python tests, real ERA5 CPU regression, weight selection, independent holdout report, and artifact upload. Selection was based on **2021 validation only**, choosing additional heat weight **2** (total 3x weight above fixed 305 K). The subsequent frozen-model 2022 report gives **3.191155 K** overall RMSE versus **3.220267 K** persistence (**+0.9040%** skill) and fixed-305 K subset **2.138412 K** versus **2.080046 K** persistence (**−2.8060%** skill) across **210,130** gridcell-times. High-temperature skill remains negative, despite improved heat RMSE against unweighted CNN. This is an engineering baseline, not an operationally validated forecast.
+
+Verified run: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41239658291
+
+**Remaining gate:** actual GPU-backed JAX training (hardware audit and reproducible GPU/CPU performance comparison); successful CPU CI does not establish GPU execution.
