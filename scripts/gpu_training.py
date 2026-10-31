@@ -24,9 +24,14 @@ def run(data, output, epochs=20, stride_hours=6, history_steps=4, train_until="2
     ts=np.asarray(da.time.values).astype("datetime64[ns]")
     te=int(np.searchsorted(ts,np.datetime64(train_until)))
     ve=int(np.searchsorted(ts,np.datetime64(validate_until)))
-    params, metrics=train(da.values,epochs=epochs,lead_steps=24//stride_hours,history_steps=history_steps,
-                          zero_residual=True,time_features=True,timestamps=ts,train_end=te,val_end=ve)
-    metrics["hardware_audit"]={"jax_backend":jax.default_backend(),"gpu_devices":[str(d) for d in gpu],
+    with jax.default_device(gpu[0]):
+        params, metrics=train(da.values,epochs=epochs,lead_steps=24//stride_hours,history_steps=history_steps,
+                              zero_residual=True,time_features=True,timestamps=ts,train_end=te,val_end=ve)
+        jax.block_until_ready(params)
+        used={str(d) for p in jax.tree_util.tree_leaves(params) for d in p.devices()}
+        if not used or any('gpu' not in d.lower() and 'cuda' not in d.lower() for d in used):
+            raise RuntimeError(f'Trained parameters are not resident on a GPU: {sorted(used)}')
+    metrics["hardware_audit"]={"jax_backend":jax.default_backend(),"gpu_devices":[str(d) for d in gpu],"parameter_devices":sorted(used),
           "jax_version":jax.__version__,"python":platform.python_version(),
           "preflight":report,"training_verified_on_gpu":True}
     output=Path(output);output.mkdir(parents=True,exist_ok=True)
