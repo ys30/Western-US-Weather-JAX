@@ -12,3 +12,13 @@ python scripts/gpu_training.py --data input/era5_2019_2022.nc --epochs 40 --hist
 ```
 
 Gate passes only after (1) actual GPU hardware detected and training completed, (2) hardware audit saved with GPU-resident parameters, (3) CPU/GPU timings measured under stated matching settings, (4) numerical differences evaluated and documented. No GPU results are currently claimed.
+
+## Automated parity verifier
+
+After obtaining actual measured CPU and GPU outputs with identical configurations, run:
+
+```bash
+python scripts/compare_gpu_cpu.py outputs/cpu-parity/metrics.json outputs/gpu-parity/gpu_metrics.json --output outputs/gpu-parity/acceptance.json
+```
+
+The verifier refuses a missing/incomplete GPU hardware audit, divergent data splits or model settings, nonfinite metrics, and CPU/GPU test RMSE deviations greater than 5% by default. Speedup is reported descriptively, not claimed without repeated measurements. Tests use synthetic audit fixtures and **do not** represent GPU execution.
