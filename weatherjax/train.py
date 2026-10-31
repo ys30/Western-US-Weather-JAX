@@ -29,13 +29,18 @@ def paired_time_block_ci(pred, reference, truth, block_steps=4, draws=400, seed=
             'bootstrap_draws':draws,'block_steps':block_steps,
             'interpretation':'Negative differences favor CNN; exploratory block bootstrap, not formal spatial inference'}
 
-def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None, return_predictions=False):
-    splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end)
+def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None, return_predictions=False, hot_weight=0.0, hot_threshold_kelvin=305.0):
+    splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end,hot_weight=args.hot_weight,hot_threshold_kelvin=args.hot_threshold_kelvin)
     (xt,yt),(xv,yv),(xe,ye)=splits
     params=init_model(jax.random.PRNGKey(seed),channels,input_channels=history_steps+(2 if time_features else 0),zero_residual=zero_residual)
+    if hot_weight<0: raise ValueError('hot_weight must be nonnegative')
+    hot_threshold=(hot_threshold_kelvin-mean)/std
     @jax.jit
     def update(params,x,y):
-        def loss(p): return jnp.mean((predict(p,x)-y)**2)
+        def loss(p):
+            squared=(predict(p,x)-y)**2
+            weights=1.0+hot_weight*(y>=hot_threshold)
+            return jnp.sum(squared*weights)/jnp.sum(weights)
         val,g=jax.value_and_grad(loss)(params)
         return jax.tree_util.tree_map(lambda p,grad:p-lr*grad,params,g),val
     rng=np.random.default_rng(seed)
@@ -58,7 +63,7 @@ def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, 
     persistence_rmse=float(np.sqrt(np.mean((xe[...,-1:]-ye)**2))*std)
     metrics={'test_rmse_kelvin':model_rmse,'persistence_test_rmse_kelvin':persistence_rmse,
              'test_mae_kelvin':float(np.mean(np.abs(pred-ye))*std),
-             'train_end_index':train_end,'validation_end_index':val_end,'history_steps':history_steps,'zero_residual':zero_residual,'time_features':time_features,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
+             'train_end_index':train_end,'validation_end_index':val_end,'history_steps':history_steps,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'zero_residual':zero_residual,'time_features':time_features,'best_epoch':best_epoch,'best_validation_rmse_kelvin':best_val,'test_samples':len(xe),'validation_samples':len(xv),'train_samples':len(xt),
              'elapsed_seconds':time.perf_counter()-start,'device':str(jax.devices()[0]),
              'normalization_train_mean_kelvin':mean,'normalization_train_std_kelvin':std,
              'history':history}
@@ -78,6 +83,8 @@ def main():
     ap.add_argument('--zero-residual',action='store_true',help='Initialize CNN output at persistence baseline')
     ap.add_argument('--train-until',help='exclusive UTC train cutoff, e.g. 2021-01-01')
     ap.add_argument('--validate-until',help='exclusive UTC validation cutoff, e.g. 2021-07-01')
+    ap.add_argument('--hot-weight',type=float,default=0.0,help='Optional added weight for training target temperatures >= fixed Kelvin threshold')
+    ap.add_argument('--hot-threshold-kelvin',type=float,default=305.0)
     ap.add_argument('--epochs',type=int,default=4)
     ap.add_argument('--lr',type=float,default=0.001)
     ap.add_argument('--batch',type=int,default=8)

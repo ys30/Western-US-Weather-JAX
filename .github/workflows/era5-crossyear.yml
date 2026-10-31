@@ -29,6 +29,9 @@ jobs:
         run: python -m weatherjax.preflight input/era5_2019_2022.nc --timestep-hours 6 --lead-hours 24 --report outputs/era5-crossyear/preflight.json
       - name: CNN train 2019-2020, validate 2021, evaluate independent 2022
         run: python -m weatherjax --data input/era5_2019_2022.nc --lead-steps 4 --history-steps 4 --zero-residual --time-features --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --group-metrics --lr 0.001 --output outputs/era5-crossyear/cnn
+      - name: Heat-weighted CNN sensitivity with predefined 305 K threshold
+        run: python -m weatherjax --data input/era5_2019_2022.nc --lead-steps 4 --history-steps 4 --zero-residual --time-features --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --group-metrics --hot-weight 2 --hot-threshold-kelvin 305 --lr 0.001 --output outputs/era5-crossyear/cnn-heatweighted
+      - run: python scripts/summarize_experiment.py outputs/era5-crossyear/cnn/metrics.json outputs/era5-crossyear/cnn-heatweighted/metrics.json --output outputs/era5-crossyear/heat-comparison.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
