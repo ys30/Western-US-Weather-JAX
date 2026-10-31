@@ -114,3 +114,18 @@ The complete workflow **passed**: Python tests, real ERA5 CPU regression, weight
 Verified run: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41239658291
 
 **Remaining gate:** actual GPU-backed JAX training (hardware audit and reproducible GPU/CPU performance comparison); successful CPU CI does not establish GPU execution.
+
+## Real Colab NVIDIA GPU acceptance — 2026-10-31
+
+**Hardware-backed GPU training verified from user-supplied Colab run artifacts and executed notebook** (not from a GitHub-hosted GPU runner). NVIDIA **Tesla T4**, 15,360 MiB GPU RAM; NVIDIA driver 580.82.07; `nvidia-smi` reported CUDA driver capability 13.0. JAX 0.12.0.1, Python 3.13.16. JAX hardware audit reports `jax_backend="gpu"`, `parameter_platforms=["gpu"]`, device `cuda:0`, and `training_verified_on_gpu=true`.
+
+- Data: real ERA5 2m temperature, 49×49 grid at 6-hour intervals, 2019-01-01 through 2022-12-31 (5,844 time steps).
+- Train 2019–2020; validate 2021; independent test 2022; same four-frame CNN; 40 epochs; extra hot-target weight 2 at a fixed 305 K threshold.
+- CPU and GPU SHA-256 are identical: `ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`.
+- Both CPU and GPU best epoch: **34**.
+- Independent 2022 test RMSE: CPU **3.191155195 K**, GPU **3.191155195 K**, Persistence **3.220266819 K**. Relative CPU/GPU RMSE difference **0.00%**; automatic parity check **passed**.
+- Measured training elapsed time: CPU **258.5146 s**, T4 GPU **33.2946 s**, **7.7645×** CPU/GPU elapsed-time ratio for this **single Colab run**. Compilations/overheads included; this is not a multi-run statistically characterized GPU benchmark.
+- Accuracy caveat: the validation-selected heat-weighted model has **negative fixed-305-K high-temperature skill** relative to persistence on the independent 2022 test, despite overall RMSE improvement. Hardware success does not solve this scientific limitation.
+- Colab notebook emitted a nonblocking NumPy/Numba dependency warning and a CUDA plugin already-exists message; all training/acceptance subprocesses completed with exit code 0. Environment is not claimed warning-free.
+
+**Acceptance verdict:** Real hardware GPU execution, audit, identical input, model parity, and one-run descriptive speedup are **verified**. Repeated timing, other GPU hardware, and operational forecast skill **not yet verified**. No GitHub self-hosted runner was configured or needed for this Colab run.
