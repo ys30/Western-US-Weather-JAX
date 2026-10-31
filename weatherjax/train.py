@@ -30,7 +30,7 @@ def paired_time_block_ci(pred, reference, truth, block_steps=4, draws=400, seed=
             'interpretation':'Negative differences favor CNN; exploratory block bootstrap, not formal spatial inference'}
 
 def train(arr, epochs=4, batch=8, lr=0.001, channels=12, lead_steps=4, seed=42, history_steps=4, zero_residual=False, timestamps=None, time_features=False, train_end=None, val_end=None, return_predictions=False, hot_weight=0.0, hot_threshold_kelvin=305.0):
-    splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end,hot_weight=args.hot_weight,hot_threshold_kelvin=args.hot_threshold_kelvin)
+    splits,(mean,std)=prepare_splits(arr,lead_steps=lead_steps,history_steps=history_steps,timestamps=timestamps,time_features=time_features,train_end=train_end,val_end=val_end)
     (xt,yt),(xv,yv),(xe,ye)=splits
     params=init_model(jax.random.PRNGKey(seed),channels,input_channels=history_steps+(2 if time_features else 0),zero_residual=zero_residual)
     if hot_weight<0: raise ValueError('hot_weight must be nonnegative')
@@ -109,7 +109,7 @@ def main():
         val_end=int(np.searchsorted(ts,np.datetime64(args.validate_until)))
     else:
         train_end=val_end=None
-    result=train(arr,return_predictions=args.group_metrics,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual,timestamps=timestamps,time_features=args.time_features,train_end=train_end,val_end=val_end)
+    result=train(arr,return_predictions=args.group_metrics,epochs=args.epochs,batch=args.batch,channels=args.channels,lead_steps=args.lead_steps,history_steps=args.history_steps,lr=args.lr,zero_residual=args.zero_residual,timestamps=timestamps,time_features=args.time_features,train_end=train_end,val_end=val_end,hot_weight=args.hot_weight,hot_threshold_kelvin=args.hot_threshold_kelvin)
     if args.group_metrics:
         params,metrics,details=result
     else:
