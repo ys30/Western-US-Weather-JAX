@@ -80,16 +80,15 @@ For the independent 2022 test, the same 210,130 gridcell-times have target tempe
 The weighted model improves over the original CNN by ~4.26% on this heat subset but remains ~2.81% worse than persistence. Its whole-year RMSE is also slightly worse than the unweighted CNN. Do not portray this as achieving heat-tail skill.
 
 ## Not verified
-- An actual CUDA-backed JAX GPU training run. The GPU training entry point and its unit-level hardware checks exist, but hosted GitHub Actions currently run on CPU.
-- Reproducible CPU vs GPU throughput/latency comparison.
+- Repeated, controlled CPU/GPU timing measurements and throughput/latency characterization beyond the verified single Colab run.
 - Generalization to additional independent years beyond 2022, other regions, or random seeds.
 - U-Net performance, any operational weather forecasting claim, or publication-ready evidence.
 
 ## Acceptance gates
 1. CPU CI and real ERA5 holdout metrics: **verified**.
 2. Real-data evaluation grouped by month and hot-temperature tail: **verified**.
-3. GPU execution with real GPU-resident JAX weights and saved hardware audit: **not yet verified**.
-4. U-Net or advanced architecture: **deferred until GPU verification and robust baselines**.
+3. GPU execution with real GPU-resident JAX weights and saved hardware audit: **verified on Colab Tesla T4 (one run)**.
+4. U-Net or advanced architecture: **deferred pending repeatable GPU benchmarks and stronger scientific baselines**.
 
 Artifacts: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41231631347
 
