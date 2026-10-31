@@ -92,3 +92,17 @@ The weighted model improves over the original CNN by ~4.26% on this heat subset 
 4. U-Net or advanced architecture: **deferred until GPU verification and robust baselines**.
 
 Artifacts: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41231631347
+
+## Validation-only high-temperature weight selection (run 41238730272)
+
+Prespecified additional target-temperature weights 0/1/2 at 305 K were evaluated on the **2021 validation** data:
+
+| Additional heat weight | 2021 validation fixed-heat RMSE (K) | 2022 holdout overall RMSE (K) |
+| --- | ---: | ---: |
+| 0 | 2.22467 | **3.18849** |
+| 1 | 2.15295 | 3.18994 |
+| 2 (selected) | **2.13242** | 3.19116 |
+
+The selected weight is **2**, corresponding to 3x total weight for hot training targets. On the independent 2022 test, its fixed 305 K heat RMSE is **2.13841 K**, still worse than persistence **2.08005 K**. No model offers verified improvement over persistence on this hot subset. The selection script reads **only validation metrics**; a separate reporting script evaluates the frozen choice on the test set.
+
+Action: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41238730272
