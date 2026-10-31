@@ -1,0 +1,22 @@
+name: Real ERA5 CPU experiment (manual)
+on:
+  workflow_dispatch:
+jobs:
+  real-era5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - run: python scripts/fetch_arco_era5.py --start 2021-07-01 --end 2021-07-14 --stride 6 --output input/real_era5.nc
+      - run: python -m weatherjax.preflight input/real_era5.nc --timestep-hours 6 --lead-hours 24 --report outputs/real-era5/preflight.json
+      - run: python -m weatherjax --data input/real_era5.nc --lead-steps 4 --epochs 3 --output outputs/real-era5
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-era5-cpu-metrics
+          path: outputs/real-era5/*.json
+          if-no-files-found: warn
