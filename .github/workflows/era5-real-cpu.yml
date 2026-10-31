@@ -27,9 +27,12 @@ jobs:
       - run: python -m weatherjax.preflight input/real_era5.nc --timestep-hours 6 --lead-hours 24 --report outputs/real-era5/preflight.json
       - run: python -m weatherjax --data input/real_era5.nc --lead-steps 4 --history-steps 1 --train-until 2021-01-01 --validate-until 2021-07-01 --epochs 40 --group-metrics --lr 0.001 --output outputs/real-era5/single-frame
       - run: python -m weatherjax --data input/real_era5.nc --lead-steps 4 --history-steps 4 --zero-residual --time-features --train-until 2021-01-01 --validate-until 2021-07-01 --epochs 40 --lr 0.001 --output outputs/real-era5/four-frame-zero-init-time
+      - run: python scripts/summarize_experiment.py outputs/real-era5/single-frame/metrics.json outputs/real-era5/four-frame-zero-init-time/metrics.json --output outputs/real-era5/comparison.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: real-era5-cpu-metrics
-          path: outputs/real-era5/**/*.json
+          path: |
+            outputs/real-era5/**/*.json
+            outputs/real-era5/comparison.json
           if-no-files-found: warn
