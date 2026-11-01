@@ -35,3 +35,30 @@ def event_diagnostics(pred, baseline, truth, target_times, threshold_kelvin=305.
             "not_operational_event_detection":True,"events":events,
             "episode_count":len(events),
             "episodes_cnn_better_hot":sum(e["cnn_hot_rmse_kelvin"]<e["blend_hot_rmse_kelvin"] for e in events)}
+
+
+def event_definition_sensitivity(pred, baseline, truth, target_times,
+                                 fractions=(0.01, 0.05, 0.10),
+                                 durations=(2, 3, 4),
+                                 threshold_kelvin=305.0):
+    """Prespecified 3×3 retrospective event-definition grid; no selection.
+
+    Each result reports its own qualifying event count. Undefined fractions
+    (no qualifying episodes) are represented by None rather than zero.
+    """
+    results=[]
+    for fraction in fractions:
+        for days in durations:
+            report=event_diagnostics(pred, baseline, truth, target_times,
+                                     threshold_kelvin=threshold_kelvin,
+                                     min_region_fraction=fraction,min_days=days)
+            n=report["episode_count"]
+            wins=report["episodes_cnn_better_hot"]
+            results.append({"min_region_fraction":float(fraction),
+                            "min_consecutive_days":int(days),
+                            "episode_count":n,
+                            "episodes_cnn_better_hot":wins,
+                            "episode_win_fraction":wins/n if n else None})
+    return {"definition":"Retrospective observed-temperature events; fixed 305 K threshold",
+            "not_operational_event_detection":True,
+            "prespecified_sensitivity_grid":results}
