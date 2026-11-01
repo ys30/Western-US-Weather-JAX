@@ -43,6 +43,14 @@ Validation and held-out test **target** indices do not overlap training targets.
 
 The tests in `tests/test_time_audit.py` check lead offset, period boundaries and rejection of missing or irregular six-hour intervals; the guards in `weatherjax/time_audit.py` are called by source-only and climatology-aware training, and target time continuity is checked during frozen inference. [CI verification: unit tests](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255199) and [frozen ERA5 experiment](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255173). The audit validates implemented temporal indexing, not all conceivable upstream dataset provenance issues.
 
+### 2.6 ERA5 source, sampling, and reproducibility provenance
+
+The repository's data-fetch implementation (`scripts/fetch_arco_era5.py`) reads publicly hosted **Google Cloud ARCO ERA5** Zarr data from `gs://gcp-public-data-arco-era5/ar/full_37-1h-0p25deg-chunk-1.zarr-v3`. The source dataset is hourly, gridded at **0.25°** resolution as encoded in the collection name. The script selects the `2m_temperature` variable (with fallbacks for alternative source variable names), converts longitudes to −180°–180° if necessary, crops latitude/longitude bounds, and takes every sixth hourly field with `stride=6`, yielding a six-hourly time series when the source is continuous. It then renames the output variable `t2m`, sets the Kelvin units attribute, validates that values are finite, and writes the selected field as NetCDF. The primary original-region bounds used in this script are 31–43°N, 121–109°W; Southwest downloads use their separate spatial configuration. The explicit UTC cadence is checked by the downstream time-index audit.
+
+This is **an ERA5-based hindcast on reanalysis**, **not a prospective operational forecast**: a reanalysis value at forecast issue time may be produced with retrospective observational assimilation, and cannot automatically be assumed to have been available with operational latency. All predictive-skill statements in this manuscript therefore refer to a **retrospective six-hourly ERA5 temporal holdout**, and do not demonstrate real-time operational forecast performance.
+
+The Google Cloud ARCO mirror provides a copy of ECMWF/Copernicus ERA5 rather than a separate observational product. This fetch-script audit establishes the configured provider, variable and sampling method, but does **not** independently verify immutable source object versions, actual download times or the SHA-256 digests of experiment-specific local NetCDF files. These metadata should be attached to the publication release.
+
 ## 3. Results
 
 ### 3.1 Frozen network transfer with target historical climatology
@@ -54,7 +62,7 @@ The Southwest 2022 persistence baseline had annual RMSE 4.162715 K and truth-hot
 ### 3.3 Feature-substitution sensitivity
 Replacing the historical climatology channel with source-global-mean constants increased the source-weight blend hot RMSE from 2.478656 to 6.001585 K, and CNN hot RMSE from 2.347359/2.330832/2.322750 to 6.185947/5.924195/5.741222 K. Because both the baseline and learned-input distribution changed, this experiment is **not** a controlled estimate of the isolated causal benefit of climatology or definitive proof about strict spatial transfer.
 
-## 3.4. Figures and comparative interpretation
+### 3.4 Figures and comparative interpretation
 
 ![Figure 1: frozen CNN with historical climatology adaptation](../figures/manuscript/adapted_hot.svg)
 
@@ -102,7 +110,7 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 - Source-only paired bootstrap: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617
 - Feature-substitution sensitivity: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41275083685
 
-**Editorial note:** This is a numerical-evidence draft, not a submission-ready article. Do not add literature citations, author lists or journal-specific claims until separately checked. The original-domain 2022 full rerun has now succeeded in GitHub Actions run 41281229112; see its archived evidence.
+**Editorial note:** This remains an evidence-based draft, not a submission-ready article. Bibliographic anchors were added; authorship, dataset citation/terms, model-development chronology and venue-specific claims still require final checks. The original-domain 2022 full rerun has now succeeded in GitHub Actions run 41281229112; see its archived evidence.
 
 ## References (verified bibliographic anchors; journal style pending)
 
@@ -111,7 +119,7 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 3. Lam, R., Sanchez-Gonzalez, A., Willson, M., et al. (2023). Learning skillful medium-range global weather forecasting. *Science*, **382**(6677), 1416–1421. https://doi.org/10.1126/science.adi2336
 4. Bradbury, J., Frostig, R., Hawkins, P., et al. (2018). JAX: Composable transformations of Python+NumPy programs [Software]. https://github.com/jax-ml/jax/blob/main/CITATION.bib
 
-**ERA5 dataset credit pending final provenance verification.** The ERA5 *paper* citation above does not substitute for the precise dataset citation or licence attribution. At submission, identify the actual download channel/provider (CDS, ECMWF, or cloud mirror), dataset entry, retrieval and processing information, and the applicable attribution; use [Copernicus CDS guidance](https://confluence.ecmwf.int/spaces/CKB/pages/197704114/) and the [ECMWF attribution guidance](https://confluence.ecmwf.int/pages/viewpage.action?pageId=673321178). Do not assert a retrieval method without auditing the repository's fetch script.
+**ERA5 dataset credit pending final metadata and terms verification.** The archived fetch script uses the Google Cloud ARCO ERA5 Zarr mirror (see Section 2.6), not a direct Copernicus CDS API download. The ERA5 *paper* citation does not substitute for the dataset-specific citation and licensing/attribution for the actual mirror. Confirm the precise collection reference, retrieval and processing information, and the applicable attribution; use [Copernicus CDS guidance](https://confluence.ecmwf.int/spaces/CKB/pages/197704114/) and the [ECMWF attribution guidance](https://confluence.ecmwf.int/pages/viewpage.action?pageId=673321178). Do not assert a retrieval method without auditing the repository's fetch script.
 
 ## Appendix A. Cross-protocol result registry (verified)
 
@@ -125,7 +133,7 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 ## Appendix B. Pre-submission verification queue
 
 1. **Completed:** Original-area 2022 full-run successfully completed in [CI #41281229112](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112), artifact `independent-2022-era5-metrics` (21 JSON). Previous cancelled runs were superseded, not statistical failures.
-2. Record exact ERA5 endpoint, retrieval timestamp, file checksums and software dependency versions in a fixed release.
+2. **Partly complete:** Source endpoint, ARCO ERA5 provider, variable, native grid and six-hourly selection verified in code. Still record retrieval timestamp, local-file SHA-256 hashes and dependency lockfile in a fixed release.
 3. **Completed:** The figure-generation workflow successfully regenerated two hot-RMSE plots and a comparison CSV from archived successful JSON in run 41281229086. **Next:** publication-layout review and adding committed figure copies or permanent release assets.
 4. Confirm paper's model-selection/development chronology and evaluate external region/year replication before strong independent-generalization claims.
 5. **In progress:** Four core scientific/software references have been verified and inserted; finalize journal reference style, ERA5 dataset-specific credit and licence after checking actual data provenance.
