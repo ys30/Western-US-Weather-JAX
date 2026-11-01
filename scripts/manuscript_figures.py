@@ -21,7 +21,7 @@ def records(folder,keys):
 def chart(name,rows,path):
     colors=("#245d9a","#de772e")
     maxv=max(v for pair in rows.values() for v in pair)*1.12
-    x=['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350">',
+    x=['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" role="img">',
        '<rect width="800" height="350" fill="#ffffff"/>',
        f'<title>{html.escape(name)}</title>',
        f'<text x="26" y="36" font-family="sans-serif" font-size="20">{html.escape(name)}</text>']
@@ -32,7 +32,8 @@ def chart(name,rows,path):
             width=460*v/maxv
             x.append(f'<rect x="140" y="{y+25*j}" width="{width:.1f}" height="20" fill="{colors[j]}"/>')
             x.append(f'<text x="{150+width:.1f}" y="{y+25*j+15}" font-family="sans-serif" font-size="13">{v:.3f} K</text>')
-    x.append('<text x="26" y="330" font-family="sans-serif" font-size="12">Blue: CNN; orange: protocol-specific reference. Lower RMSE is better.</text>')
+    x.append('<text x="26" y="314" font-family="sans-serif" font-size="12">Blue: CNN; orange: protocol-specific reference. Lower RMSE is better.</text>')
+    x.append('<text x="26" y="336" font-family="sans-serif" font-size="12">Observed t2m ≥305 K; 2022 Southwest holdout; RMSE in kelvin.</text>')
     x.append('</svg>')
     path.write_text("\n".join(x))
 
