@@ -21,6 +21,8 @@ This source-weight comparator is **different** from the Southwest **locally vali
 
 **Frozen-weight cross-region uncertainty (verified):** Southwest 2022 heat-subset CNN-minus-source-blend 14-day paired Bootstrap 95% CIs were **[-0.1706, -0.0955], [-0.1804, -0.1144], [-0.1918, -0.1194] K** for seeds 42, 7, 123. All four examined time blocks (1–14 days) excluded zero for the fixed-305-K subset. **Annual intervals include zero**, so annual advantage remains uncertain. The model uses Southwest **pre-test historical climatology**, with no target CNN retraining. [CI results](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714).
 
+**Source-global-constant feature ablation (verified):** Frozen source-trained CNNs evaluated in Southwest with the target historical climatology replaced by the source global training mean showed **much larger** 2022 fixed-hot RMSE (**6.186 / 5.924 / 5.741 K** for seeds 42/7/123) than when allowed target pre-test historical climatology (**2.347 / 2.331 / 2.323 K**). The scheme-specific blends also changed dramatically (**6.002 K** vs **2.479 K**), so this demonstrates strong dependence on the input feature design, **not** a causal isolated estimate of climatology adaptation or definitive zero-shot spatial generalization. [Verified CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41275083685).
+
 ## Recruiter-ready visual results
 
 The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.
