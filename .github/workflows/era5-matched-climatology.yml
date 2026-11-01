@@ -33,7 +33,9 @@ jobs:
       - name: Direct paired CNN-to-CNN block bootstrap
         run: |
           for seed in 42 7 123; do
-            python scripts/matched_direct_bootstrap.py --historical "outputs/matched/historical/fields-$seed.npz" --source-mean "outputs/matched/source_mean/fields-$seed.npz" --output "outputs/matched/direct-seed-$seed.json"
+            for days in 3 7 14 28; do
+              python scripts/matched_direct_bootstrap.py --historical "outputs/matched/historical/fields-$seed.npz" --source-mean "outputs/matched/source_mean/fields-$seed.npz" --days "$days" --output "outputs/matched/direct-seed-$seed-block-$days.json"
+            done
           done
       - uses: actions/upload-artifact@v4
         if: always()
