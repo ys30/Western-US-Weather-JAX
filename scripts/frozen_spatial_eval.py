@@ -21,6 +21,7 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
         params={k:jnp.asarray(z["param_"+k]) for k in ("w1","w2","w3","b1","b2","b3")}
         mean=float(z["source_train_mean"]);std=float(z["source_train_std"])
         weight=float(z["source_validation_selected_blend_weight"])
+        trained_feature_mode=str(z["climatology_feature_mode"].item()) if "climatology_feature_mode" in z else "historical"
     if not np.isfinite([mean,std,weight]).all() or std<=0 or not 0<=weight<=1:
         raise ValueError("Invalid source metadata")
     months=(ts.astype("datetime64[M]").astype("int64")%12).astype(int)
@@ -40,7 +41,7 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     # Controlled inference-time feature perturbation: identical frozen weights,
     # target observations and reference; replace only the climatology input channel.
     # This is out-of-distribution sensitivity, NOT a trained matched ablation.
-    feature_clim=(np.full_like(clim,mean) if climatology_mode=="source_global_feature_only" else clim)
+    feature_clim=(np.full_like(clim,mean) if (climatology_mode=="source_global_feature_only" or (climatology_mode=="target_history" and trained_feature_mode=="source_mean")) else clim)
     input_indices=indices[:,None]-4-np.arange(3,-1,-1)[None,:]
     frames=np.moveaxis((a[input_indices]-mean)/std,1,-1)
     hour=hours[indices].astype(np.float32)
@@ -63,6 +64,8 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
         "protocol":"Frozen source CNN; target pre-test climatology; NO target weight updates",
         "strict_zero_history_transfer":climatology_mode=="source_global_constant",
         "climatology_mode":climatology_mode,
+        "trained_climatology_feature_mode":trained_feature_mode,
+        "matched_training_common_reference":climatology_mode=="target_history",
         "feature_only_perturbation":climatology_mode=="source_global_feature_only",
         "reference_held_fixed":climatology_mode=="source_global_feature_only",
         "feature_perturbation_caveat":"Out-of-distribution inference sensitivity; not causal climatology ablation" if climatology_mode=="source_global_feature_only" else None,"target_history_last_timestamp":str(ts[cut-1]),
