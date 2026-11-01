@@ -321,3 +321,16 @@ Heat RMSE decreases versus the **source-weight blend comparator** by about **5.3
 
 This source-weight comparator is **different** from the Southwest **locally validation-selected blend** (overall 3.802520 K, hot 2.408255 K). Do not conflate these baselines or make unpaired superiority statements across protocols. The locally retrained Southwest CNNs are a separate experiment.
 
+
+## Frozen CNN transfer: paired time-block uncertainty (verified)
+
+[Real ERA5 frozen Southwest bootstrap CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714) completed successfully, along with unit tests. Using 1000 paired circular time-block resamples at **1, 3, 7 and 14 days**, all fixed-305-K observed-hot RMSE CNN-minus-source-blend 95% percentile intervals were **entirely negative**, for each original-area-trained frozen network seed (42, 7, 123). The corresponding **annual RMSE** intervals all **included zero** at every time-block length.
+
+| Frozen model | 14-day heat RMSE difference CI, K | 14-day annual RMSE difference CI, K |
+| --- | --- | --- |
+| Seed 42 | [-0.170609, -0.095481] | [-0.024538, 0.006258] |
+| Seed 7 | [-0.180439, -0.114352] | [-0.008488, 0.005789] |
+| Seed 123 | [-0.191826, -0.119412] | [-0.019666, 0.009477] |
+
+Negative values favor CNN over the **source-weighted persistence+target-history climatology blend**. Confidence intervals are within-2022, within-one-Southwest-region and conditioned on retrospectively observed true-hot grid cells. They do **not** establish operational heat event detection, external-year robustness, independent spatial replication, or strict zero-target-history transfer.
+

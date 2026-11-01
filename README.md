@@ -19,6 +19,8 @@ Heat RMSE decreases versus the **source-weight blend comparator** by about **5.3
 
 This source-weight comparator is **different** from the Southwest **locally validation-selected blend** (overall 3.802520 K, hot 2.408255 K). Do not conflate these baselines or make unpaired superiority statements across protocols. The locally retrained Southwest CNNs are a separate experiment.
 
+**Frozen-weight cross-region uncertainty (verified):** Southwest 2022 heat-subset CNN-minus-source-blend 14-day paired Bootstrap 95% CIs were **[-0.1706, -0.0955], [-0.1804, -0.1144], [-0.1918, -0.1194] K** for seeds 42, 7, 123. All four examined time blocks (1–14 days) excluded zero for the fixed-305-K subset. **Annual intervals include zero**, so annual advantage remains uncertain. The model uses Southwest **pre-test historical climatology**, with no target CNN retraining. [CI results](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714).
+
 ## Recruiter-ready visual results
 
 The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.
