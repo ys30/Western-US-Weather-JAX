@@ -31,3 +31,13 @@ def test_misaligned_times_rejected():
     second["time"]=second["time"]+np.timedelta64(6,"h")
     with pytest.raises(ValueError,match="time"):
         compare(sample(2.),second,draws=100)
+
+
+def test_block_lengths_do_not_change_point_estimate():
+    historical=sample(2.)
+    source_mean=sample(3.)
+    estimates=[]
+    for days in (3,7,14,28):
+        result=compare(historical,source_mean,days=days,draws=100)
+        estimates.append(result["results"]["observed_hot"]["source_mean_minus_historical_rmse_K"])
+    assert estimates==pytest.approx([1.,1.,1.,1.])
