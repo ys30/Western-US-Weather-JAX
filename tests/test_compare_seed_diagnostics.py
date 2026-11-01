@@ -20,6 +20,6 @@ def test_mismatched_counts_are_rejected(tmp_path):
     paths=[]
     for seed,n in zip((42,7,123),(3,4,3)):
         p=tmp_path/f"seed-{seed}-fields.monthly.csv"
-        p.write_text("month,hot_gridcell_times,cnn_rmse_k,reference_rmse_k,cnn_hot_rmse_k,reference_hot_rmse_k\\n2022-07,"+str(n)+",2,3,2,3\\n")
+        p.write_text("month,hot_gridcell_times,cnn_rmse_k,reference_rmse_k,cnn_hot_rmse_k,reference_hot_rmse_k\n2022-07,"+str(n)+",2,3,2,3\n")
         paths.append(p)
     with pytest.raises(ValueError):compare(paths)

@@ -30,4 +30,4 @@ if __name__=="__main__":
     ap=argparse.ArgumentParser()
     ap.add_argument("files",nargs=3);ap.add_argument("--output",required=True)
     a=ap.parse_args()
-    Path(a.output).write_text(json.dumps(compare(a.files),indent=2)+"\\n")
+    Path(a.output).write_text(json.dumps(compare(a.files),indent=2)+"\n")
