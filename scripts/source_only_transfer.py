@@ -6,6 +6,8 @@ import jax
 import jax.numpy as jnp
 from weatherjax.data import load_era5
 from weatherjax.model import init_model,predict
+from weatherjax.train import paired_time_block_ci
+from scripts.climatology_aware_cnn import hot_time_block_ci
 
 def evaluate(source, source_times, target, target_times, seed=42, epochs=40,
              train_end="2021-01-01", val_end="2022-01-01", test_start="2022-01-01"):
@@ -45,7 +47,11 @@ def evaluate(source, source_times, target, target_times, seed=42, epochs=40,
     persistence=tar[np.arange(c,len(tar))-4]
     hot=truth>=305.
     rmse=lambda v,m:float(np.sqrt(np.mean((v[m]-truth[m])**2))) if m.any() else None
-    return {"protocol":"Train on original area only: recent frames + hour + persistence, no climatology at training or inference",
+    annual_ci=[paired_time_block_ci(pred,persistence,truth,block_steps=k,draws=1000,seed=seed) for k in (4,12,28,56)]
+    hot_ci=([hot_time_block_ci(pred,persistence,truth,block_steps=k,draws=1000,seed=seed) for k in (4,12,28,56)] if hot.any() else [])
+    return {"annual_paired_block_sensitivity":annual_ci,
+            "fixed_hot_paired_block_sensitivity":hot_ci,
+            "protocol":"Train on original area only: recent frames + hour + persistence, no climatology at training or inference",
             "seed":seed,"source_train_normalization":True,"target_training":False,
             "target_historical_climatology":False,"source_validation_best_mse":best,
             "target_annual_cnn_rmse_kelvin":rmse(pred,np.ones_like(hot,dtype=bool)),
