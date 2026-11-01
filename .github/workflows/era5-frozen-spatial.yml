@@ -43,6 +43,11 @@ jobs:
             python scripts/validate_monthly_reconstruction.py "outputs/diagnostics/seed-${seed}-fields.monthly.csv" "outputs/diagnostics/seed-${seed}-evaluation.json"
           done
           python scripts/compare_seed_diagnostics.py outputs/diagnostics/seed-42-fields.monthly.csv outputs/diagnostics/seed-7-fields.monthly.csv outputs/diagnostics/seed-123-fields.monthly.csv --output outputs/diagnostics/three-seed-monthly-consistency.json
+      - name: Controlled feature-only sensitivity (fixed reference and weights)
+        run: |
+          for seed in 42 7 123; do
+            python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint "outputs/source/model-${seed}.npz" --test-start 2022-01-01 --climatology-mode source_global_feature_only --output "outputs/frozen-feature-only/seed-${seed}.json"
+          done
       - name: Frozen weights with no target historical climatology
         run: |
           for seed in 42 7 123; do
@@ -55,6 +60,7 @@ jobs:
           path: |
             outputs/frozen-southwest/*.json
             outputs/frozen-no-history/*.json
+            outputs/frozen-feature-only/*.json
             outputs/source/*.json
             outputs/diagnostics/*
           if-no-files-found: warn
