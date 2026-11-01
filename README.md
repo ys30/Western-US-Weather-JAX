@@ -26,6 +26,10 @@ Nine real ERA5 runs (three seeds × hot-loss weights 0, 1, 2) were completed. **
 
 **Further heat-tail robustness (2022):** The heat-weighted CNN passed corrected CI, and all three seeds have **negative 1-, 3-, 7-, and 14-day paired block-bootstrap intervals** for fixed-305-K hot RMSE versus the blend. In each seed, all **8 months with eligible heat observations (March–October)** improved; other months have no qualifying hot samples. This supports **within-year** robustness, **not** cross-year or other-region generalization. [Verified CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41265640777).
 
+## 2021 retrospective temporal sensitivity: all three seeds improve
+
+An additional real-ERA5 temporal backtest used 2018–2019 training, 2020 validation and 2021 testing. The validation-selected blend scored **2.90484 K annual** / **2.16951 K fixed-305-K hot** RMSE. Fixed extra hot-loss weight 2 climatology-aware CNNs (seeds 42 / 7 / 123) achieved **2.89004 / 2.90044 / 2.88990 K annual** and **2.06278 / 2.00450 / 2.04634 K hot**. All three seeds improved both metrics on this retrospective window. **2021 was previously used in model development**, so this is an informative *retrospective temporal sensitivity test*, **not an untouched independent external validation**. [Verified CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41267651677).
+
 ## Actual GPU verification — Colab Tesla T4
 
 A user-executed **NVIDIA Tesla T4** Google Colab run successfully trained the validated heat-weighted JAX CNN on real ERA5, with hardware-backed JAX GPU audit and matching input SHA-256. **40 epochs**, same seed and settings:

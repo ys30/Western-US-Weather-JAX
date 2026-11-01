@@ -234,3 +234,19 @@ This strengthens **within-2022, within-region, seed- and block-length sensitivit
 
 Evidence: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41265640777
 
+
+## Earlier 2021 retrospective backtest — validated run 41267651677
+
+A separately rerun chronological experiment used **2018–2019 training**, **2020 validation**, **2021 test** (real ERA5 6-hourly, fixed 24-hour lead). The per-gridcell month/hour climatology came strictly from training, with 2020 validation selecting a 25% climatology / 75% persistence blend. The heat-weighted climatology-aware residual CNN was evaluated at additional fixed-305-K training weight 2 with seeds 42, 7 and 123, as already explored in the earlier 2022 experiments.
+
+| 2021 test metric (K) | Strong blend | Seed 42 | Seed 7 | Seed 123 |
+| --- | ---: | ---: | ---: | ---: |
+| Annual RMSE | 2.904840 | 2.890040 | 2.900441 | 2.889897 |
+| Fixed-305-K hot RMSE | 2.169510 | 2.062780 | 2.004501 | 2.046343 |
+
+All three seeds were lower than the blend both overall and on the fixed hot subset. Relative hot RMSE improvements were about 4.92%, 7.61%, and 5.68%, respectively.
+
+**Evidence boundary:** 2021 was previously involved in earlier model development, including the original 2022 experiments' validation window; this is a **retrospective temporal sensitivity check**, not an untouched external/prospective test. The three models also use fixed weight 2 carried over from development, and no independent high-temperature event-level validation is claimed. The 2022 annual results were mixed across seeds, so this does **not** establish stable annual superiority across settings. A second region or genuinely untouched year remains needed.
+
+Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41267651677
+
