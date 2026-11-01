@@ -13,7 +13,8 @@ from weatherjax.model import init_model,predict
 from scripts.climatology_baselines import benchmark
 from weatherjax.train import paired_time_block_ci
 
-def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001):
+def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0):
+    if hot_weight < 0: raise ValueError('hot_weight must be nonnegative')
     ts=np.asarray(timestamps).astype('datetime64[h]')
     n=len(arr)
     a=int(np.searchsorted(ts,np.datetime64(train_end)))
@@ -45,27 +46,32 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     params=init_model(jax.random.PRNGKey(seed),channels,input_channels=xt.shape[-1],zero_residual=True)
     @jax.jit
     def update(p,x,y):
-        def loss(q):return jnp.mean((predict(q,x)-y)**2)
+        def loss(q):
+            sq=(predict(q,x)-y)**2
+            weights=1.0+hot_weight*(y>=((hot_threshold_kelvin-mean)/std))
+            return jnp.sum(weights*sq)/jnp.sum(weights)
         _,grads=jax.value_and_grad(loss)(p)
         return jax.tree_util.tree_map(lambda v,g:v-lr*g,p,grads)
     rng=np.random.default_rng(seed)
-    best=float('inf');best_epoch=0;best_params=params
+    best=float('inf');best_epoch=0;best_params=params;best_hot=None
     start=time.perf_counter()
     for epoch in range(epochs):
         for ids in np.array_split(rng.permutation(len(xt)),max(1,int(np.ceil(len(xt)/batch)))):
             params=update(params,jnp.asarray(xt[ids]),jnp.asarray(yt[ids]))
         val_pred=np.asarray(predict(params,jnp.asarray(xv)))
         vrmse=float(np.sqrt(np.mean((val_pred-yv)**2))*std)
+        vmask=(yv[...,0]*std+mean)>=hot_threshold_kelvin
+        vhot=(float(np.sqrt(np.mean((val_pred[...,0][vmask]-yv[...,0][vmask])**2))*std) if vmask.any() else None)
         if vrmse<best:
-            best=vrmse;best_epoch=epoch+1
+            best=vrmse;best_hot=vhot;best_epoch=epoch+1
             best_params=jax.tree_util.tree_map(lambda v:jnp.array(v),params)
         print(f'epoch {epoch+1}/{epochs} val_rmse_K={vrmse:.6f}',flush=True)
     pred=np.asarray(predict(best_params,jnp.asarray(xe)))[...,0]*std+mean
     truth=np.asarray(ye[...,0])*std+mean
-    mask=truth>=305.0
+    mask=truth>=hot_threshold_kelvin
     score=lambda z,m:float(np.sqrt(np.mean((z[m]-truth[m])**2)))
     uncertainty=[paired_time_block_ci(pred[...,None],baseline[...,None],truth[...,None],block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
-    result={'paired_block_sensitivity':uncertainty,'random_seed':seed,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
+    result={'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
       'blended_baseline_rmse_kelvin':score(baseline,np.ones_like(mask,dtype=bool)),
       'fixed_305k_cnn_rmse_kelvin':score(pred,mask) if mask.any() else None,
       'fixed_305k_blend_rmse_kelvin':score(baseline,mask) if mask.any() else None,
@@ -83,8 +89,10 @@ def main():
     p.add_argument('--train-until',default='2021-01-01');p.add_argument('--validate-until',default='2022-01-01')
     p.add_argument('--epochs',type=int,default=40)
     p.add_argument('--seed',type=int,default=42)
+    p.add_argument('--hot-weight',type=float,default=0.0)
+    p.add_argument('--hot-threshold-kelvin',type=float,default=305.0)
     a=p.parse_args();da=load_era5(a.data)
-    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed)
+    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed,hot_weight=a.hot_weight,hot_threshold_kelvin=a.hot_threshold_kelvin)
     out=Path(a.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 if __name__=='__main__':main()

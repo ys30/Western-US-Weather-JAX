@@ -46,6 +46,14 @@ jobs:
         run: |
           python scripts/climatology_aware_cnn.py --data input/era5_2019_2022.nc --epochs 40 --seed 7 --output outputs/era5-crossyear/climatology-aware-seed7.json
           python scripts/climatology_aware_cnn.py --data input/era5_2019_2022.nc --epochs 40 --seed 123 --output outputs/era5-crossyear/climatology-aware-seed123.json
+      - name: Heat-weight sensitivity for climatology-aware CNN (seeds 42, 7, 123)
+        run: |
+          for seed in 42 7 123; do
+            for weight in 0 1 2; do
+              python scripts/climatology_aware_cnn.py --data input/era5_2019_2022.nc --epochs 40 --seed "$seed" --hot-weight "$weight" --hot-threshold-kelvin 305 --output "outputs/era5-crossyear/climate-heat-s${seed}-w${weight}.json"
+            done
+          done
+          python scripts/select_climate_heat.py outputs/era5-crossyear/climate-heat-s*.json --output outputs/era5-crossyear/climate-heat-validation-selection.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
