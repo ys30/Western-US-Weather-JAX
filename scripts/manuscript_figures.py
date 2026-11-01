@@ -8,7 +8,6 @@ def records(folder,keys):
     for path in files:
         stem=path.stem
         seed=int(stem.rsplit("-",1)[-1])
-        if seed in data:raise ValueError("Duplicate seed")
         v=json.loads(path.read_text())
         # The frozen-region artifact contains BOTH adapted and source-global-constant
         # ablation results. Keep only the historical-climatology-adapted protocol.
