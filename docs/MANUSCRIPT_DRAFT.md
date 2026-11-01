@@ -63,6 +63,12 @@ The source reanalysis dataset is **ERA5 hourly data on single levels from 1940 t
 
 A proposed attribution statement, subject to final author and publisher review, is: *Contains modified Copernicus Climate Change Service information [2019–2022]. ERA5 data were accessed via the Google ARCO ERA5 public cloud mirror; six-hourly subset, spatial crop and NetCDF conversion were performed for this study.* The CDS catalogue currently identifies the ERA5 single-levels product as **CC BY**. The original C3S/ECMWF source must be credited, and transformations should be disclosed. **Do not substitute the separate ERA5 hourly time-series dataset DOI (10.24381/1cf1ad76)**: that is a different CDS catalogue product.
 
+### Figure 0. Study design and geographic transfer protocols
+
+![Schematic study rectangles, split years and frozen transfer protocols](../figures/manuscript/study_design_domains.svg)
+
+**Study-design schematic.** Source (31–43°N, 121–109°W) and Southwest target (30–36°N, 108–102°W) are plotted as labeled schematic rectangles rather than a geographical basemap. Training uses source 2019–2020 observations, source validation 2021 and target testing in 2022. The historical-climatology-adapted CNN uses Southwest 2019–2021 records to construct nonlearned target features; the source-only architecture does not. Both freeze learned source parameters and require recent target observations as inputs. Their baseline comparisons are not identical. This figure does not represent coastlines, administrative boundaries, or geographic distances.
+
 ## 3. Results
 
 ### 3.1 Frozen network transfer with target historical climatology
