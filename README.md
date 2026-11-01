@@ -23,6 +23,8 @@ This source-weight comparator is **different** from the Southwest **locally vali
 
 **Source-global-constant feature ablation (verified):** Frozen source-trained CNNs evaluated in Southwest with the target historical climatology replaced by the source global training mean showed **much larger** 2022 fixed-hot RMSE (**6.186 / 5.924 / 5.741 K** for seeds 42/7/123) than when allowed target pre-test historical climatology (**2.347 / 2.331 / 2.323 K**). The scheme-specific blends also changed dramatically (**6.002 K** vs **2.479 K**), so this demonstrates strong dependence on the input feature design, **not** a causal isolated estimate of climatology adaptation or definitive zero-shot spatial generalization. [Verified CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41275083685).
 
+**Source-only architecture without any climatology inputs (verified):** Three source-trained, frozen CNNs (2019–2020 training, 2021 validation) evaluated in Southwest 2022 achieved annual RMSE **4.1124 / 4.0984 / 4.0993 K**, versus **4.1627 K** persistence, but observed >=305 K hot-subset RMSE **2.5506 / 2.5632 / 2.5389 K**, **worse** than persistence (**2.4004 K**). This demonstrates small annual improvements **without high-temperature gains**; distinct from the frozen climatology-aware adaptation protocol. [Successful CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41276916469).
+
 ## Recruiter-ready visual results
 
 The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.

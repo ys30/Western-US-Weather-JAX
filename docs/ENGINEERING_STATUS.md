@@ -350,3 +350,17 @@ The feature substitution strongly degrades both the **baseline and CNN**, not ju
 
 Uncertainty for the adapted case is documented in [frozen spatial transfer](FROZEN_SPATIAL_TRANSFER.md); do **not** transfer those intervals to the constant-feature ablation. Formal no-history uncertainty and source-only transferable feature alternatives remain future validation needs.
 
+
+## Source-only climatology-free frozen spatial transfer (verified CI)
+
+[Successful ERA5 workflow](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41276916469) evaluated a **separately source-trained CNN architecture that NEVER uses climatology channels**. Source training dates 2019–2020; original-region validation in 2021 selected checkpoints; Southwest 2022 inference used frozen weights, original-source normalization, forecast-time hour and four recent observed target-region frames. No Southwest historical climatology or CNN retraining. This is a proper source-only-feature comparison, distinct from substituting a constant for a previously trained climatology input.
+
+| Southwest 2022 RMSE (K) | Persistence | CNN seed 42 | CNN seed 7 | CNN seed 123 |
+| --- | ---: | ---: | ---: | ---: |
+| Annual | 4.162715 | 4.112426 | 4.098400 | 4.099266 |
+| Truth-hot >=305 K | 2.400407 | 2.550601 | 2.563245 | 2.538898 |
+
+All seeds show **smaller annual RMSE** than Persistence (roughly 1.2–1.5% improvement) but **worse observed-hot RMSE** (roughly 5.8–6.8% deterioration). Thus **the no-target-historical-climatology source-only architecture fails the project's high-temperature improvement objective**, despite a modest annual advantage. There are no confidence intervals for this newly trained architecture yet; the earlier frozen *climatology-aware* bootstrap intervals cannot be transferred.
+
+**Scientific boundary:** the protocols are not perfectly controlled ablations of one learned parameterization: removing climatology changes both the model inputs and learned source parameters. The source-only test is evidence of method-level performance under an operationally relevant no-target-climatology constraint, not proof that a particular climatic feature alone causes the difference.
+
