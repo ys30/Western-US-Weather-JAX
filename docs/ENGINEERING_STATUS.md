@@ -284,3 +284,26 @@ All three seeds improved both overall and fixed-hot RMSE relative to the region-
 
 Evidence: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41270894771
 
+
+## Prespecified high-temperature episode-definition sensitivity (verified)
+
+The 3×3 retrospective audit uses **regional truth-hot fractions 1%, 5%, 10%** and **minimum consecutive active days 2, 3, 4**, always using fixed observed t2m >=305 K. Episode-wise evaluation uses CNN and region-specific strong-blend RMSE on observed-hot cells during episodes.
+
+**Southwest second region, 2022, heat-weight 2, seeds 42 / 7 / 123:**
+
+| Area fraction, min duration | Episodes | Improved, seeds 42 / 7 / 123 |
+| --- | ---: | --- |
+| >=1%, >=2 days | 11 | 9 / 11 / 10 |
+| >=5%, >=3 days | 8 | 7 / 8 / 8 |
+
+**Original region 2021 retrospective backtest:**
+
+| Area fraction, min duration | Episodes | Improved, seeds 42 / 7 / 123 |
+| --- | ---: | --- |
+| >=1%, >=2 days | 7 | 7 / 7 / 7 |
+| >=5%, >=3 days | 7 | 7 / 7 / 7 |
+
+These are selected examples from **all nine settings automatically calculated and saved in each run's JSON**, not cherry-picked event definitions used to train/select weights. The broader grid sometimes has fewer events and lower win fractions (e.g., 2022 Southwest seed 42); no claim is made that all settings show 100% episode improvement. The 2022 original-region full rerun has not yet finished as of this documentation update. No event detection or independent-event significance is implied.
+
+Evidence: [Southwest CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41272192666), [2021 backtest CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41272192668).
+

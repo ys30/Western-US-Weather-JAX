@@ -4,6 +4,8 @@
 
 **For recruiters:** [One-page engineering and scientific evidence brief](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Live portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html).
 
+**High-temperature event-definition robustness (new):** The 1% / 5% / 10% area-fraction × 2 / 3 / 4 consecutive-day audit ran successfully. For Southwest 2022, **1% / 2 days** yielded 11 episodes with **9 / 11 / 10** improved across the three seeds; **5% / 3 days** yielded 8 episodes with **7 / 8 / 8** improved. All settings use retrospectively observed temperature and are **not detection-skill tests**. [Validated workflow](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41272192666).
+
 ## Recruiter-ready visual results
 
 The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.
