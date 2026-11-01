@@ -86,19 +86,33 @@ The latest uninterrupted original-region 2022 full workflow [completed successfu
 
 **Figure 3 caption.** The 95% percentile confidence intervals depict CNN-minus-protocol-reference observed-hot RMSE differences in Southwest 2022. Intervals are based on **1,000 paired circular resamples of 14-day time blocks** and cover seeds 42, 7 and 123. Blue intervals: frozen CNN with Southwest pre-test historical climatology adaptation versus its **source-selected blended reference**; all intervals lie below zero. Orange intervals: separately source-trained climatology-free CNN versus **24-hour persistence**; all intervals lie above zero. The two groups have different features, training and baselines, so juxtaposition is descriptive and not a causal contrast. Source values: [frozen adaptation bootstrap CI #41274429714](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714) and [source-only bootstrap CI #41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617). Exact bounds are archived in `figures/manuscript/transfer_hot_bootstrap_ci.csv`.
 
-## 4. Discussion — draft
-The central finding is a **metric-dependent transfer trade-off**. Historical-feature-adapted frozen source networks improved hot-subset RMSE within the Southwest test year, although their small annual differences were statistically uncertain under the evaluated block resamples. A separately source-trained climatology-free model modestly improved annual prediction over persistence but worsened conditional hot-subset error. This distinction matters for evaluations in which extreme temperatures are of principal interest.
+## 4. Discussion
 
-The adapted experiment retains a target historical-data requirement, whereas the no-climatology source-only protocol tests a narrower operational setting. Differences between the architectures, features and benchmarks prohibit a causal attribution of all skill differences solely to local climatology. Source-only results should remain visible even where they do not advance the high-heat objective.
+### 4.1 What the held-out evaluation establishes
 
-## 5. Limitations and next analyses
-- One main Southwest held-out year and two geographically disjoint rectangles do not demonstrate multi-region/multi-year external generalization.
-- Prior exploration of historical time periods, feature choices and model weighting can influence apparent independence of an evaluation; record the development chronology explicitly.
-- A threshold applied to observed truth does not validate heat-event detection or early-warning decision performance.
-- Time-block bootstrap addresses temporal dependence but cannot solve broad spatial representativeness, multiple-comparison or model-selection issues.
-- Comparing a climatology-aware CNN to the source-only CNN changes architecture/input/training distributions and comparator; further matched-design studies are needed before causal claims.
-- Code-level input-lead and chronological boundary audit has passed CI. Remaining provenance checks include verifying upstream ERA5 timestamp semantics and complete reproducibility of all cached/downloaded data.
-- Consider an additional withheld Southwest year, independent domain and operational threshold-based detection metrics before a submission-ready manuscript.
+The principal finding is a **metric-dependent transfer trade-off in one defined regional holdout**, not general superiority of a particular CNN. In Southwest 2022, the climatology-adapted frozen-weight protocol reduced RMSE on gridcell-time observations with ERA5 2-m temperature ≥305 K compared with a source-validation-selected persistence/climatology blend. In all three seeds, the 14-day paired-block confidence intervals for the conditional hot RMSE difference were negative, while intervals for the overall difference crossed zero. The source-only no-climatology architecture had the opposite performance pattern against persistence: better domain-wide RMSE and worse truth-hot RMSE for all three seeds. Both favorable and unfavorable outcomes are material to the research conclusion.
+
+### 4.2 Interpretation without unsupported mechanism claims
+
+A plausible explanation is that climatological features encode locally characteristic seasonal and diurnal temperatures, which may help a learned residual model adjust to regional distribution shifts. However, this interpretation is **hypothesis-generating**: the adapted and source-only protocols use different input features, training procedures and comparators. Consequently, their juxtaposition cannot identify the isolated causal contribution of historical climatology. The feature-substitution sensitivity further changes the learned model's input distribution and cannot resolve this confounding.
+
+The original-domain 2022 experiment also showed improved truth-hot RMSE for all three seeds, but its annual advantage was not uniform. Together these results argue for reporting the **distribution of forecasting errors by scientifically relevant condition**, rather than selecting a single summary metric after inspecting the results. Because the hot subset is identified using *observed* ERA5 temperature, the analysis does not estimate detection sensitivity, precision, false-alarm rates or warning lead time.
+
+### 4.3 What would constitute stronger replication
+
+A stronger follow-up design would freeze all model and hyperparameter choices **before** testing another geographically disjoint region or later year; evaluate matched architectures with and without climatological features against a common set of baselines; and quantify hot-condition performance alongside threshold-event detection, calibration and regional skill heterogeneity. A prospective test using information available at forecast issue time would additionally be needed before the term operational forecasting is justified.
+
+## 5. Limitations and reproducibility qualifications
+
+First, the independent spatial holdout is restricted to the Southwest domain in 2022. Three random seeds test optimization variability, not sampling variability across regions or years. Second, although the code separates chronological training/validation/test targets, historical exploration of the domain, feature design and hyperparameters may still introduce *researcher-selection bias*. The held-out label should be understood as chronological model evaluation, not a fully preregistered external replication.
+
+Third, the reported 95% percentile intervals are generated by paired circular block resampling of test times and intact spatial fields. Their interpretation is conditional on the region/year and on the model choices already made; the intervals do not adjust for multiple seeds, evaluated models, or alternative thresholds. Blocks up to 14 days probe a range of temporal dependence assumptions but do not establish the correct asymptotic sampling distribution for spatial climate extremes. No general population-level coverage claim is made.
+
+Fourth, 305 K is a fixed **retrospective conditional scoring threshold** rather than a documented human-health warning criterion. The subset uses the observed target to determine inclusion; consequently it does not measure actionable heat alerts. Fifth, the adapted model uses Southwest **2019–2021** temperature records to construct target historical climatology. It is frozen with respect to learned CNN parameters, but is not strict no-target-history zero-shot transfer.
+
+Sixth, the ERA5 inputs are retrospective reanalysis fields from the Google Cloud ARCO ERA5 mirror. Their timestamps precede targets in the constructed supervised examples, but archived reanalysis products may incorporate observations unavailable in real time at the nominal forecast-issue time. The experiments are therefore **reanalysis-based hindcasts**, not verified operational 24-hour forecasts. Exact source-object versions, local-file digests and environment locks remain to be archived for a release.
+
+Finally, the comparison is based on a single meteorological variable, relatively small geographic rectangles, and relatively simple convolutional architectures. It neither benchmarks modern global forecast systems fairly nor establishes superior computational efficiency across hardware. The primary contribution is a reproducible, transparently qualified contrast between distinct transfer configurations and their mean-versus-heat-conditional error behavior.
 
 ## Data and code availability
 Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather-JAX . ERA5 data access is automated in workflow scripts; the repository does not imply redistribution of ERA5 as owned data.
