@@ -215,3 +215,22 @@ Nine climatology-aware CNN trainings (seeds 42, 7, 123 × additional 305 K train
 
 Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41259276907
 
+
+## Fixed-305-K high-temperature robustness (verified run 41265640777)
+
+The corrected test suite, CPU real-ERA5 workflow, and independent-year evaluation all **passed** after commit `ffbbbf3`. Heat-weighted climatology-aware residual CNN, validation-selected extra loss weight **2**, seeds **42, 7, 123**, independent 2022 test.
+
+Paired circular time-block bootstrap of **truth >=305 K gridcells**, preserving grid dependence within each valid time, 1000 resamples per block length. Negative CNN-minus-blend RMSE differences favor CNN. Verified **14-day-block** 95% percentile intervals in kelvin:
+
+| Seed | 14-day block 95% CI of heat RMSE difference K |
+| --- | --- |
+| 42 | [-0.051923, -0.020463] |
+| 7 | [-0.140386, -0.063754] |
+| 123 | [-0.168172, -0.076555] |
+
+**All 1-, 3-, 7-, and 14-day intervals lie entirely below zero for all three seeds.** Each seed also shows lower heat-subset monthly RMSE than the blended baseline in **all eight months with eligible hot observations (March–October 2022)**. January, February, November and December have no qualifying truth-hot observations; monthly hot RMSE is undefined, **not zero**.
+
+This strengthens **within-2022, within-region, seed- and block-length sensitivity** evidence of hot-subset gains. It does **not** establish cross-year generalization, independent spatial-region significance or event-level reliability. Monthly results are descriptive and correlated. Further gates: additional independent calendar years/regions, event-based episode metrics, and potential selection/temperature-conditioning audits.
+
+Evidence: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41265640777
+
