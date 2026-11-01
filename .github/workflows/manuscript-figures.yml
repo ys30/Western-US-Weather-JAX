@@ -1,0 +1,25 @@
+name: Manuscript plots from archived ERA5 JSON
+on:
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve previously verified artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p archived/adapted archived/source_only
+          gh run download 41279255173 -n frozen-southwest-results -D archived/adapted
+          gh run download 41277714617 -n source-only-transfer -D archived/source_only
+      - name: Derive figures and comparison CSV
+        run: python scripts/manuscript_figures.py --adapted archived/adapted --source-only archived/source_only --output outputs/manuscript
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-figures-artifact-derived
+          path: outputs/manuscript/*
+          if-no-files-found: error
