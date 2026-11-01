@@ -98,6 +98,13 @@ The latest uninterrupted original-region 2022 full workflow [completed successfu
 
 **Figure 3.** Dots indicate observed CNN-minus-reference RMSE differences; horizontal lines give paired-bootstrap 95% percentile confidence intervals for observed-hot RMSE differences in Southwest 2022. Intervals are based on **1,000 paired circular resamples of 14-day time blocks** and cover seeds 42, 7 and 123. Blue intervals: frozen CNN with Southwest pre-test historical climatology adaptation versus its **source-selected blended reference**; all intervals lie below zero. Orange intervals: separately source-trained climatology-free CNN versus **24-hour persistence**; all intervals lie above zero. The two groups have different features, training and baselines, so juxtaposition is descriptive and not a causal contrast. Source values: [frozen adaptation bootstrap CI #41274429714](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714) and [source-only bootstrap CI #41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617). Exact point estimates and interval bounds are archived in `figures/manuscript/transfer_hot_bootstrap_ci.csv`; values were cross-checked against the six source JSON files, including `fixed_heat_paired_block_sensitivity` and `fixed_hot_paired_block_sensitivity` at `block_steps=56`.
 
+
+### Figure 4. Baseline-relative scorecard across annual and observed-hot errors
+
+![Baseline-relative scorecard for all seeds and both protocols](../figures/manuscript/baseline_relative_scorecard.svg)
+
+**Figure 4.** Annual and truth-conditioned observed-hot RMSE changes (%) relative to **each protocol's own reference**, computed from the audited six-row comparison CSV. Positive values (green) indicate improvement, negative values (salmon) indicate deterioration. Within the source-only protocol the annual error improves while the observed-hot error worsens for all three seeds, making the evaluation trade-off visible without redundant absolute-value bars. The adapted protocol's improvements are relative to a different baseline and use pre-test target climatology: do **not** interpret row-to-row protocol contrasts as the causal effect of climatology. The compact scorecard design follows the evaluation-presentation practice of WeatherBench 2 (Rasp et al., 2024), not its scores or task.
+
 ## 4. Discussion
 
 ### 4.1 What the held-out evaluation establishes
@@ -152,6 +159,8 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 
 7. Rasp, S., Dueben, P. D., Scher, S., Weyn, J. A., Mouatadid, S., & Thuerey, N. (2020). WeatherBench: A benchmark data set for data-driven weather forecasting. *Journal of Advances in Modeling Earth Systems*, **12**, e2020MS002203. https://doi.org/10.1029/2020MS002203
 8. Ravuri, S., Lenc, K., Willson, M., et al. (2021). Skilful precipitation nowcasting using deep generative models of radar. *Nature*, **597**, 672–677. https://doi.org/10.1038/s41586-021-03854-z
+
+9. Rasp, S., et al. (2024). WeatherBench 2: A benchmark for the next generation of data-driven global weather models. *Journal of Advances in Modeling Earth Systems*. https://doi.org/10.1029/2023MS004019
 
 ## Appendix A. Cross-protocol result registry (verified)
 

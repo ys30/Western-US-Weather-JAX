@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="610" viewBox="0 0 920 610" role="img">
+<rect width="920" height="610" fill="#ffffff"/>
+<title>Baseline-relative annual and observed-hot RMSE scorecard across six seeds</title>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#17253a}.small{font-size:14px}.medium{font-size:17px}.head{font-size:24px;font-weight:bold}.label{font-size:16px;font-weight:bold}</style>
+<text x="32" y="40" class="head">Cross-region temperature transfer: baseline-relative RMSE</text>
+<text x="32" y="64" class="small">2022 Southwest · 24-hour lead · 3 seeds per protocol · positive (%) = lower error than reference</text>
+<text x="296" y="93" class="label">Annual RMSE change</text>
+<text x="540" y="93" class="label">Observed-hot (≥305 K)</text>
+<text x="34" y="130" class="medium">Adapted + history · seed 7</text>
+<rect x="296" y="102" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="406" y="132" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+0.05%</text>
+<rect x="540" y="102" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="650" y="132" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+5.96%</text>
+<text x="34" y="192" class="medium">Adapted + history · seed 42</text>
+<rect x="296" y="164" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="406" y="194" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+0.25%</text>
+<rect x="540" y="164" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="650" y="194" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+5.30%</text>
+<text x="34" y="254" class="medium">Adapted + history · seed 123</text>
+<rect x="296" y="226" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="406" y="256" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+0.14%</text>
+<rect x="540" y="226" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="650" y="256" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+6.29%</text>
+<line x1="32" x2="750" y1="279" y2="279" stroke="#9aa7b7" stroke-dasharray="5 4"/>
+<text x="34" y="316" class="medium">Source-only · seed 7</text>
+<rect x="296" y="288" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="406" y="318" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+1.55%</text>
+<rect x="540" y="288" width="220" height="48" rx="6" fill="#fae2dd"/>
+<text x="650" y="318" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#a53e32">-6.78%</text>
+<text x="34" y="378" class="medium">Source-only · seed 42</text>
+<rect x="296" y="350" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="406" y="380" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+1.21%</text>
+<rect x="540" y="350" width="220" height="48" rx="6" fill="#fae2dd"/>
+<text x="650" y="380" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#a53e32">-6.26%</text>
+<text x="34" y="440" class="medium">Source-only · seed 123</text>
+<rect x="296" y="412" width="220" height="48" rx="6" fill="#d5eee6"/>
+<text x="406" y="442" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#156d58">+1.52%</text>
+<rect x="540" y="412" width="220" height="48" rx="6" fill="#fae2dd"/>
+<text x="650" y="442" text-anchor="middle" font-size="19" font-family="Arial" font-weight="bold" fill="#a53e32">-5.77%</text>
+<line x1="32" x2="880" y1="491" y2="491" stroke="#d3d9e1"/>
+<text x="32" y="517" class="small">Adapted: reference = source-selected persistence/climatology blend; target 2019–2021 history used.</text>
+<text x="32" y="538" class="small">Source-only: reference = 24-hour persistence; no target historical climatology fitted.</text>
+<text x="32" y="559" class="small">Change = 100 × (1 − CNN RMSE / protocol reference RMSE). Comparisons across protocols are not causal.</text>
+<text x="32" y="581" class="small">Green: improvement; salmon: deterioration. Observed-hot is truth-conditioned, not event detection.</text>
+</svg>
