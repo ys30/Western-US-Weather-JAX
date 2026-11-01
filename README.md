@@ -4,6 +4,18 @@
 
 **For recruiters:** [One-page engineering and scientific evidence brief](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Live portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html).
 
+## Recruiter-ready visual results
+
+The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.
+
+![CPU versus NVIDIA T4 JAX training time](figures/gpu_training_time.svg)
+
+![Fixed 305 K RMSE across two geographic regions and three random seeds](figures/heat_rmse_regions.svg)
+
+![Share of retrospective multiday heat episodes with lower CNN hot RMSE than blend](figures/hot_episode_coverage.svg)
+
+See [the recruiter evidence brief](docs/RECRUITER_EVIDENCE_BRIEF.md) for provenance, limitations and exact numerical results.
+
 ## Verified results
 
 | Evaluation | Persistence RMSE | Four-frame CNN RMSE | Relative overall improvement |
