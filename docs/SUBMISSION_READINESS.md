@@ -9,7 +9,7 @@
 | Original-region 2022 held-out run | [41281229112](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112) | Success; 21 JSON result files |
 | Frozen source network, Southwest pre-test climatology | [41279255173](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255173) | Success |
 | No-climatology source-trained frozen network | [41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617) | Success |
-| Manuscript plot generator | [41281229086](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229086) | Success; SVG and CSV in artifact |
+| Manuscript plot generator | [41288411558](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41288411558) | Success; latest standalone-label SVG and CSV artifact |
 | Forecast lead and temporal split unit tests | [41279255199](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255199) | Success |
 
 ## Results that must not be conflated
@@ -35,15 +35,23 @@ Each protocol has a **different comparison baseline**. Results do not prove a ca
 - [x] Reproducible unit tests and source-only transfer workflow passed.
 - [x] Manuscript result registry, main findings, confidence intervals and descriptive figure captions drafted.
 - [x] Figure-generation workflow produces an artifact from archived results.
-- [ ] Make permanent figure assets available in a stable release or committed manuscript folder. GitHub Actions artifacts expire.
-- [ ] Review manuscript figure scales and labeling for journal requirements; include CI uncertainty graphically.
+- [x] Permanent SVG/CSV assets committed under `figures/manuscript/`, including Figure 3. A DOI-backed archival release is still recommended.
+- [x] Bootstrap 95% CI plotted in Figure 3; exact point estimates/limits checked against original CI JSON (`docs/FIGURE3_BOOTSTRAP_AUDIT.md`).
+- [ ] Complete journal-specific figure dimensions, vector readability and print/export checks.
 - [ ] Verify ERA5 spatial grid and time provenance from downloaded files (metadata and checksums).
 - [ ] Audit parameter-development chronology, multiplicity and test reuse; strengthen independent external validation.
 - [ ] Add correctly verified scientific references, ERA5 attribution and chosen journal formatting.
-- [ ] Validate final manuscript claims and supplementary tables against pinned JSON archives.
+- [x] Figure 1/2 labels and CSV cross-checked (`docs/FIGURES12_ARCHIVE_AUDIT.md`); Figure 3 points and intervals cross-checked (`docs/FIGURE3_BOOTSTRAP_AUDIT.md`).
+- [ ] End-to-end frozen-source data and final manuscript claim verification, including external-data file digests.
 
 ## Recommended paper framing
 
 **Supported:** In this specific 2022 Southwest test, frozen weights with pre-test target historical climatology reduced conditional extreme-heat RMSE against its source-selected blended reference, while climatology-free frozen source models improved domain-wide RMSE but worsened conditional hot RMSE against Persistence.
 
 **Not supported:** A universally transportable model, causal identification of climatology's contribution, significance for future years or other geographies, or operational heat-warning skill.
+
+## Most recent maintenance verification
+
+- Unit tests [#41288461623](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41288461623): success.
+- Figure generation [#41288411558](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41288411558): success; threshold and units labeling included.
+- Separate real-ERA5 CPU run #41288411615 was still in progress when checked; no completion claim made.
