@@ -250,3 +250,21 @@ All three seeds were lower than the blend both overall and on the fixed hot subs
 
 Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41267651677
 
+
+## Truth-defined multiday regional heat episodes (verified 2021 and 2022 workflows)
+
+The new event diagnostic marks a day active when **at least one 6-hourly valid time** has **>=5% of regional grid cells with observed ERA5 2m temperature >=305 K**. An episode requires **at least two consecutive active calendar days**. This is a retrospective *truth-defined event-conditioned error analysis*, **not** prospective event prediction, detection, or a warning system.
+
+For the **three heat-weighted climatology-aware CNN runs** (extra hot-target loss weight 2, seeds 42/7/123), the code logs show:
+
+| Backtest | Truth-defined qualifying episodes | Seed 42 episodes with lower hot RMSE | Seed 7 | Seed 123 |
+| --- | ---: | ---: | ---: | ---: |
+| 2021 (2018–19 training, 2020 validation) | 7 | 7/7 | 7/7 | 7/7 |
+| 2022 (2019–20 training, 2021 validation) | 8 | 8/8 | 8/8 | 8/8 |
+
+Each comparison uses the 305 K **truth-hot cells during the episode**, contrasting CNN RMSE with the validation-selected climatology/persistence blend. Each episode shares a dataset, region, forecasting method, and training choices: these ratios **are not evidence of 15 statistically independent episodes across two untouched years**. The 2021 test year was used earlier during model development; no independent-region or prospectively defined extreme-weather skill is established. The 2022 workflow also executed additional unweighted/other-weight runs; the table intentionally refers to the final three **weight-2 runs**, not every candidate.
+
+Evidence: [2021 workflow](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41268528184), [2022 workflow](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41268528080). All four related workflows, including Python unit tests and real ERA5 CPU, succeeded.
+
+Next scientific gates: report event-specific effect sizes and durations (not just counts); test alternative prespecified 305 K area-fraction and duration thresholds; evaluate a geographically distinct holdout and truly prospective/unseen data; quantify missed/false events if developing operational event detection.
+
