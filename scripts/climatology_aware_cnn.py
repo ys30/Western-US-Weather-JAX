@@ -58,7 +58,7 @@ def monthly_diagnostics(pred,ref,truth,target_times,threshold=305.0):
                     'fixed_hot_gridcell_times':int(hot.sum())})
     return out
 
-def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0):
+def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0,checkpoint_path=None):
     if hot_weight < 0: raise ValueError('hot_weight must be nonnegative')
     ts=np.asarray(timestamps).astype('datetime64[h]')
     n=len(arr)
@@ -111,6 +111,16 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
             best=vrmse;best_hot=vhot;best_epoch=epoch+1
             best_params=jax.tree_util.tree_map(lambda v:jnp.array(v),params)
         print(f'epoch {epoch+1}/{epochs} val_rmse_K={vrmse:.6f}',flush=True)
+    if checkpoint_path is not None:
+        # Export ONLY validation-selected model weights and source-training metadata.
+        path=Path(checkpoint_path);path.parent.mkdir(parents=True,exist_ok=True)
+        arrays={f"param_{key}":np.asarray(value) for key,value in best_params.items()}
+        np.savez_compressed(path,**arrays,source_train_mean=np.float32(mean),
+            source_train_std=np.float32(std),
+            source_validation_selected_blend_weight=np.float32(weight),
+            selected_epoch=np.int32(best_epoch),
+            model_seed=np.int32(seed),
+            hot_weight=np.float32(hot_weight))
     pred=np.asarray(predict(best_params,jnp.asarray(xe)))[...,0]*std+mean
     truth=np.asarray(ye[...,0])*std+mean
     mask=truth>=hot_threshold_kelvin
@@ -142,8 +152,9 @@ def main():
     p.add_argument('--seed',type=int,default=42)
     p.add_argument('--hot-weight',type=float,default=0.0)
     p.add_argument('--hot-threshold-kelvin',type=float,default=305.0)
+    p.add_argument('--checkpoint-path',default=None)
     a=p.parse_args();da=load_era5(a.data)
-    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed,hot_weight=a.hot_weight,hot_threshold_kelvin=a.hot_threshold_kelvin)
+    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed,hot_weight=a.hot_weight,hot_threshold_kelvin=a.hot_threshold_kelvin,checkpoint_path=a.checkpoint_path)
     out=Path(a.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 if __name__=='__main__':main()
