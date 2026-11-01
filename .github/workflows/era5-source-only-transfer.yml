@@ -1,0 +1,35 @@
+name: ERA5 source-only no-climatology frozen transfer
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-source-only-transfer.yml'
+      - 'scripts/source_only_transfer.py'
+permissions:
+  contents: read
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - name: Fetch disjoint real ERA5 areas
+        run: |
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 31 --lat-max 43 --lon-min -121 --lon-max -109 --output input/source.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 30 --lat-max 36 --lon-min -108 --lon-max -102 --output input/target.nc
+      - name: Train source-only and test frozen target, 3 seeds
+        run: |
+          for seed in 42 7 123; do
+            python scripts/source_only_transfer.py --source input/source.nc --target input/target.nc --seed "$seed" --epochs 40 --output "outputs/source-only/seed-${seed}.json"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: source-only-transfer
+          path: outputs/source-only/*.json
+          if-no-files-found: warn
