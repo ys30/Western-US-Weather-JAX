@@ -42,6 +42,10 @@ jobs:
         run: python scripts/climatology_baselines.py --data input/era5_2019_2022.nc --train-until 2021-01-01 --validate-until 2022-01-01 --lead-steps 4 --output outputs/era5-crossyear/climatology-baselines.json
       - name: Train and score climatology-aware residual CNN against stronger blend
         run: python scripts/climatology_aware_cnn.py --data input/era5_2019_2022.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --output outputs/era5-crossyear/climatology-aware-cnn.json
+      - name: Climatology-aware CNN independent-seed robustness
+        run: |
+          python scripts/climatology_aware_cnn.py --data input/era5_2019_2022.nc --epochs 40 --seed 7 --output outputs/era5-crossyear/climatology-aware-seed7.json
+          python scripts/climatology_aware_cnn.py --data input/era5_2019_2022.nc --epochs 40 --seed 123 --output outputs/era5-crossyear/climatology-aware-seed123.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

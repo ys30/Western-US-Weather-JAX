@@ -11,6 +11,7 @@ import jax.numpy as jnp
 from weatherjax.data import load_era5,prepare_splits
 from weatherjax.model import init_model,predict
 from scripts.climatology_baselines import benchmark
+from weatherjax.train import paired_time_block_ci
 
 def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001):
     ts=np.asarray(timestamps).astype('datetime64[h]')
@@ -63,7 +64,8 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     truth=np.asarray(ye[...,0])*std+mean
     mask=truth>=305.0
     score=lambda z,m:float(np.sqrt(np.mean((z[m]-truth[m])**2)))
-    result={'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
+    uncertainty=[paired_time_block_ci(pred[...,None],baseline[...,None],truth[...,None],block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
+    result={'paired_block_sensitivity':uncertainty,'random_seed':seed,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
       'blended_baseline_rmse_kelvin':score(baseline,np.ones_like(mask,dtype=bool)),
       'fixed_305k_cnn_rmse_kelvin':score(pred,mask) if mask.any() else None,
       'fixed_305k_blend_rmse_kelvin':score(baseline,mask) if mask.any() else None,
@@ -80,8 +82,9 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--data',required=True);p.add_argument('--output',required=True)
     p.add_argument('--train-until',default='2021-01-01');p.add_argument('--validate-until',default='2022-01-01')
     p.add_argument('--epochs',type=int,default=40)
+    p.add_argument('--seed',type=int,default=42)
     a=p.parse_args();da=load_era5(a.data)
-    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs)
+    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed)
     out=Path(a.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 if __name__=='__main__':main()
