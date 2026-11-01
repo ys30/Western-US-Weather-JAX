@@ -52,13 +52,17 @@ Replacing the historical climatology channel with source-global-mean constants i
 
 ## 3.4. Figures and comparative interpretation
 
+![Figure 1: frozen CNN with historical climatology adaptation](../figures/manuscript/adapted_hot.svg)
+
 **Figure 1. Frozen climatology-adapted CNN performance on truth-defined hot test points (Southwest, 2022).** Horizontal bars report held-out observed-hot (t2m ≥305 K) RMSE in kelvin for frozen original-region CNN weights (blue) and the matching **source-validation-selected persistence/climatology blend** (orange), for seeds 7, 42 and 123. The target pre-test historical climatology is available as an input feature in this protocol; target CNN parameters are never updated. Lower is better. This graph is descriptive; the associated 14-day paired-block confidence intervals for CNN-minus-blend are reported in Section 3.1, not displayed on this two-series RMSE bar plot.
+
+![Figure 2: source-only frozen CNN](../figures/manuscript/source_only_hot.svg)
 
 **Figure 2. Frozen source-only, climatology-free CNN performance on truth-defined hot test points (Southwest, 2022).** Horizontal bars report hot-subset RMSE in kelvin for three CNN seeds (blue) and **24-hour Persistence** (orange). The CNN architecture is trained from the outset without climatology features and never retrained on Southwest. All three CNN seeds have larger hot RMSE than Persistence, despite lower full-year RMSE, as described in Section 3.2. The 14-day paired-block intervals for CNN-minus-Persistence are reported in Section 3.2.
 
 **Figure archive and reproducibility.** The machine-generated plots `adapted_hot.svg` and `source_only_hot.svg`, and their supporting six-row `comparison.csv`, were successfully produced by the [manuscript figures GitHub Actions run 41281229086](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229086) and packaged in the artifact `paper-figures-artifact-derived`. Generation code is `scripts/manuscript_figures.py`. The workflow downloads the prior successful [frozen adapted transfer artifact](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255173) and [source-only transfer artifact](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617), selects the **target_history** protocol explicitly, and constructs plot values directly from archived JSON.
 
-**Cross-figure caution:** Figures 1 and 2 use **different protocol-specific baselines** and separately trained feature sets. Juxtaposition demonstrates a qualitative difference in results; it is not a matched randomized experiment proving a climatology-only causal effect. The hot subset is selected using observed truth, not an operational forecast alert. Both plot files currently reside in the successful workflow artifact, **not** as committed SVGs in the repository.
+**Cross-figure caution:** Figures 1 and 2 use **different protocol-specific baselines** and separately trained feature sets. Juxtaposition demonstrates a qualitative difference in results; it is not a matched randomized experiment proving a climatology-only causal effect. The hot subset is selected using observed truth, not an operational forecast alert. The verified SVGs and unrounded supporting CSV are now also committed under `figures/manuscript/` as durable repository assets.
 
 ### 3.5 Original-region 2022 holdout rerun: final CI verification
 
