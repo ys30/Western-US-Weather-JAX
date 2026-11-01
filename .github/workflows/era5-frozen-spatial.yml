@@ -39,6 +39,7 @@ jobs:
         run: |
           python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint outputs/source/model-42.npz --test-start 2022-01-01 --output outputs/diagnostics/seed-42-evaluation.json --diagnostics-output outputs/diagnostics/seed-42-fields.npz
           python scripts/summarize_monthly_diagnostics.py outputs/diagnostics/seed-42-fields.monthly.csv --output outputs/diagnostics/seed-42-monthly-relative.json
+          python scripts/validate_monthly_reconstruction.py outputs/diagnostics/seed-42-fields.monthly.csv outputs/diagnostics/seed-42-evaluation.json
       - name: Frozen weights with no target historical climatology
         run: |
           for seed in 42 7 123; do
