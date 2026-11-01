@@ -12,6 +12,10 @@ Regional transfer is an important challenge for data-driven temperature predicti
 3. A second distinction concerns local historical climatology as target-domain input information, which may be unavailable in some operational settings.
 4. Contribution: a reproducible JAX/ERA5 evaluation that separates target-local retraining, frozen network transfer with historical feature adaptation, and source-only no-climatology transfer; evaluates paired time-block uncertainty; and reports both successful and unfavorable extremes results.
 
+### Related work and scope (source-verified)
+
+ERA5 is an atmospheric reanalysis combining observations and model-based assimilation, and its hourly fields can support retrospective temperature prediction experiments (Hersbach et al., 2020). Recent data-driven global weather systems, including FourCastNet (Pathak et al., 2022) and GraphCast (Lam et al., 2023), demonstrate the potential of learned weather dynamics at much larger physical and computational scales. In contrast, the present experiment is a deliberately compact **regional, single-variable, 24-hour** temperature CNN study: it is **not** an operational global forecast system and its RMSE values are **not directly comparable** to those published for the above models. The JAX implementation uses differentiable array computations and compilation as described in its official software citation (Bradbury et al., 2018). The contribution assessed here is the explicit separation of frozen-weight transfer protocols and their contrasting annual versus truth-conditional heat errors, rather than a claim of overall state-of-the-art forecast skill.
+
 ## 2. Methods
 
 ### 2.1 Data, geographical domains and temporal partitioning
@@ -100,6 +104,15 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 
 **Editorial note:** This is a numerical-evidence draft, not a submission-ready article. Do not add literature citations, author lists or journal-specific claims until separately checked. The original-domain 2022 full rerun has now succeeded in GitHub Actions run 41281229112; see its archived evidence.
 
+## References (verified bibliographic anchors; journal style pending)
+
+1. Hersbach, H., Bell, B., Berrisford, P., et al. (2020). The ERA5 global reanalysis. *Quarterly Journal of the Royal Meteorological Society*, **146**, 1999–2049. https://doi.org/10.1002/qj.3803
+2. Pathak, J., Subramanian, S., Harrington, P., et al. (2022). FourCastNet: A global data-driven high-resolution weather model using adaptive Fourier neural operators. *arXiv* preprint 2202.11214. https://arxiv.org/abs/2202.11214
+3. Lam, R., Sanchez-Gonzalez, A., Willson, M., et al. (2023). Learning skillful medium-range global weather forecasting. *Science*, **382**(6677), 1416–1421. https://doi.org/10.1126/science.adi2336
+4. Bradbury, J., Frostig, R., Hawkins, P., et al. (2018). JAX: Composable transformations of Python+NumPy programs [Software]. https://github.com/jax-ml/jax/blob/main/CITATION.bib
+
+**ERA5 dataset credit pending final provenance verification.** The ERA5 *paper* citation above does not substitute for the precise dataset citation or licence attribution. At submission, identify the actual download channel/provider (CDS, ECMWF, or cloud mirror), dataset entry, retrieval and processing information, and the applicable attribution; use [Copernicus CDS guidance](https://confluence.ecmwf.int/spaces/CKB/pages/197704114/) and the [ECMWF attribution guidance](https://confluence.ecmwf.int/pages/viewpage.action?pageId=673321178). Do not assert a retrieval method without auditing the repository's fetch script.
+
 ## Appendix A. Cross-protocol result registry (verified)
 
 | Protocol | Training domain | Target adaptation | Comparator | CNN annual RMSE K (42 / 7 / 123) | CNN truth-hot RMSE K (42 / 7 / 123) | Comparator annual / hot K |
@@ -115,5 +128,5 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 2. Record exact ERA5 endpoint, retrieval timestamp, file checksums and software dependency versions in a fixed release.
 3. **Completed:** The figure-generation workflow successfully regenerated two hot-RMSE plots and a comparison CSV from archived successful JSON in run 41281229086. **Next:** publication-layout review and adding committed figure copies or permanent release assets.
 4. Confirm paper's model-selection/development chronology and evaluate external region/year replication before strong independent-generalization claims.
-5. Add journal-appropriate references and comply with applicable ERA5 acknowledgement and license requirements.
+5. **In progress:** Four core scientific/software references have been verified and inserted; finalize journal reference style, ERA5 dataset-specific credit and licence after checking actual data provenance.
 
