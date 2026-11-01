@@ -35,6 +35,10 @@ jobs:
           for seed in 42 7 123; do
             python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint "outputs/source/model-${seed}.npz" --test-start 2022-01-01 --output "outputs/frozen-southwest/seed-${seed}.json"
           done
+      - name: Export paired 2022 spatial and monthly diagnostics (seed 42 only)
+        run: |
+          python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint outputs/source/model-42.npz --test-start 2022-01-01 --output outputs/diagnostics/seed-42-evaluation.json --diagnostics-output outputs/diagnostics/seed-42-fields.npz
+          python scripts/summarize_monthly_diagnostics.py outputs/diagnostics/seed-42-fields.monthly.csv --output outputs/diagnostics/seed-42-monthly-relative.json
       - name: Frozen weights with no target historical climatology
         run: |
           for seed in 42 7 123; do
@@ -48,4 +52,5 @@ jobs:
             outputs/frozen-southwest/*.json
             outputs/frozen-no-history/*.json
             outputs/source/*.json
+            outputs/diagnostics/*
           if-no-files-found: warn
