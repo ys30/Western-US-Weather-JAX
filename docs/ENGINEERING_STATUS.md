@@ -176,3 +176,26 @@ Overall improvement over blended baseline: **0.010965 K (~0.366%)**. Heat-subset
 
 Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41256841210
 
+
+## Three-seed CNN robustness and block-bootstrap audit (run 41258489704)
+
+All GitHub CI jobs passed on the real-ERA5, independent-calendar-year 2022 holdout. The stronger **validation-only selected** blend remains **2.994618 K** overall RMSE and **2.159303 K** fixed-305-K heat RMSE. Identical chronological training/validation/test setup and 40 requested epochs across random seeds.
+
+| CNN random seed | 2022 overall RMSE (K) | CNN minus blend (K) | 305 K CNN RMSE (K) | 305 K blend RMSE (K) |
+| --- | ---: | ---: | ---: | ---: |
+| 42 | 2.983654 | -0.010965 | 2.178752 | 2.159303 |
+| 7 | 2.996587 | +0.001968 | 2.097889 | 2.159303 |
+| 123 | 2.988817 | -0.005801 | 2.123850 | 2.159303 |
+
+**Conclusion:** Only 2/3 seeds improve annual RMSE over the strong blend. In contrast, 2/3 improve the fixed hot-temperature subset. **Do not claim robust superiority for either overall or hot-subset skill.** The performance tradeoff depends on initialization.
+
+Paired circular moving-block bootstrap over target time, preserving spatial grids within timestamps, used 1000 draws for blocks of 1, 3, 7 and 14 days. At 14 days, the 95% intervals for annual **CNN-minus-blend** RMSE (K) were:
+
+- Seed 42: **[-0.022932, +0.001660]**
+- Seed 7: **[-0.006482, +0.011137]**
+- Seed 123: **[-0.019357, +0.008926]**
+
+**Every 14-day interval includes zero.** This is exploratory uncertainty conditional on one test year and cannot establish spatially/temporally transferable significance. Future work: analyze validation-selected heat-loss tradeoffs and a seed-robust selection rule; consider multi-year and region tests before escalating architecture complexity.
+
+Evidence: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41258489704
+
