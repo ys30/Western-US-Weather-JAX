@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 import jax
 import jax.numpy as jnp
+from weatherjax.time_audit import audit_timeline
 from weatherjax.data import load_era5,prepare_splits
 from weatherjax.model import init_model,predict
 from scripts.climatology_baselines import benchmark
@@ -64,6 +65,7 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     n=len(arr)
     a=int(np.searchsorted(ts,np.datetime64(train_end)))
     b=int(np.searchsorted(ts,np.datetime64(val_end)))
+    audit_timeline(ts,train_end,val_end)
     baseline_report=benchmark(arr,ts,train_end,val_end,4)
     weight=baseline_report['selected_climatology_weight']
     months=(ts.astype('datetime64[M]').astype('int64')%12).astype(int)
