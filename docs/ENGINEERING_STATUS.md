@@ -80,7 +80,7 @@ For the independent 2022 test, the same 210,130 gridcell-times have target tempe
 The weighted model improves over the original CNN by ~4.26% on this heat subset but remains ~2.81% worse than persistence. Its whole-year RMSE is also slightly worse than the unweighted CNN. Do not portray this as achieving heat-tail skill.
 
 ## Not verified
-- Repeated, controlled CPU/GPU timing measurements and throughput/latency characterization beyond the verified single Colab run.
+- Repeated CPU timings and paired CPU/GPU speedup uncertainty; 3 repeated GPU runs are now verified, but CPU timing is still from one earlier run.
 - Generalization to additional independent years beyond 2022, other regions, or random seeds.
 - U-Net performance, any operational weather forecasting claim, or publication-ready evidence.
 
@@ -128,3 +128,20 @@ Verified run: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/412396
 - Colab notebook emitted a nonblocking NumPy/Numba dependency warning and a CUDA plugin already-exists message; all training/acceptance subprocesses completed with exit code 0. Environment is not claimed warning-free.
 
 **Acceptance verdict:** Real hardware GPU execution, audit, identical input, model parity, and one-run descriptive speedup are **verified**. Repeated timing, other GPU hardware, and operational forecast skill **not yet verified**. No GitHub self-hosted runner was configured or needed for this Colab run.
+
+## Repeated real Tesla T4 GPU benchmark — 2026-10-31
+
+User-supplied executed Colab notebook and ZIP with three independently launched GPU training processes were inspected. All three runs audited `jax_backend=gpu`, GPU-resident parameters on `cuda:0`, JAX 0.12.0.1, Python 3.13.16, identical ERA5 file SHA-256 `ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`, 40 epochs, best epoch 34, and independent 2022 test RMSE **3.191155195 K**.
+
+| GPU repetition | Training elapsed seconds | Test RMSE K |
+| --- | ---: | ---: |
+| 1 | 35.62996 | 3.191155195 |
+| 2 | 32.71881 | 3.191155195 |
+| 3 | 32.01255 | 3.191155195 |
+
+GPU elapsed mean **33.45378 s**, sample standard deviation **1.91743 s**, minimum **32.01255 s**, maximum **35.62996 s**, and test RMSE range **0.0 K**. Separate Python processes include compilation. Relative sample SD / mean ≈ **5.73%**.
+
+Using the *earlier single* same-configuration CPU run (258.5146 s), the GPU repeat-average implies a descriptive **~7.73×** elapsed-time ratio. **No repeated CPU timings were collected in this ZIP**; avoid labeling it a paired repeated speedup distribution or hardware-independent benchmark.
+
+Evidence scope: 3 repeated real GPU measurements and stable test accuracy **verified**; repeated CPU baseline and multi-hardware scaling **not verified**. Exact hardware T4 from the prior Colab acceptance, not independently re-queried from this ZIP's `gpu_metrics.json`.
+

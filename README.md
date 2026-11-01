@@ -21,7 +21,7 @@ A user-executed **NVIDIA Tesla T4** Google Colab run successfully trained the va
 | Training elapsed time | 258.51 s | 33.29 s |
 | 2022 test RMSE | 3.191155 K | 3.191155 K |
 
-**Observed elapsed-time ratio: 7.76×** in **one Colab run** (compilation and overhead included). The test RMSE matched, GPU model parameters resided on GPU, and the automated CPU/GPU parity check passed. **This is not yet a repeated benchmark**; hardware and thermal/runtime effects have not been characterized. The Colab session did not require a GitHub GPU runner.
+**Observed elapsed-time ratio: 7.76×** in the initial Colab run. **Three additional real T4 GPU runs** completed in 35.63, 32.72 and 32.01 s (mean **33.45 s**, sample SD **1.92 s**), all with identical 2022 RMSE **3.191155 K**. Their mean relative to the earlier single CPU time suggests **~7.73×**, not a paired repeated speedup estimate. The test RMSE matched, GPU model parameters resided on GPU, and the automated CPU/GPU parity check passed. GPU timing now has three repeat measurements, but CPU timing is still single-run and hardware/thermal effects have not been controlled. The Colab session did not require a GitHub GPU runner.
 
 ## Reproduce and inspect
 
@@ -37,4 +37,4 @@ For exact experiment tables, bootstrap sensitivity, evidence boundaries and the 
 
 ## Remaining work
 
-Repeat GPU timings on identical inputs with multiple runs; characterize reproducibility beyond one environment; improve fixed-threshold high-temperature skill; evaluate additional years, regions and model seeds. More complex models such as U-Net are **not yet verified**.
+Repeat CPU timings under matched conditions and test additional GPU environments; improve fixed-threshold high-temperature skill; evaluate additional years, regions and model seeds. More complex models such as U-Net are **not yet verified**.
