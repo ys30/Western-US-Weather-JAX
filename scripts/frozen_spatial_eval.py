@@ -9,7 +9,7 @@ from weatherjax.model import predict
 from scripts.heat_events import event_diagnostics,event_definition_sensitivity
 from scripts.climatology_aware_cnn import paired_time_block_ci,hot_time_block_ci
 
-def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.,climatology_mode="target_history"):
+def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.,climatology_mode="target_history",diagnostics_output=None):
     a=np.asarray(data,dtype=np.float32)
     ts=np.asarray(times).astype("datetime64[h]")
     cut=int(np.searchsorted(ts,np.datetime64(test_start)))
@@ -49,6 +49,9 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     pred=np.concatenate([np.asarray(predict(params,jnp.asarray(x[i:i+32])))[...,0]
                          for i in range(0,len(x),32)])*std+mean
     truth=a[cut:];mask=truth>=threshold
+    if diagnostics_output is not None:
+        from scripts.spatiotemporal_diagnostics import export_diagnostics
+        export_diagnostics(diagnostics_output,pred,baseline,truth,ts[cut:],threshold)
     rmse=lambda v,m:float(np.sqrt(np.mean((v[m]-truth[m])**2))) if m.any() else None
     annual_ci=[paired_time_block_ci(pred[...,None],baseline[...,None],truth[...,None],block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
     heat_ci=([hot_time_block_ci(pred,baseline,truth,threshold=threshold,block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)] if mask.any() else [])
@@ -70,8 +73,9 @@ def main():
     p.add_argument("--data",required=True);p.add_argument("--checkpoint",required=True)
     p.add_argument("--output",required=True);p.add_argument("--test-start",default="2022-01-01")
     p.add_argument("--climatology-mode",choices=["target_history","source_global_constant"],default="target_history")
+    p.add_argument("--diagnostics-output",default=None,help="Optional compressed arrays and monthly/gridded metrics; requires verified target data and checkpoint")
     v=p.parse_args();da=load_era5(v.data)
-    result=frozen_evaluate(da.values,da.time.values,v.checkpoint,v.test_start,climatology_mode=v.climatology_mode)
+    result=frozen_evaluate(da.values,da.time.values,v.checkpoint,v.test_start,climatology_mode=v.climatology_mode,diagnostics_output=v.diagnostics_output)
     out=Path(v.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))
 if __name__=="__main__":main()
