@@ -8,7 +8,7 @@ from weatherjax.model import predict
 from scripts.heat_events import event_diagnostics,event_definition_sensitivity
 from scripts.climatology_aware_cnn import paired_time_block_ci,hot_time_block_ci
 
-def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.):
+def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.,climatology_mode="target_history"):
     a=np.asarray(data,dtype=np.float32)
     ts=np.asarray(times).astype("datetime64[h]")
     cut=int(np.searchsorted(ts,np.datetime64(test_start)))
@@ -25,11 +25,16 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     months=(ts.astype("datetime64[M]").astype("int64")%12).astype(int)
     hours=(ts.astype("datetime64[h]").astype("int64")%24).astype(int)
     bins=months*24+hours
-    climate={int(k):np.asarray(a[:cut][bins[:cut]==k].mean(axis=0),dtype=np.float32)
-             for k in np.unique(bins[:cut])}
-    fallback=np.asarray(a[:cut].mean(axis=0),dtype=np.float32)
+    if climatology_mode not in ("target_history","source_global_constant"):
+        raise ValueError("Invalid climatology mode")
     indices=np.arange(cut,len(a))
-    clim=np.stack([climate.get(int(bins[i]),fallback) for i in indices])
+    if climatology_mode=="target_history":
+        climate={int(k):np.asarray(a[:cut][bins[:cut]==k].mean(axis=0),dtype=np.float32)
+                 for k in np.unique(bins[:cut])}
+        fallback=np.asarray(a[:cut].mean(axis=0),dtype=np.float32)
+        clim=np.stack([climate.get(int(bins[i]),fallback) for i in indices])
+    else:
+        clim=np.full((len(indices),*a.shape[1:]),mean,dtype=np.float32)
     baseline=(1-weight)*a[indices-4]+weight*clim
     input_indices=indices[:,None]-4-np.arange(3,-1,-1)[None,:]
     frames=np.moveaxis((a[input_indices]-mean)/std,1,-1)
@@ -48,7 +53,8 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     heat_ci=([hot_time_block_ci(pred,baseline,truth,threshold=threshold,block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)] if mask.any() else [])
     return {"annual_paired_block_sensitivity":annual_ci,"fixed_heat_paired_block_sensitivity":heat_ci,
         "protocol":"Frozen source CNN; target pre-test climatology; NO target weight updates",
-        "strict_zero_history_transfer":False,"target_history_last_timestamp":str(ts[cut-1]),
+        "strict_zero_history_transfer":climatology_mode=="source_global_constant",
+        "climatology_mode":climatology_mode,"target_history_last_timestamp":str(ts[cut-1]),
         "target_test_start":str(ts[cut]),"source_train_normalization":True,
         "source_validation_blend_weight":weight,
         "test_rmse_kelvin":rmse(pred,np.ones_like(mask,dtype=bool)),
@@ -62,8 +68,9 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--data",required=True);p.add_argument("--checkpoint",required=True)
     p.add_argument("--output",required=True);p.add_argument("--test-start",default="2022-01-01")
+    p.add_argument("--climatology-mode",choices=["target_history","source_global_constant"],default="target_history")
     v=p.parse_args();da=load_era5(v.data)
-    result=frozen_evaluate(da.values,da.time.values,v.checkpoint,v.test_start)
+    result=frozen_evaluate(da.values,da.time.values,v.checkpoint,v.test_start,climatology_mode=v.climatology_mode)
     out=Path(v.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))
 if __name__=="__main__":main()
