@@ -20,6 +20,10 @@ The 2022 evaluation also tested training-only month/hour climatology and a persi
 
 Three JAX CNN random seeds **42 / 7 / 123** were run in verified GitHub CI. Annual test RMSEs were **2.98365 / 2.99659 / 2.98882 K**, compared with the validation-selected blend at **2.99462 K**. Only **two of three seeds** beat the blend. On the fixed 305 K hot subset, RMSEs were **2.17875 / 2.09789 / 2.12385 K**, versus **2.15930 K** for the blend: again, two seeds beat the baseline but a different seed was worse. **All three 14-day paired moving-block bootstrap intervals for the annual CNN-minus-blend RMSE difference include zero.** Robust predictive superiority has **not** been demonstrated. [Verified multi-seed experiment](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41258489704).
 
+## Heat-weight validation sweep — encouraging but qualified
+
+Nine real ERA5 runs (three seeds × hot-loss weights 0, 1, 2) were completed. **2021 validation selected extra weight 2 for all seeds.** On the 2022 fixed-305-K test subset, the selected climatology-aware CNNs achieved **2.05492 / 2.04506 / 2.03982 K** for seeds 42 / 7 / 123, versus **2.15930 K** for the blended benchmark (about **4.8–5.5%** lower heat RMSE). Annual RMSEs were **2.98450 / 2.99741 / 2.99243 K**, versus **2.99462 K** for the blend; one seed was worse overall. **Do not claim statistical significance or cross-year robustness from this sweep.** [Verified CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41259276907).
+
 ## Actual GPU verification — Colab Tesla T4
 
 A user-executed **NVIDIA Tesla T4** Google Colab run successfully trained the validated heat-weighted JAX CNN on real ERA5, with hardware-backed JAX GPU audit and matching input SHA-256. **40 epochs**, same seed and settings:

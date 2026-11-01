@@ -199,3 +199,19 @@ Paired circular moving-block bootstrap over target time, preserving spatial grid
 
 Evidence: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41258489704
 
+
+## Validation-selected 305 K heat-weight sensitivity (verified run 41259276907)
+
+Nine climatology-aware CNN trainings (seeds 42, 7, 123 × additional 305 K training loss weights 0, 1, 2) completed successfully. For **each seed independently**, the lowest **2021 validation-set fixed-305-K RMSE** selected **extra weight 2**, implying a 3× multiplier for eligible hot targets in the weighted loss. The 2022 independent-test year was not used for weight selection.
+
+| Seed | Selected weight | 2021 validation heat RMSE K | 2022 annual RMSE K | 2022 fixed-305-K heat RMSE K |
+| --- | ---: | ---: | ---: | ---: |
+| 42 | 2 | 2.082155 | 2.984499 | 2.054921 |
+| 7 | 2 | 2.071333 | 2.997407 | 2.045063 |
+| 123 | 2 | 2.061141 | 2.992431 | 2.039816 |
+| Strong blend reference | — | — | 2.994618 | 2.159303 |
+
+**Interpretation:** All three selected models improve 2022 fixed-305-K heat RMSE compared with the strong blend by approximately **4.83%**, **5.29%**, and **5.53%**, respectively. But only **two of three** improve annual RMSE. These are three random seeds in one held-out year, **not** an independent multi-year sample. The per-seed heat improvement has not yet been tested using a heat-specific time-block bootstrap, and selection was explicitly optimized for validation heat performance. Next gate: predeclared threshold-aligned bootstrap and additional independent year/region tests.
+
+Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41259276907
+
