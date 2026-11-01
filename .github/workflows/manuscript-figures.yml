@@ -1,6 +1,11 @@
 name: Manuscript plots from archived ERA5 JSON
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/manuscript-figures.yml'
+      - 'scripts/manuscript_figures.py'
 permissions:
   actions: read
   contents: read
