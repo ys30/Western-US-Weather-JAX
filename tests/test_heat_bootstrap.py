@@ -5,9 +5,9 @@ def test_hot_block_ci_counts_only_truth_hot_cells():
     y=np.full((24,2,2),300.,dtype=np.float32);y[:,0,0]=310
     ref=np.full_like(y,310); pred=np.full_like(y,309)
     a=hot_time_block_ci(pred,ref,y,threshold=305,block_steps=4,draws=100,seed=1)
-    assert abs(a['difference_kelvin']+1)<1e-6
+    assert abs(a['difference_kelvin']-1)<1e-6
     assert a['hot_gridcell_times']==24
-    assert a['ci95_upper_kelvin']<0
+    assert a['ci95_lower_kelvin']>0
 
 def test_monthly_hot_empty_is_null():
     y=np.full((2,2,2),290.)

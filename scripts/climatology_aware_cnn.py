@@ -115,8 +115,9 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     mask=truth>=hot_threshold_kelvin
     score=lambda z,m:float(np.sqrt(np.mean((z[m]-truth[m])**2)))
     uncertainty=[paired_time_block_ci(pred[...,None],baseline[...,None],truth[...,None],block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
-    hot_uncertainty=[hot_time_block_ci(pred,baseline,truth,threshold=hot_threshold_kelvin,
+    hot_uncertainty=([hot_time_block_ci(pred,baseline,truth,threshold=hot_threshold_kelvin,
                       block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
+                      if mask.any() else [])
     months=monthly_diagnostics(pred,baseline,truth,ts[b:],threshold=hot_threshold_kelvin)
     result={'fixed_heat_paired_block_sensitivity':hot_uncertainty,'monthly_diagnostics':months,'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
       'blended_baseline_rmse_kelvin':score(baseline,np.ones_like(mask,dtype=bool)),
