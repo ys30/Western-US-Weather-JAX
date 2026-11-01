@@ -32,6 +32,10 @@ An additional real-ERA5 temporal backtest used 2018–2019 training, 2020 valida
 
 **Multiday high-temperature episode audit:** With a retrospective, truth-defined regional event rule (>=5% of grid cells at >=305 K during at least one 6-hour valid time on each of at least two consecutive days), the weight-2 climatology-aware CNN had lower within-event fixed-hot RMSE than the strong blend on **7/7 qualifying episodes in 2021** and **8/8 in 2022**, for **each of three seeds (42, 7, 123)**. These are correlated retrospective event-conditioned comparisons, **not forecast-event detection or independent prospective verification**. [2021 CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41268528184) · [2022 CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41268528080).
 
+## Geographic sensitivity: second non-overlapping region
+
+In a **new Southwest study area** (30–36°N, 108–102°W), three retrained heat-weighted climatology-aware CNNs all improved the 2022 annual RMSE (**3.77695 / 3.79943 / 3.78322 K**) versus the region-specific validation-selected blend (**3.80252 K**). Fixed-305-K hot RMSE was **2.31885 / 2.31365 / 2.32763 K**, versus **2.40826 K** for the blend (roughly **3.3–3.9%** improvement). Of 10 truth-defined multiday hot episodes, **8 / 10 / 10** improved across the three seeds. This supports **method transfer after retraining**, **not zero-shot transfer of a frozen network**. [Successful CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41270894771).
+
 ## Actual GPU verification — Colab Tesla T4
 
 A user-executed **NVIDIA Tesla T4** Google Colab run successfully trained the validated heat-weighted JAX CNN on real ERA5, with hardware-backed JAX GPU audit and matching input SHA-256. **40 epochs**, same seed and settings:

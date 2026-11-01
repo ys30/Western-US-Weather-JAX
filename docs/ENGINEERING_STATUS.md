@@ -268,3 +268,19 @@ Evidence: [2021 workflow](https://github.com/ys30/Western-US-Weather-JAX/actions
 
 Next scientific gates: report event-specific effect sizes and durations (not just counts); test alternative prespecified 305 K area-fraction and duration thresholds; evaluate a geographically distinct holdout and truly prospective/unseen data; quantify missed/false events if developing operational event detection.
 
+
+## Second non-overlapping Southwest region — 2022 test (run 41270894771)
+
+A new geographically disjoint ERA5 study area (30–36°N, 108–102°W) was downloaded and preflight-checked. The same method was **retrained within the new region**: 2019–2020 training, 2021 validation, 2022 testing; three seeds, extra fixed-305-K hot loss weight 2. Original region uses 31–43°N, 121–109°W, so grid-cell longitudes do not overlap.
+
+| 2022 Southwest test (K) | Strong blend | Seed 42 | Seed 7 | Seed 123 |
+| --- | ---: | ---: | ---: | ---: |
+| Overall RMSE | 3.802520 | 3.776948 | 3.799433 | 3.783219 |
+| Fixed 305 K hot RMSE | 2.408255 | 2.318850 | 2.313652 | 2.327634 |
+
+All three seeds improved both overall and fixed-hot RMSE relative to the region-specific validation-selected blend. Relative hot RMSE improvements: approximately **3.71%, 3.93%, 3.35%**. Truth-defined retrospective episodes: **10 qualifying episodes**; CNN improved episode hot RMSE in **8/10, 10/10, 10/10**, respectively.
+
+**Critical caveat:** This demonstrates **method-transfer across regions after retraining**, not geographic zero-shot transfer of fixed learned weights. This additional region is still geographically and temporally related to the original domain. External geographic generalization, heat-event detection and multi-year prospective validation remain open.
+
+Evidence: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41270894771
+
