@@ -13,6 +13,50 @@ from weatherjax.model import init_model,predict
 from scripts.climatology_baselines import benchmark
 from weatherjax.train import paired_time_block_ci
 
+def hot_time_block_ci(pred, ref, truth, threshold=305.0, block_steps=4, draws=1000, seed=42):
+    """Paired time-block bootstrap of fixed-threshold hot gridcell squared errors.
+
+    Sample ALL valid times, retaining intra-time spatial dependence. Only truth-hot
+    grid cells contribute after resampling; never sample hot-only times.
+    """
+    p=np.asarray(pred);r=np.asarray(ref);y=np.asarray(truth)
+    if p.shape!=r.shape or p.shape!=y.shape or p.ndim!=3:
+        raise ValueError("Expected matched [time,lat,lon] arrays")
+    if block_steps<1 or draws<1 or len(y)<2:raise ValueError("Invalid block bootstrap")
+    mask=y>=threshold
+    count=mask.sum(axis=(1,2)).astype(np.float64)
+    if count.sum()==0:raise ValueError("No fixed-threshold hot truth observations")
+    se_p=np.sum(np.where(mask,(p-y)**2,0),axis=(1,2),dtype=np.float64)
+    se_r=np.sum(np.where(mask,(r-y)**2,0),axis=(1,2),dtype=np.float64)
+    point=float(np.sqrt(se_p.sum()/count.sum())-np.sqrt(se_r.sum()/count.sum()))
+    rng=np.random.default_rng(seed)
+    values=[]
+    n=len(y);k=int(np.ceil(n/block_steps))
+    for _ in range(draws):
+        ids=((rng.integers(0,n,k)[:,None]+np.arange(block_steps))%n).reshape(-1)[:n]
+        total=count[ids].sum()
+        if total>0:values.append(float(np.sqrt(se_p[ids].sum()/total)-np.sqrt(se_r[ids].sum()/total)))
+    if len(values)<int(.95*draws):raise ValueError("Too many bootstrap draws with no hot observations")
+    lo,hi=np.quantile(values,[.025,.975])
+    return {'difference_kelvin':point,'ci95_lower_kelvin':float(lo),'ci95_upper_kelvin':float(hi),
+            'block_steps':block_steps,'draws_valid':len(values),'draws_requested':draws,
+            'hot_gridcell_times':int(count.sum())}
+
+def monthly_diagnostics(pred,ref,truth,target_times,threshold=305.0):
+    out=[]
+    months=np.asarray(target_times).astype('datetime64[M]')
+    for m in np.unique(months):
+        take=months==m
+        yp=truth[take]; pp=pred[take]; rr=ref[take]
+        hot=yp>=threshold
+        rmse=lambda z,mask:float(np.sqrt(np.mean((z[mask]-yp[mask])**2))) if mask.any() else None
+        out.append({'month':str(m),'all_cnn_rmse_kelvin':rmse(pp,np.ones_like(hot,dtype=bool)),
+                    'all_blend_rmse_kelvin':rmse(rr,np.ones_like(hot,dtype=bool)),
+                    'fixed_hot_cnn_rmse_kelvin':rmse(pp,hot),
+                    'fixed_hot_blend_rmse_kelvin':rmse(rr,hot),
+                    'fixed_hot_gridcell_times':int(hot.sum())})
+    return out
+
 def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0):
     if hot_weight < 0: raise ValueError('hot_weight must be nonnegative')
     ts=np.asarray(timestamps).astype('datetime64[h]')
@@ -71,7 +115,10 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     mask=truth>=hot_threshold_kelvin
     score=lambda z,m:float(np.sqrt(np.mean((z[m]-truth[m])**2)))
     uncertainty=[paired_time_block_ci(pred[...,None],baseline[...,None],truth[...,None],block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
-    result={'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
+    hot_uncertainty=[hot_time_block_ci(pred,baseline,truth,threshold=hot_threshold_kelvin,
+                      block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
+    months=monthly_diagnostics(pred,baseline,truth,ts[b:],threshold=hot_threshold_kelvin)
+    result={'fixed_heat_paired_block_sensitivity':hot_uncertainty,'monthly_diagnostics':months,'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
       'blended_baseline_rmse_kelvin':score(baseline,np.ones_like(mask,dtype=bool)),
       'fixed_305k_cnn_rmse_kelvin':score(pred,mask) if mask.any() else None,
       'fixed_305k_blend_rmse_kelvin':score(baseline,mask) if mask.any() else None,
