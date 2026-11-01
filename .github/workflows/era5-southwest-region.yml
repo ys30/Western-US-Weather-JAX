@@ -1,0 +1,43 @@
+name: ERA5 Southwest non-overlapping region test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-southwest-region.yml'
+      - 'scripts/fetch_arco_era5.py'
+      - 'scripts/climatology_aware_cnn.py'
+      - 'scripts/climatology_baselines.py'
+      - 'weatherjax/**'
+permissions:
+  contents: read
+concurrency:
+  group: era5-southwest-region-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  southwest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - name: Fetch independent geographic region, 2019–2022
+        run: python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 30 --lat-max 36 --lon-min -108 --lon-max -102 --output input/era5_southwest_2019_2022.nc
+      - name: Verify ERA5 physical units and lead
+        run: python -m weatherjax.preflight input/era5_southwest_2019_2022.nc --timestep-hours 6 --lead-hours 24 --report outputs/southwest-region/preflight.json
+      - name: Independent-region validation-selected blend
+        run: python scripts/climatology_baselines.py --data input/era5_southwest_2019_2022.nc --train-until 2021-01-01 --validate-until 2022-01-01 --output outputs/southwest-region/blend.json
+      - name: Southwest heat-weighted CNN, 3 seeds
+        run: |
+          for seed in 42 7 123; do
+            python scripts/climatology_aware_cnn.py --data input/era5_southwest_2019_2022.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --seed "$seed" --hot-weight 2 --hot-threshold-kelvin 305 --output "outputs/southwest-region/cnn-seed${seed}.json"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: southwest-region-2022-results
+          path: outputs/southwest-region/**/*.json
+          if-no-files-found: warn
