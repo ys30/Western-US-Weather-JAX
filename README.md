@@ -12,6 +12,10 @@
 
 **Known limitation:** the validation-selected, heat-weighted CNN has worse 2022 fixed-305-K heat-subset RMSE (**2.13841 K**) than persistence (**2.08005 K**). Do not interpret aggregate improvement as extreme-temperature forecasting skill.
 
+## Stronger independent-year baseline — important limitation
+
+The 2022 evaluation also tested training-only month/hour climatology and a persistence/climatology mixture selected on **2021 validation data**. The blend achieved **2.99462 K RMSE** (75% persistence, 25% climatology), substantially better than the unweighted CNN (**3.18849 K**). **The CNN does not beat the strongest tested baseline**; future model development must use this blend as the primary reference. [Verified CI experiment](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41255803026).
+
 ## Actual GPU verification — Colab Tesla T4
 
 A user-executed **NVIDIA Tesla T4** Google Colab run successfully trained the validated heat-weighted JAX CNN on real ERA5, with hardware-backed JAX GPU audit and matching input SHA-256. **40 epochs**, same seed and settings:
@@ -37,4 +41,4 @@ For exact experiment tables, bootstrap sensitivity, evidence boundaries and the 
 
 ## Remaining work
 
-Repeat CPU timings under matched conditions and test additional GPU environments; improve fixed-threshold high-temperature skill; evaluate additional years, regions and model seeds. More complex models such as U-Net are **not yet verified**.
+Improve forecasting beyond the validation-selected climatology/persistence blend; repeat CPU timings under matched conditions and test additional GPU environments; improve fixed-threshold high-temperature skill; evaluate additional years, regions and model seeds. More complex models such as U-Net are **not yet verified**.

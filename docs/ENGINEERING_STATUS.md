@@ -145,3 +145,20 @@ Using the *earlier single* same-configuration CPU run (258.5146 s), the GPU repe
 
 Evidence scope: 3 repeated real GPU measurements and stable test accuracy **verified**; repeated CPU baseline and multi-hardware scaling **not verified**. Exact hardware T4 from the prior Colab acceptance, not independently re-queried from this ZIP's `gpu_metrics.json`.
 
+
+## Stronger 2022 climatology-blend baseline (verified run 41255803026)
+
+A leakage-controlled **per-gridcell, month-of-year × UTC-hour climatology** was learned only from **2019–2020 training ERA5**. A persistence/climatology convex blend was chosen **only using 2021 validation RMSE** from prespecified weights {0, 0.25, 0.50, 0.75, 1.00}. Validation selected **0.25 climatology + 0.75 persistence**.
+
+| 2022 independent-test method | RMSE (K) |
+| --- | ---: |
+| Persistence | 3.22027 |
+| Four-frame CNN (unweighted) | 3.18849 |
+| Validation-selected heat-weighted CNN | 3.19116 |
+| Training-only climatology | 4.40352 |
+| **Validation-selected persistence/climatology blend** | **2.99462** |
+
+The blend improves over persistence by **~7.01%**, and beats the unweighted CNN's RMSE by **~6.08% relative to CNN** (CNN error is ~6.47% higher than blend). This **supersedes any suggestion that the existing CNN is the best benchmark**; the scientific target is now outperforming the stronger, leakage-controlled blend. This is a simple empirical baseline, not a statement of operational forecast skill.
+
+Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41255803026
+
