@@ -35,11 +35,17 @@ jobs:
           for seed in 42 7 123; do
             python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint "outputs/source/model-${seed}.npz" --test-start 2022-01-01 --output "outputs/frozen-southwest/seed-${seed}.json"
           done
+      - name: Frozen weights with no target historical climatology
+        run: |
+          for seed in 42 7 123; do
+            python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint "outputs/source/model-${seed}.npz" --test-start 2022-01-01 --climatology-mode source_global_constant --output "outputs/frozen-no-history/seed-${seed}.json"
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: frozen-southwest-results
           path: |
             outputs/frozen-southwest/*.json
+            outputs/frozen-no-history/*.json
             outputs/source/*.json
           if-no-files-found: warn
