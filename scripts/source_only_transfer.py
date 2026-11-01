@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import jax
 import jax.numpy as jnp
+from weatherjax.time_audit import audit_timeline
 from weatherjax.data import load_era5
 from weatherjax.model import init_model,predict
 from weatherjax.train import paired_time_block_ci
@@ -18,6 +19,10 @@ def evaluate(source, source_times, target, target_times, seed=42, epochs=40,
     b=int(np.searchsorted(st,np.datetime64(val_end)))
     c=int(np.searchsorted(tt,np.datetime64(test_start)))
     if not(8<a<b<len(src) and 8<c<len(tar)):raise ValueError("Invalid periods")
+    audit_timeline(st,train_end,val_end)
+    # Target region needs monotonic, gap-free six-hourly observations, too.
+    if np.any(np.diff(tt).astype("timedelta64[h]").astype(int)!=6):
+        raise ValueError("Target ERA5 time gap or duplicate")
     mean=float(src[:a].mean());std=max(float(src[:a].std()),1e-6)
     def make(arr,times,indices):
         offsets=indices[:,None]-4-np.arange(3,-1,-1)[None,:]
