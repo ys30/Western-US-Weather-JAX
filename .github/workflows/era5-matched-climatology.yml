@@ -1,0 +1,33 @@
+name: ERA5 matched climatology-channel training ablation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-training:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - name: Download disjoint ERA5 source and target
+        run: |
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 31 --lat-max 43 --lon-min -121 --lon-max -109 --output input/source.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 30 --lat-max 36 --lon-min -108 --lon-max -102 --output input/target.nc
+      - name: Train paired architectures (same seed, common blend)
+        run: |
+          for seed in 42 7 123; do
+            for mode in historical source_mean; do
+              python scripts/climatology_aware_cnn.py --data input/source.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --hot-weight 2 --seed "$seed" --climatology-feature-mode "$mode" --checkpoint-path "outputs/matched/$mode/seed-$seed.npz" --output "outputs/matched/$mode/source-$seed.json"
+              python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint "outputs/matched/$mode/seed-$seed.npz" --test-start 2022-01-01 --output "outputs/matched/$mode/target-$seed.json"
+            done
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: matched-climatology-training-results
+          path: outputs/matched/**/*.json
+          if-no-files-found: warn
