@@ -364,3 +364,16 @@ All seeds show **smaller annual RMSE** than Persistence (roughly 1.2–1.5% impr
 
 **Scientific boundary:** the protocols are not perfectly controlled ablations of one learned parameterization: removing climatology changes both the model inputs and learned source parameters. The source-only test is evidence of method-level performance under an operationally relevant no-target-climatology constraint, not proof that a particular climatic feature alone causes the difference.
 
+
+## Source-only frozen regional transfer: paired block-bootstrap (verified)
+
+[CI run 41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617) successfully evaluated three source-only climatology-free CNNs against 24-hour Persistence on Southwest 2022 ERA5. Paired circular time-block bootstrap (1000 draws; 1, 3, 7 and 14 days; resample valid times with spatial fields intact) showed **all annual CNN-minus-Persistence RMSE 95% intervals below zero**, but **all observed >=305 K hot-subset intervals above zero**. This result is robust across the three model random seeds and four explored time-block lengths *within this region-year sample*.
+
+| Seed | 14-day annual RMSE difference 95% CI (K) | 14-day observed-hot RMSE difference 95% CI (K) |
+| --- | --- | --- |
+| 42 | [-0.067486, -0.031048] | [+0.114932, +0.189626] |
+| 7 | [-0.086444, -0.039725] | [+0.132285, +0.197894] |
+| 123 | [-0.085941, -0.038732] | [+0.108560, +0.171113] |
+
+Interpretation: source-only no-climatology CNNs improve **annual** RMSE by about 1.2–1.5% but worsen **observed-hot** RMSE by about 5.8–6.8% relative to Persistence; no hot-tail superiority claim. Hot mask is defined from **observed 2022 truth** for retrospective evaluation, not deployable hot-event detection. This does not isolate the causal effect of adding climate features, nor establish multi-year or additional-region external validation.
+

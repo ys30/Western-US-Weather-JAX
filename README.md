@@ -25,6 +25,8 @@ This source-weight comparator is **different** from the Southwest **locally vali
 
 **Source-only architecture without any climatology inputs (verified):** Three source-trained, frozen CNNs (2019–2020 training, 2021 validation) evaluated in Southwest 2022 achieved annual RMSE **4.1124 / 4.0984 / 4.0993 K**, versus **4.1627 K** persistence, but observed >=305 K hot-subset RMSE **2.5506 / 2.5632 / 2.5389 K**, **worse** than persistence (**2.4004 K**). This demonstrates small annual improvements **without high-temperature gains**; distinct from the frozen climatology-aware adaptation protocol. [Successful CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41276916469).
 
+**New source-only transfer uncertainty (verified):** Across seeds 42/7/123 and 1–14-day paired block bootstrap, CNN-minus-Persistence **annual** RMSE 95% CIs were entirely negative, but **observed-hot (>=305 K)** RMSE 95% CIs were entirely positive. At 14 days: annual **[-0.0675,-0.0310], [-0.0864,-0.0397], [-0.0859,-0.0387] K**; hot **[+0.1149,+0.1896], [+0.1323,+0.1979], [+0.1086,+0.1711] K**. [Successful ERA5 CI](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617). The model improves annual prediction while **worsening** hot-tail accuracy without target historical climatology.
+
 ## Recruiter-ready visual results
 
 The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.
