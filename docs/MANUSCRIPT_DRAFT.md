@@ -31,6 +31,14 @@ Three initializations (seeds 42, 7, 123) were evaluated. Source model selection 
 ### 2.4 Outcomes and uncertainty
 Annual RMSE aggregates all test gridcells and valid times. The observed-hot subset restricts scored test points to **truth temperature ≥305 K** (about 31.85°C). Because truth identifies hot points retrospectively, this measures conditional error and **not** heat-event detection. Differences are calculated as CNN minus its **protocol-specific** baseline. Paired circular time-block bootstrap resamples valid times while preserving complete spatial fields, using 1000 draws at blocks of 1, 3, 7 and 14 days. Percentile intervals describe dependence-sensitive uncertainty **within this test domain/year**, not external-spatial replication or multiplicity-adjusted inference.
 
+### 2.5 Time-index and information-availability audit (code-verified; CI-verified)
+
+The dataset constructor defines a target at valid-time index `t` and inputs at `t−7, t−6, t−5, t−4` for a six-hourly series. Therefore the latest observed temperature input is at `t−4` (24 hours before the target), while the oldest is at `t−7` (42 hours before the target). A forecast issued at `t−4` can use these observed frames; the cyclical UTC-hour encoding of the future valid time `t` is known in advance and does not contain observed target temperature. The 24-hour persistence prediction is exactly the temperature at `t−4`.
+
+Validation and held-out test **target** indices do not overlap training targets. The earliest validation/test inputs may belong to the immediately preceding period, which is permitted for a rolling forecast because those input observations predate issue time. Original-area training mean and standard deviation and climatological feature maps are computed before the validation/test cut as specified for each protocol. In the frozen adaptation protocol, target-domain climatology uses the **full 2019–2021 pre-test interval**, including the period corresponding to source validation; this is permitted *historical feature adaptation*, not a no-target-history setting.
+
+The tests in `tests/test_time_audit.py` check lead offset, period boundaries and rejection of missing or irregular six-hour intervals; the guards in `weatherjax/time_audit.py` are called by source-only and climatology-aware training, and target time continuity is checked during frozen inference. [CI verification: unit tests](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255199) and [frozen ERA5 experiment](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255173). The audit validates implemented temporal indexing, not all conceivable upstream dataset provenance issues.
+
 ## 3. Results
 
 ### 3.1 Frozen network transfer with target historical climatology
@@ -53,7 +61,7 @@ The adapted experiment retains a target historical-data requirement, whereas the
 - A threshold applied to observed truth does not validate heat-event detection or early-warning decision performance.
 - Time-block bootstrap addresses temporal dependence but cannot solve broad spatial representativeness, multiple-comparison or model-selection issues.
 - Comparing a climatology-aware CNN to the source-only CNN changes architecture/input/training distributions and comparator; further matched-design studies are needed before causal claims.
-- Check exact time-index handling in all architectures: four available frames and a 24-hour target lead must not contain post-issuance target inputs.
+- Code-level input-lead and chronological boundary audit has passed CI. Remaining provenance checks include verifying upstream ERA5 timestamp semantics and complete reproducibility of all cached/downloaded data.
 - Consider an additional withheld Southwest year, independent domain and operational threshold-based detection metrics before a submission-ready manuscript.
 
 ## Data and code availability
@@ -67,3 +75,21 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 - Feature-substitution sensitivity: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41275083685
 
 **Editorial note:** This is a numerical-evidence draft, not a submission-ready article. Do not add literature citations, author lists or journal-specific claims until separately checked. The independent original-domain 2022 workflow was still in progress at the last CI check.
+
+## Appendix A. Cross-protocol result registry (verified)
+
+| Protocol | Training domain | Target adaptation | Comparator | CNN annual RMSE K (42 / 7 / 123) | CNN truth-hot RMSE K (42 / 7 / 123) | Comparator annual / hot K |
+| --- | --- | --- | --- | --- | --- | --- |
+| Frozen climate-aware | Original | Southwest pre-2022 history as climatology features; no target gradient updates | Source-selected persistence/climatology blend | 3.7905 / 3.7981 / 3.7946 | 2.3474 / 2.3308 / 2.3228 | 3.7999 / 2.4787 |
+| Frozen source-only | Original | No target climatology; recent forecast-time observations only | 24-h persistence | 4.1124 / 4.0984 / 4.0993 | 2.5506 / 2.5632 / 2.5389 | 4.1627 / 2.4004 |
+
+**Comparability warning:** model architectures and comparator definitions differ, so subtracting raw errors across these two rows is not a controlled effect estimate. The separate *target-local retraining* result is not included in this frozen-model table.
+
+## Appendix B. Pre-submission verification queue
+
+1. Obtain an uncancelled **latest original-area 2022 full-run** confirmation; multiple earlier main-branch pushes cancelled predecessor runs under GitHub Actions concurrency. Do not mistake cancellation for statistical failure.
+2. Record exact ERA5 endpoint, retrieval timestamp, file checksums and software dependency versions in a fixed release.
+3. Produce figures directly from archived successful CI JSON artifacts rather than manually transcription.
+4. Confirm paper's model-selection/development chronology and evaluate external region/year replication before strong independent-generalization claims.
+5. Add journal-appropriate references and comply with applicable ERA5 acknowledgement and license requirements.
+
