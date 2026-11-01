@@ -162,3 +162,17 @@ The blend improves over persistence by **~7.01%**, and beats the unweighted CNN'
 
 Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41255803026
 
+
+## Climatology-aware residual CNN: first 2022 holdout (run 41256841210)
+
+The model uses **training-only** (2019–2020) per-gridcell month/UTC-hour climatology, a **2021 validation-selected** persistence/climatology blend (25% climatology), and a JAX residual CNN correcting that blend. Independent test: full 2022. Real ERA5 CPU run and unit tests passed.
+
+| Metric | Strong blended baseline | Climatology-aware CNN |
+| --- | ---: | ---: |
+| 2022 overall RMSE | 2.994618 K | **2.983654 K** |
+| 2022 fixed 305 K heat RMSE | **2.159303 K** | 2.178752 K |
+
+Overall improvement over blended baseline: **0.010965 K (~0.366%)**. Heat-subset performance is **worse** than the blend. Best checkpoint was epoch **40/40**, so saturation has not been established. This is **one seed, one independent year**, with no paired uncertainty interval for the new model; it is premature to claim robust improvement. Previous claims about the existing CNN being inferior to the blend refer to the **earlier plain CNN architecture**, not this new residual model.
+
+Source: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41256841210
+

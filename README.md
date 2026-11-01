@@ -14,7 +14,7 @@
 
 ## Stronger independent-year baseline — important limitation
 
-The 2022 evaluation also tested training-only month/hour climatology and a persistence/climatology mixture selected on **2021 validation data**. The blend achieved **2.99462 K RMSE** (75% persistence, 25% climatology), substantially better than the unweighted CNN (**3.18849 K**). **The CNN does not beat the strongest tested baseline**; future model development must use this blend as the primary reference. [Verified CI experiment](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41255803026).
+The 2022 evaluation also tested training-only month/hour climatology and a persistence/climatology mixture selected on **2021 validation data**. The blend achieved **2.99462 K RMSE** (75% persistence, 25% climatology), substantially better than the unweighted CNN (**3.18849 K**). **The original four-frame CNN does not beat this blend.** A newly tested **climatology-aware residual CNN** reached **2.98365 K** on the same 2022 holdout versus **2.99462 K** for the blend (~0.37% better), but had worse 305 K heat-tail RMSE (**2.17875 K** versus **2.15930 K**). This is one seed/year and is not yet statistically established. [Verified CI experiment](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41255803026).
 
 ## Actual GPU verification — Colab Tesla T4
 
