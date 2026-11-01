@@ -5,7 +5,13 @@ on:
     paths:
       - '.github/workflows/era5-crossyear.yml'
       - 'weatherjax/**'
-      - 'scripts/**'
+      - 'scripts/fetch_arco_era5.py'
+      - 'scripts/climatology_baselines.py'
+      - 'scripts/climatology_aware_cnn.py'
+      - 'scripts/summarize_experiment.py'
+      - 'scripts/select_heat_weight.py'
+      - 'scripts/report_selected_heat.py'
+      - 'scripts/select_climate_heat.py'
       - 'pyproject.toml'
   workflow_dispatch:
 permissions:
