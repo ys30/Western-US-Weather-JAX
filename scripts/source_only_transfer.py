@@ -31,7 +31,7 @@ def evaluate(source, source_times, target, target_times, seed=42, epochs=40,
     @jax.jit
     def step(p,x,y):
         loss=lambda q:jnp.mean((predict(q,x)-y)**2)
-        grads=jax.grad(loss)(p,x,y)
+        grads=jax.grad(loss)(p)
         return jax.tree_util.tree_map(lambda w,g:w-.001*g,p,grads)
     rng=np.random.default_rng(seed);best=np.inf;best_params=None
     for _ in range(epochs):
