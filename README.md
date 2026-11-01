@@ -6,6 +6,19 @@
 
 **High-temperature event-definition robustness (new):** The 1% / 5% / 10% area-fraction × 2 / 3 / 4 consecutive-day audit ran successfully. For Southwest 2022, **1% / 2 days** yielded 11 episodes with **9 / 11 / 10** improved across the three seeds; **5% / 3 days** yielded 8 episodes with **7 / 8 / 8** improved. All settings use retrospectively observed temperature and are **not detection-skill tests**. [Validated workflow](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41272192666).
 
+## Verified frozen-weight source-to-Southwest transfer (2022)
+
+[Real ERA5 CI run 41273562903](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41273562903) **succeeded**: train original-region CNN on 2019–2020, select checkpoints using 2021 validation, freeze weights and source mean/std plus source validation-selected blending weight, then infer in geographically non-overlapping Southwest in 2022. **No CNN weight update, target checkpoint selection, or target test-label tuning.** Target 2019–2021 historical ERA5 is used **only to construct spatial climatology features** and the corresponding persistence/climatology blend. Not strict no-target-history zero-shot transfer.
+
+| Southwest 2022 RMSE (K) | Source-weight blend | Frozen CNN seed 42 | Frozen CNN seed 7 | Frozen CNN seed 123 |
+| --- | ---: | ---: | ---: | ---: |
+| Overall | 3.799870 | 3.790533 | 3.798109 | 3.794606 |
+| Observed t2m >=305 K | 2.478656 | 2.347359 | 2.330832 | 2.322750 |
+
+Heat RMSE decreases versus the **source-weight blend comparator** by about **5.30%, 5.96%, 6.29%**. Overall improvements are smaller. All hot-subset results condition retrospectively on **observed** test temperatures, and thus do not measure event detection. This experiment does not establish formal statistical significance or transfer without target historical climatology.
+
+This source-weight comparator is **different** from the Southwest **locally validation-selected blend** (overall 3.802520 K, hot 2.408255 K). Do not conflate these baselines or make unpaired superiority statements across protocols. The locally retrained Southwest CNNs are a separate experiment.
+
 ## Recruiter-ready visual results
 
 The following charts use verified real-ERA5 and Tesla T4 measurements. Interpret GPU time as a descriptive **single-CPU-run reference**, and the Southwest result as **retraining in a second region**, not zero-shot generalization.
