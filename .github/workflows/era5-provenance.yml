@@ -1,6 +1,10 @@
 name: ERA5 provenance-only manifest
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-provenance.yml'
 permissions:
   contents: read
 jobs:
