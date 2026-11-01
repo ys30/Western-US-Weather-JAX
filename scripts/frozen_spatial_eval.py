@@ -3,6 +3,7 @@ import argparse,json
 from pathlib import Path
 import numpy as np
 import jax.numpy as jnp
+from weatherjax.time_audit import audit_timeline
 from weatherjax.data import load_era5
 from weatherjax.model import predict
 from scripts.heat_events import event_diagnostics,event_definition_sensitivity
