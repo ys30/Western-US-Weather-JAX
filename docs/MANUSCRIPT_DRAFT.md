@@ -55,6 +55,8 @@ This is **an ERA5-based hindcast on reanalysis**, **not a prospective operationa
 
 The Google Cloud ARCO mirror provides a copy of ECMWF/Copernicus ERA5 rather than a separate observational product. This fetch-script audit establishes the configured provider, variable and sampling method, but does **not** independently verify immutable source object versions, actual download times or the SHA-256 digests of experiment-specific local NetCDF files. These metadata should be attached to the publication release.
 
+**Independent input provenance rerun (2026-11-01).** A separate [successful provenance-only workflow #41288894933](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41288894933) downloaded and inspected the original-domain 2019–2022 input **without retraining the model**. Its NetCDF `era5_2019_2022.nc` is **56,182,643 bytes**, with **5,844** six-hourly valid times from **2019-01-01 00:00 UTC** to **2022-12-31 18:00 UTC**, on a **49×49** grid spanning **31–43°N, 121–109°W**. The retrieved file SHA-256 is `ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`. The archived artifact also contains `pip-freeze.txt` from Python **3.11.17**, obtained in that same provenance runner. **This checksum applies only to the provenance-run download and is not asserted to be the byte identity of historical model-training inputs.**
+
 ## 3. Results
 
 ### 3.1 Frozen network transfer with target historical climatology

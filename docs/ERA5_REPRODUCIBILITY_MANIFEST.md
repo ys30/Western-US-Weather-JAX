@@ -13,6 +13,10 @@
 | Preflight checks | Kelvin units, time monotonicity and exact 6-hour cadence, grid dimensions, first eight frames finite and plausible temperature range |
 | Experimental preflight output | `outputs/era5-crossyear/preflight.json`, included among workflow JSON artifacts |
 
+## Verified follow-up retrieval
+
+Workflow [#41288894933](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41288894933) completed successfully. The actual SHA-256, grid and exact environment for that separate provenance-only retrieval are recorded in [ERA5_VERIFIED_PROVENANCE_2026_11_01.md](ERA5_VERIFIED_PROVENANCE_2026_11_01.md). These are **not** historical training file checksums.
+
 ## Missing information — do not infer
 
 The `pyproject.toml` constraints do **not** establish exact installed package versions. The workflow does not pin all transitive dependencies. The file fetch routine does not write a SHA-256 hash or version of the underlying Zarr object. Neither the GitHub Actions run identifier nor a green test alone establishes the checksum of each NetCDF input.
