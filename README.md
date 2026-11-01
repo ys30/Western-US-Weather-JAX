@@ -2,6 +2,8 @@
 
 **Real ERA5 + JAX/CUDA regional 24-hour temperature forecasting and reproducible GPU engineering.** A four-frame residual CNN predicts six-hourly Western-US 2 m temperature fields at a **24-hour lead** on a **49 × 49** grid. This is a bounded research/engineering demonstrator, **not an operational weather forecast**.
 
+**For recruiters:** [One-page engineering and scientific evidence brief](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Live portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html).
+
 ## Verified results
 
 | Evaluation | Persistence RMSE | Four-frame CNN RMSE | Relative overall improvement |
