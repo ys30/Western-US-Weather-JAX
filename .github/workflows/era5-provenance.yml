@@ -1,0 +1,28 @@
+name: ERA5 provenance-only manifest
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[zarr]' gcsfs
+      - name: Record exact resolved dependencies
+        run: |
+          mkdir -p outputs/provenance
+          python -m pip freeze > outputs/provenance/pip-freeze.txt
+      - name: Retrieve only ERA5, do not train CNN
+        run: python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --output input/era5_2019_2022.nc
+      - name: Inspect and hash actual NetCDF file
+        run: python scripts/era5_file_manifest.py input/era5_2019_2022.nc --output outputs/provenance/era5-file-manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: era5-input-provenance
+          path: outputs/provenance/*
+          if-no-files-found: error
