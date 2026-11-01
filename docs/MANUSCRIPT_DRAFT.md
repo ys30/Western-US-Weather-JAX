@@ -60,6 +60,10 @@ Replacing the historical climatology channel with source-global-mean constants i
 
 **Cross-figure caution:** Figures 1 and 2 use **different protocol-specific baselines** and separately trained feature sets. Juxtaposition demonstrates a qualitative difference in results; it is not a matched randomized experiment proving a climatology-only causal effect. The hot subset is selected using observed truth, not an operational forecast alert. Both plot files currently reside in the successful workflow artifact, **not** as committed SVGs in the repository.
 
+### 3.5 Original-region 2022 holdout rerun: final CI verification
+
+The latest uninterrupted original-region 2022 full workflow [completed successfully](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112) and uploaded its [21-file JSON archive](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112/artifacts/13074566046). For seeds 42/7/123, the validation-selected blended reference had annual RMSE **2.994618 K** and observed-hot RMSE **2.159303 K**. CNN annual RMSE was **2.984499 / 2.997407 / 2.992431 K**, whereas its observed-hot RMSE was **2.054921 / 2.045063 / 2.039816 K**. All three seeds improved the observed-hot subset; seed 7 slightly worsened annual RMSE versus the blend. These original-domain results are separate from the held-out Southwest spatial-transfer protocols.
+
 ## 4. Discussion — draft
 The central finding is a **metric-dependent transfer trade-off**. Historical-feature-adapted frozen source networks improved hot-subset RMSE within the Southwest test year, although their small annual differences were statistically uncertain under the evaluated block resamples. A separately source-trained climatology-free model modestly improved annual prediction over persistence but worsened conditional hot-subset error. This distinction matters for evaluations in which extreme temperatures are of principal interest.
 
@@ -84,7 +88,7 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 - Source-only paired bootstrap: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617
 - Feature-substitution sensitivity: https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41275083685
 
-**Editorial note:** This is a numerical-evidence draft, not a submission-ready article. Do not add literature citations, author lists or journal-specific claims until separately checked. The independent original-domain 2022 workflow was still in progress at the last CI check.
+**Editorial note:** This is a numerical-evidence draft, not a submission-ready article. Do not add literature citations, author lists or journal-specific claims until separately checked. The original-domain 2022 full rerun has now succeeded in GitHub Actions run 41281229112; see its archived evidence.
 
 ## Appendix A. Cross-protocol result registry (verified)
 
@@ -97,7 +101,7 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 
 ## Appendix B. Pre-submission verification queue
 
-1. Obtain an uncancelled **latest original-area 2022 full-run** confirmation; multiple earlier main-branch pushes cancelled predecessor runs under GitHub Actions concurrency. Do not mistake cancellation for statistical failure.
+1. **Completed:** Original-area 2022 full-run successfully completed in [CI #41281229112](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112), artifact `independent-2022-era5-metrics` (21 JSON). Previous cancelled runs were superseded, not statistical failures.
 2. Record exact ERA5 endpoint, retrieval timestamp, file checksums and software dependency versions in a fixed release.
 3. **Completed:** The figure-generation workflow successfully regenerated two hot-RMSE plots and a comparison CSV from archived successful JSON in run 41281229086. **Next:** publication-layout review and adding committed figure copies or permanent release assets.
 4. Confirm paper's model-selection/development chronology and evaluate external region/year replication before strong independent-generalization claims.

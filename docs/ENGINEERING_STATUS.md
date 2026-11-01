@@ -377,3 +377,15 @@ All seeds show **smaller annual RMSE** than Persistence (roughly 1.2–1.5% impr
 
 Interpretation: source-only no-climatology CNNs improve **annual** RMSE by about 1.2–1.5% but worsen **observed-hot** RMSE by about 5.8–6.8% relative to Persistence; no hot-tail superiority claim. Hot mask is defined from **observed 2022 truth** for retrospective evaluation, not deployable hot-event detection. This does not isolate the causal effect of adding climate features, nor establish multi-year or additional-region external validation.
 
+
+## Latest original-domain 2022 holdout: independently verified successful rerun
+
+[Full ERA5 independent-year CI #41281229112](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112) completed with **success** (head commit `22557828dccb3b6ed4ded05029a90ad3cf4b7137`), after earlier runs were cancelled by superseding pushes. The successful `independent-year` job uploaded artifact [`independent-2022-era5-metrics`](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112/artifacts/13074566046), containing **21 JSON files**.
+
+| Original-domain 2022 RMSE (K) | Validation-selected blend | CNN seed 42 | CNN seed 7 | CNN seed 123 |
+| --- | ---: | ---: | ---: | ---: |
+| Annual | 2.994618 | 2.984499 | 2.997407 | 2.992431 |
+| Observed >=305 K | 2.159303 | 2.054921 | 2.045063 | 2.039816 |
+
+Each seed uses selected hot-weight 2. The CNN improves **observed-hot RMSE for all three seeds**, while annual RMSE improves for seeds 42 and 123 but **not** seed 7. This validates completion of the latest 2022 original-domain run, not superiority in every metric, model setting or geographic domain. Source-of-truth: successful run artifact and log.
+
