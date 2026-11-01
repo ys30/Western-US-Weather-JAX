@@ -4,13 +4,17 @@ from pathlib import Path
 
 def records(folder,keys):
     files=list(Path(folder).rglob("seed-*.json"))
-    if len(files)!=3:raise ValueError(f"Need 3 distinct seeds in {folder}; got {len(files)}")
     data={}
     for path in files:
         stem=path.stem
         seed=int(stem.rsplit("-",1)[-1])
         if seed in data:raise ValueError("Duplicate seed")
         v=json.loads(path.read_text())
+        # The frozen-region artifact contains BOTH adapted and source-global-constant
+        # ablation results. Keep only the historical-climatology-adapted protocol.
+        if "fixed_305k_cnn_rmse_kelvin" in keys and v.get("climatology_mode") != "target_history":
+            continue
+        if seed in data:raise ValueError(f"Duplicate seed in selected protocol: {seed}")
         data[seed]=[float(v[k]) for k in keys]
     if set(data)!={7,42,123}:raise ValueError(f"Unexpected seeds: {set(data)}")
     return data
