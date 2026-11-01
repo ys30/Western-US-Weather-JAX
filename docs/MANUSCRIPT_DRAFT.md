@@ -57,6 +57,12 @@ The Google Cloud ARCO mirror provides a copy of ECMWF/Copernicus ERA5 rather tha
 
 **Independent input provenance rerun (2026-11-01).** A separate [successful provenance-only workflow #41288894933](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41288894933) downloaded and inspected the original-domain 2019–2022 input **without retraining the model**. Its NetCDF `era5_2019_2022.nc` is **56,182,643 bytes**, with **5,844** six-hourly valid times from **2019-01-01 00:00 UTC** to **2022-12-31 18:00 UTC**, on a **49×49** grid spanning **31–43°N, 121–109°W**. The retrieved file SHA-256 is `ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`. The archived artifact also contains `pip-freeze.txt` from Python **3.11.17**, obtained in that same provenance runner. **This checksum applies only to the provenance-run download and is not asserted to be the byte identity of historical model-training inputs.**
 
+### ERA5 dataset and mirror attribution
+
+The source reanalysis dataset is **ERA5 hourly data on single levels from 1940 to present**, Copernicus Climate Change Service (C3S) Climate Data Store, DOI: **10.24381/cds.adbb2d47** (see the official [CDS catalogue](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels)). This study did **not** use the CDS download API: input fields were retrieved from Google's public **Analysis-Ready, Cloud Optimized (ARCO) ERA5** mirror at the exact Zarr URI documented in Section 2.6 (see [Google ARCO ERA5 project](https://github.com/google-research/arco-era5)). The underlying product is Copernicus/ECMWF ERA5; the cloud provider is a distribution and transformation route rather than an independent climate dataset.
+
+A proposed attribution statement, subject to final author and publisher review, is: *Contains modified Copernicus Climate Change Service information [2019–2022]. ERA5 data were accessed via the Google ARCO ERA5 public cloud mirror; six-hourly subset, spatial crop and NetCDF conversion were performed for this study.* The CDS catalogue currently identifies the ERA5 single-levels product as **CC BY**. The original C3S/ECMWF source must be credited, and transformations should be disclosed. **Do not substitute the separate ERA5 hourly time-series dataset DOI (10.24381/1cf1ad76)**: that is a different CDS catalogue product.
+
 ## 3. Results
 
 ### 3.1 Frozen network transfer with target historical climatology
@@ -139,7 +145,10 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 3. Lam, R., Sanchez-Gonzalez, A., Willson, M., et al. (2023). Learning skillful medium-range global weather forecasting. *Science*, **382**(6677), 1416–1421. https://doi.org/10.1126/science.adi2336
 4. Bradbury, J., Frostig, R., Hawkins, P., et al. (2018). JAX: Composable transformations of Python+NumPy programs [Software]. https://github.com/jax-ml/jax/blob/main/CITATION.bib
 
-**ERA5 dataset credit pending final metadata and terms verification.** The archived fetch script uses the Google Cloud ARCO ERA5 Zarr mirror (see Section 2.6), not a direct Copernicus CDS API download. The ERA5 *paper* citation does not substitute for the dataset-specific citation and licensing/attribution for the actual mirror. Confirm the precise collection reference, retrieval and processing information, and the applicable attribution; use [Copernicus CDS guidance](https://confluence.ecmwf.int/spaces/CKB/pages/197704114/) and the [ECMWF attribution guidance](https://confluence.ecmwf.int/pages/viewpage.action?pageId=673321178). Do not assert a retrieval method without auditing the repository's fetch script.
+**ERA5 dataset credit has been identified (10.24381/cds.adbb2d47); final publisher-style attribution remains pending.** The archived fetch script uses the Google Cloud ARCO ERA5 Zarr mirror (see Section 2.6), not a direct Copernicus CDS API download. The ERA5 *paper* citation does not substitute for the dataset-specific citation and licensing/attribution for the actual mirror. The actual input is the hourly single-level reanalysis routed through Google ARCO, rather than the distinct CDS point time-series product. Confirm exact publisher formatting and attribution; use [Copernicus CDS guidance](https://confluence.ecmwf.int/spaces/CKB/pages/197704114/) and the [ECMWF attribution guidance](https://confluence.ecmwf.int/pages/viewpage.action?pageId=673321178). Do not assert a retrieval method without auditing the repository's fetch script.
+
+5. Copernicus Climate Change Service (C3S) Climate Data Store (CDS). *ERA5 hourly data on single levels from 1940 to present* [Dataset]. https://doi.org/10.24381/cds.adbb2d47
+6. Google Research. *Analysis-Ready, Cloud Optimized (ARCO) ERA5* [Data distribution and processing project]. https://github.com/google-research/arco-era5
 
 ## Appendix A. Cross-protocol result registry (verified)
 

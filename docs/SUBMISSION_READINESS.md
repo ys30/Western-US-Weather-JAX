@@ -40,7 +40,8 @@ Each protocol has a **different comparison baseline**. Results do not prove a ca
 - [ ] Complete journal-specific figure dimensions, vector readability and print/export checks.
 - [ ] Verify ERA5 spatial grid and time provenance from downloaded files (metadata and checksums).
 - [ ] Audit parameter-development chronology, multiplicity and test reuse; strengthen independent external validation.
-- [ ] Add correctly verified scientific references, ERA5 attribution and chosen journal formatting.
+- [x] Verify ERA5 hourly single-level source DOI and Google ARCO distribution path; draft C3S attribution.
+- [ ] Finalize journal-specific reference formatting and attribution text; review broader literature.
 - [x] Figure 1/2 labels and CSV cross-checked (`docs/FIGURES12_ARCHIVE_AUDIT.md`); Figure 3 points and intervals cross-checked (`docs/FIGURE3_BOOTSTRAP_AUDIT.md`).
 - [ ] End-to-end frozen-source data and final manuscript claim verification, including external-data file digests.
 
