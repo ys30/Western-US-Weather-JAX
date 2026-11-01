@@ -26,10 +26,10 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     months=(ts.astype("datetime64[M]").astype("int64")%12).astype(int)
     hours=(ts.astype("datetime64[h]").astype("int64")%24).astype(int)
     bins=months*24+hours
-    if climatology_mode not in ("target_history","source_global_constant"):
+    if climatology_mode not in ("target_history","source_global_constant","source_global_feature_only"):
         raise ValueError("Invalid climatology mode")
     indices=np.arange(cut,len(a))
-    if climatology_mode=="target_history":
+    if climatology_mode in ("target_history","source_global_feature_only"):
         climate={int(k):np.asarray(a[:cut][bins[:cut]==k].mean(axis=0),dtype=np.float32)
                  for k in np.unique(bins[:cut])}
         fallback=np.asarray(a[:cut].mean(axis=0),dtype=np.float32)
@@ -37,12 +37,16 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     else:
         clim=np.full((len(indices),*a.shape[1:]),mean,dtype=np.float32)
     baseline=(1-weight)*a[indices-4]+weight*clim
+    # Controlled inference-time feature perturbation: identical frozen weights,
+    # target observations and reference; replace only the climatology input channel.
+    # This is out-of-distribution sensitivity, NOT a trained matched ablation.
+    feature_clim=(np.full_like(clim,mean) if climatology_mode=="source_global_feature_only" else clim)
     input_indices=indices[:,None]-4-np.arange(3,-1,-1)[None,:]
     frames=np.moveaxis((a[input_indices]-mean)/std,1,-1)
     hour=hours[indices].astype(np.float32)
     cycle=np.stack((np.sin(2*np.pi*hour/24),np.cos(2*np.pi*hour/24)),axis=-1).astype(np.float32)
     cyc=np.broadcast_to(cycle[:,None,None,:],(*frames.shape[:3],2))
-    x=np.concatenate((cyc,frames,(clim[...,None]-mean)/std,
+    x=np.concatenate((cyc,frames,(feature_clim[...,None]-mean)/std,
                       (baseline[...,None]-mean)/std),axis=-1).astype(np.float32)
     if x.shape[-1]!=params["w1"].shape[2]:raise ValueError("Feature mismatch")
     # No training, validation selection, gradients or checkpoint updates on target.
@@ -58,7 +62,10 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
     return {"annual_paired_block_sensitivity":annual_ci,"fixed_heat_paired_block_sensitivity":heat_ci,
         "protocol":"Frozen source CNN; target pre-test climatology; NO target weight updates",
         "strict_zero_history_transfer":climatology_mode=="source_global_constant",
-        "climatology_mode":climatology_mode,"target_history_last_timestamp":str(ts[cut-1]),
+        "climatology_mode":climatology_mode,
+        "feature_only_perturbation":climatology_mode=="source_global_feature_only",
+        "reference_held_fixed":climatology_mode=="source_global_feature_only",
+        "feature_perturbation_caveat":"Out-of-distribution inference sensitivity; not causal climatology ablation" if climatology_mode=="source_global_feature_only" else None,"target_history_last_timestamp":str(ts[cut-1]),
         "target_test_start":str(ts[cut]),"source_train_normalization":True,
         "source_validation_blend_weight":weight,
         "test_rmse_kelvin":rmse(pred,np.ones_like(mask,dtype=bool)),
@@ -72,7 +79,7 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--data",required=True);p.add_argument("--checkpoint",required=True)
     p.add_argument("--output",required=True);p.add_argument("--test-start",default="2022-01-01")
-    p.add_argument("--climatology-mode",choices=["target_history","source_global_constant"],default="target_history")
+    p.add_argument("--climatology-mode",choices=["target_history","source_global_constant","source_global_feature_only"],default="target_history")
     p.add_argument("--diagnostics-output",default=None,help="Optional compressed arrays and monthly/gridded metrics; requires verified target data and checkpoint")
     v=p.parse_args();da=load_era5(v.data)
     result=frozen_evaluate(da.values,da.time.values,v.checkpoint,v.test_start,climatology_mode=v.climatology_mode,diagnostics_output=v.diagnostics_output,latitudes=da.lat.values,longitudes=da.lon.values)
