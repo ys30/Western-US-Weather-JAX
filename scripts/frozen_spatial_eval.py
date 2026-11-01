@@ -6,6 +6,7 @@ import jax.numpy as jnp
 from weatherjax.data import load_era5
 from weatherjax.model import predict
 from scripts.heat_events import event_diagnostics,event_definition_sensitivity
+from scripts.climatology_aware_cnn import paired_time_block_ci,hot_time_block_ci
 
 def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.):
     a=np.asarray(data,dtype=np.float32)
@@ -43,7 +44,10 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
                          for i in range(0,len(x),32)])*std+mean
     truth=a[cut:];mask=truth>=threshold
     rmse=lambda v,m:float(np.sqrt(np.mean((v[m]-truth[m])**2))) if m.any() else None
-    return {"protocol":"Frozen source CNN; target pre-test climatology; NO target weight updates",
+    annual_ci=[paired_time_block_ci(pred[...,None],baseline[...,None],truth[...,None],block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)]
+    heat_ci=([hot_time_block_ci(pred,baseline,truth,threshold=threshold,block_steps=k,draws=1000,seed=42) for k in (4,12,28,56)] if mask.any() else [])
+    return {"annual_paired_block_sensitivity":annual_ci,"fixed_heat_paired_block_sensitivity":heat_ci,
+        "protocol":"Frozen source CNN; target pre-test climatology; NO target weight updates",
         "strict_zero_history_transfer":False,"target_history_last_timestamp":str(ts[cut-1]),
         "target_test_start":str(ts[cut]),"source_train_normalization":True,
         "source_validation_blend_weight":weight,
