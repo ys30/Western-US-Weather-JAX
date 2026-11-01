@@ -84,17 +84,17 @@ Replacing the historical climatology channel with source-global-mean constants i
 
 The latest uninterrupted original-region 2022 full workflow [completed successfully](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112) and uploaded its [21-file JSON archive](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112/artifacts/13074566046). For seeds 42/7/123, the validation-selected blended reference had annual RMSE **2.994618 K** and observed-hot RMSE **2.159303 K**. CNN annual RMSE was **2.984499 / 2.997407 / 2.992431 K**, whereas its observed-hot RMSE was **2.054921 / 2.045063 / 2.039816 K**. All three seeds improved the observed-hot subset; seed 7 slightly worsened annual RMSE versus the blend. These original-domain results are separate from the held-out Southwest spatial-transfer protocols.
 
-### Figure 3. Uncertainty in frozen spatial-transfer hot-subset RMSE differences
+### 3.6 Bootstrap uncertainty in frozen spatial-transfer hot-subset RMSE differences
 
 ![Figure 3: 14-day paired time-block confidence intervals](../figures/manuscript/transfer_hot_bootstrap_ci.svg)
 
-**Figure 3 caption.** The 95% percentile confidence intervals depict CNN-minus-protocol-reference observed-hot RMSE differences in Southwest 2022. Intervals are based on **1,000 paired circular resamples of 14-day time blocks** and cover seeds 42, 7 and 123. Blue intervals: frozen CNN with Southwest pre-test historical climatology adaptation versus its **source-selected blended reference**; all intervals lie below zero. Orange intervals: separately source-trained climatology-free CNN versus **24-hour persistence**; all intervals lie above zero. The two groups have different features, training and baselines, so juxtaposition is descriptive and not a causal contrast. Source values: [frozen adaptation bootstrap CI #41274429714](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714) and [source-only bootstrap CI #41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617). Exact bounds are archived in `figures/manuscript/transfer_hot_bootstrap_ci.csv`.
+**Figure 3.** The 95% percentile confidence intervals depict CNN-minus-protocol-reference observed-hot RMSE differences in Southwest 2022. Intervals are based on **1,000 paired circular resamples of 14-day time blocks** and cover seeds 42, 7 and 123. Blue intervals: frozen CNN with Southwest pre-test historical climatology adaptation versus its **source-selected blended reference**; all intervals lie below zero. Orange intervals: separately source-trained climatology-free CNN versus **24-hour persistence**; all intervals lie above zero. The two groups have different features, training and baselines, so juxtaposition is descriptive and not a causal contrast. Source values: [frozen adaptation bootstrap CI #41274429714](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714) and [source-only bootstrap CI #41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617). Exact bounds are archived in `figures/manuscript/transfer_hot_bootstrap_ci.csv`.
 
 ## 4. Discussion
 
 ### 4.1 What the held-out evaluation establishes
 
-The principal finding is a **metric-dependent transfer trade-off in one defined regional holdout**, not general superiority of a particular CNN. In Southwest 2022, the climatology-adapted frozen-weight protocol reduced RMSE on gridcell-time observations with ERA5 2-m temperature ≥305 K compared with a source-validation-selected persistence/climatology blend. In all three seeds, the 14-day paired-block confidence intervals for the conditional hot RMSE difference were negative, while intervals for the overall difference crossed zero. The source-only no-climatology architecture had the opposite performance pattern against persistence: better domain-wide RMSE and worse truth-hot RMSE for all three seeds. Both favorable and unfavorable outcomes are material to the research conclusion.
+The principal finding is a **metric-dependent transfer trade-off in one defined regional holdout**, not general superiority of a particular CNN. In Southwest 2022, the climatology-adapted frozen-weight protocol reduced RMSE on gridcell-time observations with ERA5 2-m temperature ≥305 K compared with a source-validation-selected persistence/climatology blend. In all three seeds, the 14-day paired-block confidence intervals for the conditional hot RMSE difference were negative, while intervals for the overall difference crossed zero. The source-only no-climatology architecture showed a different performance pattern against persistence: better domain-wide RMSE and worse truth-hot RMSE for all three seeds. Both favorable and unfavorable outcomes are material to the research conclusion.
 
 ### 4.2 Interpretation without unsupported mechanism claims
 
@@ -155,4 +155,17 @@ Code and reproducible GitHub Actions: https://github.com/ys30/Western-US-Weather
 3. **Completed:** Figure-generation CI #41281229086 produced two SVG plots and a comparison CSV; permanent copies of those files and a third bootstrap-interval figure are now committed under `figures/manuscript/`. **Next:** final publication-layout and CI-provenance audit for Figure 3.
 4. Confirm paper's model-selection/development chronology and evaluate external region/year replication before strong independent-generalization claims.
 5. **In progress:** Four core scientific/software references have been verified and inserted; finalize journal reference style, ERA5 dataset-specific credit and licence after checking actual data provenance.
+
+
+## Appendix C. Manuscript claim-to-evidence audit
+
+| Statement | Evidence | Scope limit |
+| --- | --- | --- |
+| Frozen adapted CNN improves observed-hot RMSE for seeds 42/7/123 | [Frozen spatial evaluation #41279255173](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255173), [bootstrap #41274429714](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41274429714) | Against its *source-selected blend*, target pre-2022 climatology supplied; conditional hot subset only |
+| Source-only CNN improves annual and worsens truth-hot RMSE | [Source-only evaluation #41276916469](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41276916469), [bootstrap #41277714617](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41277714617) | Against persistence; different architecture and feature set |
+| Original area 2022 validation-selected model results | [Full holdout #41281229112](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229112) | Annual improvement not uniform across seeds |
+| Lead time equals 24h on six-hourly reanalysis grid | [Chronological unit tests #41279255199](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41279255199), `weatherjax/data.py` | Input time precedes target, but operational input availability not established |
+| Main figures reflect archived metrics | [Plot CI #41281229086](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41281229086), `figures/manuscript/` | Figures 1–2 were artifact-generated; Figure 3 bounds and presentation must be independently checked against original bootstrap artifacts |
+
+**Not evidenced:** reliable prospective heat alerts; generalization to unseen climate regions/years; a causal estimate attributable solely to local climatology; strict target-history-free transfer by the adapted model; independent preregistration; operationally available ERA5 input latency.
 
