@@ -59,8 +59,10 @@ def monthly_diagnostics(pred,ref,truth,target_times,threshold=305.0):
                     'fixed_hot_gridcell_times':int(hot.sum())})
     return out
 
-def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0,checkpoint_path=None):
+def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0,checkpoint_path=None,climatology_feature_mode='historical'):
     if hot_weight < 0: raise ValueError('hot_weight must be nonnegative')
+    if climatology_feature_mode not in ('historical','source_mean'):
+        raise ValueError('Invalid climatology_feature_mode')
     ts=np.asarray(timestamps).astype('datetime64[h]')
     n=len(arr)
     a=int(np.searchsorted(ts,np.datetime64(train_end)))
@@ -85,7 +87,10 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
         blended=(1-weight)*persistence+weight*climatology
         # Append physical-temperature climatology as a feature, then blended baseline LAST.
         # predict(params,x) adds CNN correction to x[..., -1:]
-        x=np.concatenate([x,(climatology[...,None]-mean)/std,(blended[...,None]-mean)/std],axis=-1)
+        # The same validation-selected blend is used for BOTH trained arms.
+        # Replace only the climatology channel, at both training and evaluation.
+        feature=(climatology if climatology_feature_mode=='historical' else np.full_like(climatology,mean))
+        x=np.concatenate([x,(feature[...,None]-mean)/std,(blended[...,None]-mean)/std],axis=-1)
         return np.asarray(x,dtype=np.float32),y,np.asarray(blended,dtype=np.float32)
     xt,yt,_=enrich(tr,4,a)
     xv,yv,_=enrich(va,a,b)
@@ -122,7 +127,8 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
             source_validation_selected_blend_weight=np.float32(weight),
             selected_epoch=np.int32(best_epoch),
             model_seed=np.int32(seed),
-            hot_weight=np.float32(hot_weight))
+            hot_weight=np.float32(hot_weight),
+            climatology_feature_mode=np.asarray(climatology_feature_mode))
     pred=np.asarray(predict(best_params,jnp.asarray(xe)))[...,0]*std+mean
     truth=np.asarray(ye[...,0])*std+mean
     mask=truth>=hot_threshold_kelvin
@@ -134,7 +140,7 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     months=monthly_diagnostics(pred,baseline,truth,ts[b:],threshold=hot_threshold_kelvin)
     events=event_diagnostics(pred,baseline,truth,ts[b:],threshold_kelvin=hot_threshold_kelvin)
     event_sensitivity=event_definition_sensitivity(pred,baseline,truth,ts[b:],threshold_kelvin=hot_threshold_kelvin)
-    result={'heat_event_definition_sensitivity':event_sensitivity,'heat_event_diagnostics':events,'fixed_heat_paired_block_sensitivity':hot_uncertainty,'monthly_diagnostics':months,'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
+    result={'climatology_feature_mode':climatology_feature_mode,'common_reference_uses_climatology':True,'heat_event_definition_sensitivity':event_sensitivity,'heat_event_diagnostics':events,'fixed_heat_paired_block_sensitivity':hot_uncertainty,'monthly_diagnostics':months,'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
       'blended_baseline_rmse_kelvin':score(baseline,np.ones_like(mask,dtype=bool)),
       'fixed_305k_cnn_rmse_kelvin':score(pred,mask) if mask.any() else None,
       'fixed_305k_blend_rmse_kelvin':score(baseline,mask) if mask.any() else None,
@@ -155,8 +161,9 @@ def main():
     p.add_argument('--hot-weight',type=float,default=0.0)
     p.add_argument('--hot-threshold-kelvin',type=float,default=305.0)
     p.add_argument('--checkpoint-path',default=None)
+    p.add_argument('--climatology-feature-mode',choices=['historical','source_mean'],default='historical')
     a=p.parse_args();da=load_era5(a.data)
-    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed,hot_weight=a.hot_weight,hot_threshold_kelvin=a.hot_threshold_kelvin,checkpoint_path=a.checkpoint_path)
+    report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed,hot_weight=a.hot_weight,hot_threshold_kelvin=a.hot_threshold_kelvin,checkpoint_path=a.checkpoint_path,climatology_feature_mode=a.climatology_feature_mode)
     out=Path(a.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 if __name__=='__main__':main()
