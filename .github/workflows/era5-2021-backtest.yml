@@ -1,0 +1,45 @@
+name: ERA5 independent 2021 backtest
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-2021-backtest.yml'
+      - 'scripts/climatology_aware_cnn.py'
+      - 'scripts/climatology_baselines.py'
+      - 'scripts/fetch_arco_era5.py'
+      - 'weatherjax/**'
+      - 'pyproject.toml'
+permissions:
+  contents: read
+concurrency:
+  group: era5-backtest-2021-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backtest-2021:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - name: Retrieve ERA5 2018–2021
+        run: python scripts/fetch_arco_era5.py --start 2018-01-01 --end 2021-12-31 --stride 6 --output input/era5_2018_2021.nc
+      - name: Preflight physical units and step interval
+        run: python -m weatherjax.preflight input/era5_2018_2021.nc --timestep-hours 6 --lead-hours 24 --report outputs/backtest-2021/preflight.json
+      - name: Fit training-only climatology and select blend on validation
+        run: python scripts/climatology_baselines.py --data input/era5_2018_2021.nc --train-until 2020-01-01 --validate-until 2021-01-01 --lead-steps 4 --output outputs/backtest-2021/blend.json
+      - name: Earlier independent-year backtest for heat-weighted CNN, fixed weight 2
+        run: |
+          for seed in 42 7 123; do
+            python scripts/climatology_aware_cnn.py --data input/era5_2018_2021.nc --train-until 2020-01-01 --validate-until 2021-01-01 --seed "$seed" --epochs 40 --hot-weight 2 --hot-threshold-kelvin 305 --output "outputs/backtest-2021/climate-cnn-seed${seed}.json"
+          done
+      - name: Upload independent-year metrics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-2021-era5-backtest
+          path: outputs/backtest-2021/**/*.json
+          if-no-files-found: warn
