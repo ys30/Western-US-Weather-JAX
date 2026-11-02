@@ -16,3 +16,8 @@ def test_plains_replication_contract():
     assert "42 7 123" in text
     assert "3 7 14 28" in text
     assert "matched_direct_bootstrap.py" in text
+
+
+def test_frozen_cli_keeps_explicitly_downloaded_target_region():
+    frozen=(Path(__file__).resolve().parents[1]/"scripts/frozen_spatial_eval.py").read_text()
+    assert "load_era5(v.data,lat_min=-90,lat_max=90,lon_min=-180,lon_max=180)" in frozen
