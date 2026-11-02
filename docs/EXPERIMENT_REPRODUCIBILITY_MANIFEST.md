@@ -50,3 +50,12 @@ The source NetCDF file SHA256 is identical across the three runs:
 `ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`.
 
 **Retention caveat:** only JSON/CSV summaries and the SHA256 manifest were included in the uploaded result artifacts. The input NetCDF, trained checkpoint NPZ, and gridded-prediction NPZ **were hashed on the runner but not uploaded**; their recorded checksums do not make their bytes retrievable. External long-term preservation and dependency/data snapshot pinning remain outstanding.
+
+
+## Full byte-preserving archive verification (Southwest 2022)
+
+- Verified successful run: [41400003722](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41400003722); artifact ID `13122165252`.
+- The 102,380,409-byte GitHub ZIP includes 54 files: 2 input NetCDF, 6 checkpoint NPZ, 6 gridded prediction NPZ, 12 diagnostics CSV, 24 experiment JSON results, 1 SHA256 manifest, and 3 environment/provenance text files.
+- All 53 listed files exactly matched the SHA256 digest and byte count in `outputs/archive/sha256-manifest.json`; the manifest is not self-hashed.
+- ZIP SHA256: `7476ae3978ed8d2a20385e7abad60f8a137e1034fe8124cfde419e1c4679197c`.
+- This verifies the preserved bytes for this **new rerun**, not that they are byte-for-byte identical to the original 2022 study run. Artifact storage has finite retention and is not permanent archival infrastructure.
