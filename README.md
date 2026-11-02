@@ -49,6 +49,16 @@ In each target, historical-channel training helped **two of three** seeds but no
 - [Southwest 2023 temporal replication](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41362832891)
 - [Southern Plains 2022 geographical replication](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41386676606)
 
+### Journal-style study-domain and uncertainty figures
+
+![Coordinate-verified ERA5 study regions](figures/paper_study_domains.svg)
+
+**Study domains:** Source 31–43°N, 121–109°W; Southwest 30–36°N, 108–102°W; Southern Plains 32–38°N, 101–95°W. Region rectangles are drawn from coordinates rather than an unverified illustrated basemap.
+
+![Matched 14-day paired-bootstrap intervals](figures/paper_bootstrap_14day.svg)
+
+The error bars are 14-day paired-bootstrap exploratory 95% intervals; unlike the earlier simplified web graphic they preserve uncertainty bounds. The final submission figures remain private.
+
 ## Manuscript-derived visual evidence (public adaptations)
 
 The following accessible SVG figures **adapt the research structure and verified numbers** from the private manuscript; they are **not the original private PNG plates**. The third graphic shows point differences only (the complete 14-day confidence intervals remain in the unpublished manuscript and CI JSON).
