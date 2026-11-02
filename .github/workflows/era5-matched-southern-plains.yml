@@ -1,0 +1,46 @@
+name: ERA5 Southern Plains matched spatial replication 2022
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-matched-southern-plains.yml'
+permissions:
+  contents: read
+jobs:
+  plains-2022:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e '.[test,zarr]' gcsfs
+      - name: Fetch source and geographically disjoint Southern Plains ERA5
+        run: |
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 31 --lat-max 43 --lon-min -121 --lon-max -109 --output input/source.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 32 --lat-max 38 --lon-min -101 --lon-max -95 --output input/plains.nc
+      - name: Matched source fitting and frozen Southern Plains evaluation
+        run: |
+          for seed in 42 7 123; do
+            for mode in historical source_mean; do
+              python scripts/climatology_aware_cnn.py --data input/source.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --hot-weight 2 --seed "$seed" --climatology-feature-mode "$mode" --checkpoint-path "outputs/plains/$mode/seed-$seed.npz" --output "outputs/plains/$mode/source-$seed.json"
+              python scripts/frozen_spatial_eval.py --data input/plains.nc --checkpoint "outputs/plains/$mode/seed-$seed.npz" --test-start 2022-01-01 --output "outputs/plains/$mode/target-2022-seed-$seed.json" --diagnostics-output "outputs/plains/$mode/fields-2022-seed-$seed.npz"
+            done
+          done
+      - name: Direct paired 3 to 28-day time-block sensitivity
+        run: |
+          for seed in 42 7 123; do
+            for days in 3 7 14 28; do
+              python scripts/matched_direct_bootstrap.py --historical "outputs/plains/historical/fields-2022-seed-$seed.npz" --source-mean "outputs/plains/source_mean/fields-2022-seed-$seed.npz" --days "$days" --output "outputs/plains/direct-2022-seed-$seed-block-$days.json"
+            done
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: southern-plains-2022-matched-results
+          path: |
+            outputs/plains/**/*.json
+            outputs/plains/direct-2022-*.json
+          if-no-files-found: warn
