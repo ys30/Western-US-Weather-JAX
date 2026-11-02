@@ -49,7 +49,19 @@ In each target, historical-channel training helped **two of three** seeds but no
 - [Southwest 2023 temporal replication](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41362832891)
 - [Southern Plains 2022 geographical replication](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41386676606)
 
-## Visual evidence
+## Manuscript-derived visual evidence (public adaptations)
+
+The following accessible SVG figures **adapt the research structure and verified numbers** from the private manuscript; they are **not the original private PNG plates**. The third graphic shows point differences only (the complete 14-day confidence intervals remain in the unpublished manuscript and CI JSON).
+
+![Source training to independent target evaluation protocol](figures/manuscript_protocol_public.svg)
+
+![Matched-channel observed-hot RMSE by target and seed](figures/manuscript_performance_public.svg)
+
+![Source-mean minus historical paired hot-RMSE differences](figures/manuscript_bootstrap_public.svg)
+
+Source-mean minus historical **positive** differences favor the historical-feature channel; this occurred in **two of three** seeds for each target. These are retrospective error diagnostics, not heat-alert detection or a demonstration of universal improvement.
+
+## Earlier public engineering charts
 
 ![Real Tesla T4 versus one CPU training-time reference](figures/gpu_training_time.svg)
 
