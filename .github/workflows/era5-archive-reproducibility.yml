@@ -1,6 +1,10 @@
 name: ERA5 reproducibility archive (manual, full data and models)
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-archive-reproducibility.yml'
 permissions:
   contents: read
 jobs:
