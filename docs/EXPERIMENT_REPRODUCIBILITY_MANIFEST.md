@@ -72,3 +72,15 @@ Each completed ZIP includes 54 files, of which 53 data/model/result/environment 
 | Southern Plains 2022 | [41402189567](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41402189567) | `13121977420` | 101105883 | `8698e1514ec6e6ccc588dd44b53a83b141ed4e0b30914f983f0e98a41c217d4f` |
 
 Each archive includes 2 ERA5 NetCDF inputs, 6 fitted checkpoint NPZ, 6 gridded prediction-error NPZ, 24 experiment JSON results, 12 diagnostic CSV, a self-excluded SHA256 manifest and 3 environment/provenance text files. This is an integrity check of the **new archival reruns**, not proof that they reproduce every historical byte from earlier successful runs. GitHub Actions artifact retention is finite; secure permanent off-platform storage remains outstanding.
+
+## Archive expiration and independent offline verification (checked 2026-11-02)
+
+The complete archival ZIPs are **not permanent storage**. GitHub currently reports these expiration timestamps (UTC):
+
+| Case | Full archive ID | Expiration UTC |
+| --- | --- | --- |
+| Southwest 2022 | `13122165252` | 2027-01-31 06:27:22 |
+| Southwest 2023 | `13122890221` | 2027-01-31 06:47:54 |
+| Southern Plains 2022 | `13121977420` | 2027-01-31 06:47:56 |
+
+Download and retain all three full ZIPs off GitHub before those dates. After download, run `python scripts/verify_full_archive.py /path/to/archive.zip` to stream-validate the 53 manifest entries and confirm required NetCDF/model files. Store at least two physically or administratively separate copies, and check the ZIP-level SHA256 from the table above before extracting files. Each experiment's archived `resolved-requirements.txt` records the installed environment for its *archival rerun*; it does not constitute a platform-independent fully locked environment. New archive runs can differ in bytes from historical runs because dependencies and ERA5 upstream data have not been pinned to immutable source snapshots.
