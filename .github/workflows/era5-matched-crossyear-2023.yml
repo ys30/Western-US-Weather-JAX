@@ -36,11 +36,16 @@ jobs:
               python scripts/matched_direct_bootstrap.py --historical "outputs/crossyear/historical/fields-2023-seed-$seed.npz" --source-mean "outputs/crossyear/source_mean/fields-2023-seed-$seed.npz" --days "$days" --output "outputs/crossyear/direct-2023-seed-$seed-block-$days.json"
             done
           done
+      - name: Record input, checkpoint and output SHA256
+        if: always()
+        run: |
+          python scripts/hash_experiment_files.py --root input --root outputs/crossyear --output outputs/crossyear/sha256-manifest.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: southwest-2023-matched-results
           path: |
             outputs/crossyear/**/*.json
+            outputs/crossyear/sha256-manifest.json
             outputs/crossyear/direct-2023-*.json
           if-no-files-found: warn
