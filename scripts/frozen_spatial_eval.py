@@ -84,7 +84,7 @@ def main():
     p.add_argument("--output",required=True);p.add_argument("--test-start",default="2022-01-01")
     p.add_argument("--climatology-mode",choices=["target_history","source_global_constant","source_global_feature_only"],default="target_history")
     p.add_argument("--diagnostics-output",default=None,help="Optional compressed arrays and monthly/gridded metrics; requires verified target data and checkpoint")
-    v=p.parse_args();da=load_era5(v.data)
+    v=p.parse_args();da=load_era5(v.data,lat_min=-90,lat_max=90,lon_min=-180,lon_max=180)
     result=frozen_evaluate(da.values,da.time.values,v.checkpoint,v.test_start,climatology_mode=v.climatology_mode,diagnostics_output=v.diagnostics_output,latitudes=da.lat.values,longitudes=da.lon.values)
     out=Path(v.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))
