@@ -20,9 +20,15 @@ def verify_archive(path):
             if name not in names:
                 mismatches.append(f"missing: {name}")
                 continue
-            if len(archive.read(name))!=rec["bytes"]:
+            h=hashlib.sha256()
+            size=0
+            with archive.open(name) as stream:
+                for chunk in iter(lambda: stream.read(1024*1024), b""):
+                    size+=len(chunk)
+                    h.update(chunk)
+            if size!=rec["bytes"]:
                 mismatches.append(f"size: {name}")
-            if hashlib.sha256(archive.read(name)).hexdigest()!=rec["sha256"]:
+            if h.hexdigest()!=rec["sha256"]:
                 mismatches.append(f"sha256: {name}")
         if mismatches:
             raise ValueError("; ".join(mismatches))
