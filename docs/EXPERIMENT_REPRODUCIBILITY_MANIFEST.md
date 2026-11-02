@@ -59,3 +59,16 @@ The source NetCDF file SHA256 is identical across the three runs:
 - All 53 listed files exactly matched the SHA256 digest and byte count in `outputs/archive/sha256-manifest.json`; the manifest is not self-hashed.
 - ZIP SHA256: `7476ae3978ed8d2a20385e7abad60f8a137e1034fe8124cfde419e1c4679197c`.
 - This verifies the preserved bytes for this **new rerun**, not that they are byte-for-byte identical to the original 2022 study run. Artifact storage has finite retention and is not permanent archival infrastructure.
+
+
+## Completed full-data archives for all three evaluations (verified 2026-11-02)
+
+Each completed ZIP includes 54 files, of which 53 data/model/result/environment files were checked against the embedded SHA256 manifest; 0 missing entries, 0 digest or size mismatches. The manifest JSON is excluded from self-hashing.
+
+| Evaluation | Successful Actions run | Full-data artifact ID | ZIP bytes | ZIP SHA256 |
+| --- | --- | --- | ---: | --- |
+| Southwest 2022 | [41400003722](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41400003722) | `13122165252` | 102380409 | `7476ae3978ed8d2a20385e7abad60f8a137e1034fe8124cfde419e1c4679197c` |
+| Southwest 2023 | [41402185866](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41402185866) | `13122890221` | 105102847 | `ea3674409314c5659ddb0cd7861ced7b1115ad4b0631b9cc8e805532fd5c5d36` |
+| Southern Plains 2022 | [41402189567](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41402189567) | `13121977420` | 101105883 | `8698e1514ec6e6ccc588dd44b53a83b141ed4e0b30914f983f0e98a41c217d4f` |
+
+Each archive includes 2 ERA5 NetCDF inputs, 6 fitted checkpoint NPZ, 6 gridded prediction-error NPZ, 24 experiment JSON results, 12 diagnostic CSV, a self-excluded SHA256 manifest and 3 environment/provenance text files. This is an integrity check of the **new archival reruns**, not proof that they reproduce every historical byte from earlier successful runs. GitHub Actions artifact retention is finite; secure permanent off-platform storage remains outstanding.
