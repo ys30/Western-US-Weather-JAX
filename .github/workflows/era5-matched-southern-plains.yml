@@ -37,11 +37,16 @@ jobs:
               python scripts/matched_direct_bootstrap.py --historical "outputs/plains/historical/fields-2022-seed-$seed.npz" --source-mean "outputs/plains/source_mean/fields-2022-seed-$seed.npz" --days "$days" --output "outputs/plains/direct-2022-seed-$seed-block-$days.json"
             done
           done
+      - name: Record input, checkpoint and output SHA256
+        if: always()
+        run: |
+          python scripts/hash_experiment_files.py --root input --root outputs/plains --output outputs/plains/sha256-manifest.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: southern-plains-2022-matched-results
           path: |
             outputs/plains/**/*.json
+            outputs/plains/sha256-manifest.json
             outputs/plains/direct-2022-*.json
           if-no-files-found: warn
