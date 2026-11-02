@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/era5-matched-southern-plains.yml'
+      - 'scripts/frozen_spatial_eval.py'
 permissions:
   contents: read
 jobs:
