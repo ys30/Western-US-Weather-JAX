@@ -54,6 +54,7 @@ jobs:
             input/*.nc
             outputs/archive/**/*.npz
             outputs/archive/**/*.json
+            outputs/archive/**/*.csv
             outputs/archive/*.json
             resolved-requirements.txt
             python-version.txt
