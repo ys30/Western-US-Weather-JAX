@@ -1,0 +1,63 @@
+name: ERA5 full archive Southern Plains 2022
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/era5-archive-southern-plains-2022.yml'
+permissions:
+  contents: read
+jobs:
+  archive-southern-plains-2022:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install and record exact resolved dependencies
+        run: |
+          python -m pip install -e '.[test,zarr]' gcsfs
+          python -m pip freeze --all > resolved-requirements.txt
+          python --version > python-version.txt
+          git rev-parse HEAD > git-commit.txt
+      - name: Download ERA5 source and Southwest target
+        run: |
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 31 --lat-max 43 --lon-min -121 --lon-max -109 --output input/source.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31 --stride 6 --lat-min 32 --lat-max 38 --lon-min -101 --lon-max -95 --output input/target.nc
+      - name: Train and evaluate both models (3 seeds)
+        run: |
+          for seed in 42 7 123; do
+            for mode in historical source_mean; do
+              python scripts/climatology_aware_cnn.py --data input/source.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --hot-weight 2 --seed "$seed" --climatology-feature-mode "$mode" --checkpoint-path "outputs/archive/$mode/seed-$seed.npz" --output "outputs/archive/$mode/source-$seed.json"
+              python scripts/frozen_spatial_eval.py --data input/target.nc --checkpoint "outputs/archive/$mode/seed-$seed.npz" --test-start 2022-01-01 --output "outputs/archive/$mode/target-$seed.json" --diagnostics-output "outputs/archive/$mode/fields-$seed.npz"
+            done
+          done
+      - name: Direct paired comparison
+        run: |
+          for seed in 42 7 123; do
+            for days in 3 7 14 28; do
+              python scripts/matched_direct_bootstrap.py --historical "outputs/archive/historical/fields-$seed.npz" --source-mean "outputs/archive/source_mean/fields-$seed.npz" --days "$days" --output "outputs/archive/direct-seed-$seed-block-$days.json"
+            done
+          done
+      - name: Produce SHA256 manifest, including environment files
+        if: always()
+        run: |
+          python scripts/hash_experiment_files.py --root input --root outputs/archive --root resolved-requirements.txt --root python-version.txt --root git-commit.txt --output outputs/archive/sha256-manifest.json
+      - name: Preserve actual inputs, checkpoints, predictions and hashes
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: southern-plains-2022-full-reproducibility-archive
+          path: |
+            input/*.nc
+            outputs/archive/**/*.npz
+            outputs/archive/**/*.json
+            outputs/archive/**/*.csv
+            outputs/archive/*.json
+            resolved-requirements.txt
+            python-version.txt
+            git-commit.txt
+          if-no-files-found: warn
+          retention-days: 90
