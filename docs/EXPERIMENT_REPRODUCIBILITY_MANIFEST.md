@@ -34,3 +34,19 @@ Status: verified GitHub Actions run metadata (2026-11-02 UTC). This is an engine
 Observed-hot RMSE conditions on verifying ERA5 temperature and does not measure real-time heat warnings. ERA5 reanalysis is not proof of forecast-time information availability. The channel comparison is not a strict zero-history ablation, because both models see the historical-climatology blended baseline. The experiments and seed/block intervals are correlated and exploratory; avoid causal or multiplicity-adjusted significance claims.
 
 Private manuscript, submission figures, supplementary information, and editorial reports are **not** included in this public repository.
+
+
+## Verified SHA256-enabled re-runs (2026-11-02 UTC)
+
+All three CI reruns completed successfully. Their downloadable result artifacts include `sha256-manifest.json` with **50 hashed files each**: 2 NetCDF inputs, 6 CNN checkpoint NPZ files, 6 gridded prediction/error NPZ files, and 36 result JSON/CSV files.
+
+| Evaluation | Successful run | Result artifact ID | SHA256 of downloaded result ZIP |
+| --- | --- | --- | --- |
+| Southwest 2022 | [41394193646](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41394193646) | `13119675201` | `89affe98cc1c6dea47c8a333cfa39ee96aeb54800fa653aa87cb8661e83bd823` |
+| Southwest 2023 | [41394199132](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41394199132) | `13119521152` | `9bedacc599750e36f25f43a95c9da71dfe1d25e763ff719d59f01e9a1769d885` |
+| Southern Plains 2022 | [41394203685](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41394203685) | `13118593353` | `01a9e22fb0f278a81d8291226ed455543a6631c8e675de7523d9aacb5c4bddeb` |
+
+The source NetCDF file SHA256 is identical across the three runs:
+`ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`.
+
+**Retention caveat:** only JSON/CSV summaries and the SHA256 manifest were included in the uploaded result artifacts. The input NetCDF, trained checkpoint NPZ, and gridded-prediction NPZ **were hashed on the runner but not uploaded**; their recorded checksums do not make their bytes retrievable. External long-term preservation and dependency/data snapshot pinning remain outstanding.
