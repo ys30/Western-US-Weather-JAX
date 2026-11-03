@@ -48,6 +48,24 @@ jobs:
                   assert np.all(np.diff(s)==np.timedelta64(6,'h'))
                   assert d.t2m.shape[1:]==(25,25),(p,d.t2m.shape)
           PY
+      - name: Split target inputs into exact evaluation calendar years
+        shell: bash
+        run: |
+          python - <<'PY'
+          import numpy as np, xarray as xr
+          for region in ('southwest','plains'):
+              with xr.open_dataset(f'input/{region}.nc') as ds:
+                  for year in (2022,2023):
+                      end=np.datetime64(f'{year+1}-01-01')
+                      sub=ds.sel(time=ds.time < end).load()
+                      times=sub.time.values.astype('datetime64[h]')
+                      test=times[times>=np.datetime64(f'{year}-01-01')]
+                      assert len(test)==1460,(region,year,len(test))
+                      assert test[0]==np.datetime64(f'{year}-01-01T00')
+                      assert test[-1]==np.datetime64(f'{year}-12-31T18')
+                      assert np.all(np.diff(test)==np.timedelta64(6,'h'))
+                      sub.to_netcdf(f'input/{region}-{year}.nc')
+          PY
       - name: Train matched arms once per seed
         shell: bash
         env:
