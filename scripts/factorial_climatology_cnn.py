@@ -143,7 +143,7 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
     months=monthly_diagnostics(pred,baseline,truth,ts[b:],threshold=hot_threshold_kelvin)
     events=event_diagnostics(pred,baseline,truth,ts[b:],threshold_kelvin=hot_threshold_kelvin)
     event_sensitivity=event_definition_sensitivity(pred,baseline,truth,ts[b:],threshold_kelvin=hot_threshold_kelvin)
-    result={'reference_mode':reference_mode,'climatology_feature_mode':climatology_feature_mode,'common_reference_uses_climatology':True,'heat_event_definition_sensitivity':event_sensitivity,'heat_event_diagnostics':events,'fixed_heat_paired_block_sensitivity':hot_uncertainty,'monthly_diagnostics':months,'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
+    result={'reference_mode':reference_mode,'climatology_feature_mode':climatology_feature_mode,'common_reference_uses_climatology':(reference_mode=='blend'),'heat_event_definition_sensitivity':event_sensitivity,'heat_event_diagnostics':events,'fixed_heat_paired_block_sensitivity':hot_uncertainty,'monthly_diagnostics':months,'paired_block_sensitivity':uncertainty,'random_seed':seed,'hot_weight':hot_weight,'hot_threshold_kelvin':hot_threshold_kelvin,'best_validation_fixed_heat_rmse_kelvin':best_hot,'test_rmse_kelvin':score(pred,np.ones_like(mask,dtype=bool)),
       'blended_baseline_rmse_kelvin':score(baseline,np.ones_like(mask,dtype=bool)),
       'fixed_305k_cnn_rmse_kelvin':score(pred,mask) if mask.any() else None,
       'fixed_305k_blend_rmse_kelvin':score(baseline,mask) if mask.any() else None,
