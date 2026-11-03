@@ -1,0 +1,100 @@
+name: ERA5 2x2 climatology-feature-reference factorial pilot
+on:
+  push:
+    paths:
+      - '.github/workflows/era5-factorial-pilot.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  three-seed-factorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        seed: [42, 7, 123]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check dedicated entrypoint syntax
+        run: python -m py_compile scripts/factorial_climatology_cnn.py scripts/factorial_frozen_eval.py scripts/matched_direct_bootstrap.py
+      - name: Install scientific stack
+        run: python -m pip install -e '.[test,zarr]' gcsfs
+      - name: Fetch source and target ERA5
+        run: |
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31T23:00 --stride 6 --lat-min 31 --lat-max 43 --lon-min -121 --lon-max -109 --output input/source.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2023-12-31T23:00 --stride 6 --lat-min 30 --lat-max 36 --lon-min -108 --lon-max -102 --output input/southwest.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2023-12-31T23:00 --stride 6 --lat-min 32 --lat-max 38 --lon-min -101 --lon-max -95 --output input/plains.nc
+      - name: Split and audit exact target years
+        run: |
+          python - <<'PY'
+          import xarray as xr,numpy as np,hashlib
+          for region in ('southwest','plains'):
+            with xr.open_dataset(f'input/{region}.nc') as ds:
+              for year in (2022,2023):
+                sub=ds.sel(time=ds.time<np.datetime64(f'{year+1}-01-01')).load()
+                time=sub.time.values.astype('datetime64[h]')
+                test=time[(time>=np.datetime64(f'{year}-01-01'))&(time<np.datetime64(f'{year+1}-01-01'))]
+                assert len(test)==1460,(region,year,len(test))
+                assert test[0]==np.datetime64(f'{year}-01-01T00')
+                assert test[-1]==np.datetime64(f'{year}-12-31T18')
+                assert np.all(np.diff(test)==np.timedelta64(6,'h'))
+                assert sub.t2m.shape[1:]==(25,25)
+                sub.to_netcdf(f'input/{region}-{year}.nc')
+          with open('input/source.nc','rb') as f: sha=hashlib.sha256(f.read()).hexdigest()
+          assert sha=='ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6',sha
+          print('Source NetCDF matches prior archives:',sha)
+          PY
+      - name: Train four arms with paired initialization
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          set -euo pipefail
+          for ref in blend persistence; do
+            for feature in historical source_mean; do
+              dir="outputs/factorial/$ref/$feature"
+              python scripts/factorial_climatology_cnn.py --data input/source.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --hot-weight 2 --seed "$SEED" --reference-mode "$ref" --climatology-feature-mode "$feature" --checkpoint-path "$dir/seed-$SEED.npz" --output "$dir/source-$SEED.json"
+            done
+          done
+      - name: Evaluate frozen arms on four independent year-region cases
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          set -euo pipefail
+          for region in southwest plains; do
+            for year in 2022 2023; do
+              for ref in blend persistence; do
+                for feature in historical source_mean; do
+                  input="input/$region-$year.nc"
+                  output="outputs/factorial/$region-$year/$ref/$feature"
+                  python scripts/factorial_frozen_eval.py --data "$input" --checkpoint "outputs/factorial/$ref/$feature/seed-$SEED.npz" --test-start "$year-01-01" --output "$output/target-$SEED.json" --diagnostics-output "$output/fields-$SEED.npz"
+                done
+                for days in 3 7 14 28; do
+                  python scripts/matched_direct_bootstrap.py --historical "outputs/factorial/$region-$year/$ref/historical/fields-$SEED.npz" --source-mean "outputs/factorial/$region-$year/$ref/source_mean/fields-$SEED.npz" --days "$days" --draws 2000 --output "outputs/factorial/$region-$year/$ref/feature-contrast-seed-$SEED-block-$days.json"
+                done
+              done
+            done
+          done
+      - name: Preserve hashes and environment
+        if: always()
+        run: |
+          python -m pip freeze > resolved-requirements.txt
+          git rev-parse HEAD > git-commit.txt
+          python -c 'import jax; print(jax.__version__,jax.devices())' > device-info.txt
+          python scripts/hash_experiment_files.py --root input --root outputs/factorial --output outputs/factorial/sha256-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: factorial-pilot-seed-${{ matrix.seed }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            input/*.nc
+            outputs/factorial/**
+            resolved-requirements.txt
+            git-commit.txt
+            device-info.txt
