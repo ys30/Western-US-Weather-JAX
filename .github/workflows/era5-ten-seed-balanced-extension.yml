@@ -1,0 +1,96 @@
+name: ERA5 balanced 2x2 seed extension to 10 seeds
+on:
+  push:
+    paths:
+      - '.github/workflows/era5-ten-seed-balanced-extension.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  additional-seeds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        seed: [11, 19, 29, 37, 53, 71, 97]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install package
+        run: python -m pip install -e '.[test,zarr]' gcsfs
+      - name: Download complete source and target reanalysis years
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2022-12-31T23:00 --stride 6 --lat-min 31 --lat-max 43 --lon-min -121 --lon-max -109 --output input/source.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2023-12-31T23:00 --stride 6 --lat-min 30 --lat-max 36 --lon-min -108 --lon-max -102 --output input/southwest.nc
+          python scripts/fetch_arco_era5.py --start 2019-01-01 --end 2023-12-31T23:00 --stride 6 --lat-min 32 --lat-max 38 --lon-min -101 --lon-max -95 --output input/plains.nc
+      - name: Verify identical source and complete target years
+        shell: bash
+        run: |
+          python - <<'PY'
+          import xarray as xr, numpy as np, hashlib
+          with open('input/source.nc','rb') as f:
+              digest=hashlib.sha256(f.read()).hexdigest()
+          print('source SHA256',digest)
+          for p in ('input/southwest.nc','input/plains.nc'):
+              d=xr.open_dataset(p)
+              t=d.time.values.astype('datetime64[h]')
+              for year in (2022,2023):
+                  s=t[(t>=np.datetime64(f'{year}-01-01')) & (t<np.datetime64(f'{year+1}-01-01'))]
+                  assert len(s)==1460,(p,year,len(s))
+                  assert s[0]==np.datetime64(f'{year}-01-01T00')
+                  assert s[-1]==np.datetime64(f'{year}-12-31T18')
+                  assert np.all(np.diff(s)==np.timedelta64(6,'h'))
+                  assert d.t2m.shape[1:]==(25,25),(p,d.t2m.shape)
+          PY
+      - name: Train matched arms once per seed
+        shell: bash
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          set -euo pipefail
+          for mode in historical source_mean; do
+            python scripts/climatology_aware_cnn.py --data input/source.nc --train-until 2021-01-01 --validate-until 2022-01-01 --epochs 40 --hot-weight 2 --seed "$SEED" --climatology-feature-mode "$mode" --checkpoint-path "outputs/archive/$mode/seed-$SEED.npz" --output "outputs/archive/$mode/source-$SEED.json"
+          done
+      - name: Evaluate frozen checkpoints across the balanced 2x2 design
+        shell: bash
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          set -euo pipefail
+          for region in southwest plains; do
+            for year in 2022 2023; do
+              mkdir -p "outputs/archive/$region-$year"
+              for mode in historical source_mean; do
+                python scripts/frozen_spatial_eval.py --data "input/$region.nc" --checkpoint "outputs/archive/$mode/seed-$SEED.npz" --test-start "$year-01-01" --output "outputs/archive/$region-$year/$mode-target-$SEED.json" --diagnostics-output "outputs/archive/$region-$year/$mode-fields-$SEED.npz"
+              done
+              for days in 3 7 14 28; do
+                python scripts/matched_direct_bootstrap.py --historical "outputs/archive/$region-$year/historical-fields-$SEED.npz" --source-mean "outputs/archive/$region-$year/source_mean-fields-$SEED.npz" --days "$days" --draws 2000 --output "outputs/archive/$region-$year/direct-seed-$SEED-block-$days.json"
+              done
+            done
+          done
+      - name: Preserve inputs, fitted weights, predictions and environment
+        if: always()
+        shell: bash
+        run: |
+          python -m pip freeze > resolved-requirements.txt
+          git rev-parse HEAD > git-commit.txt
+          python -c 'import jax; print(jax.__version__,jax.devices())' > device-info.txt
+          python scripts/hash_experiment_files.py --root input --root outputs/archive --output outputs/archive/sha256-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: additional-seed-${{ matrix.seed }}-four-cases
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            input/*.nc
+            outputs/archive/**
+            resolved-requirements.txt
+            git-commit.txt
+            device-info.txt
