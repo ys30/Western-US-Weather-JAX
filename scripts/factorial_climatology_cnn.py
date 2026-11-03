@@ -61,7 +61,9 @@ def monthly_diagnostics(pred,ref,truth,target_times,threshold=305.0):
 
 def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,lr=.001,hot_weight=0.0,hot_threshold_kelvin=305.0,checkpoint_path=None,climatology_feature_mode='historical',reference_mode='blend'):
     if hot_weight < 0: raise ValueError('hot_weight must be nonnegative')
-    if reference_mode not in ('blend','persistence'):\n        raise ValueError('Invalid reference_mode')\n    if climatology_feature_mode not in ('historical','source_mean'):
+    if reference_mode not in ('blend','persistence'):
+        raise ValueError('Invalid reference_mode')
+    if climatology_feature_mode not in ('historical','source_mean'):
         raise ValueError('Invalid climatology_feature_mode')
     ts=np.asarray(timestamps).astype('datetime64[h]')
     n=len(arr)
@@ -128,7 +130,8 @@ def run(arr,timestamps,train_end,val_end,epochs=40,seed=42,batch=8,channels=12,l
             selected_epoch=np.int32(best_epoch),
             model_seed=np.int32(seed),
             hot_weight=np.float32(hot_weight),
-            climatology_feature_mode=np.asarray(climatology_feature_mode),\n            reference_mode=np.asarray(reference_mode))
+            climatology_feature_mode=np.asarray(climatology_feature_mode),
+            reference_mode=np.asarray(reference_mode))
     pred=np.asarray(predict(best_params,jnp.asarray(xe)))[...,0]*std+mean
     truth=np.asarray(ye[...,0])*std+mean
     mask=truth>=hot_threshold_kelvin
@@ -162,7 +165,8 @@ def main():
     p.add_argument('--hot-threshold-kelvin',type=float,default=305.0)
     p.add_argument('--checkpoint-path',default=None)
     p.add_argument('--climatology-feature-mode',choices=['historical','source_mean'],default='historical')
-    p.add_argument('--reference-mode',choices=['blend','persistence'],default='blend')\n    a=p.parse_args();da=load_era5(a.data)
+    p.add_argument('--reference-mode',choices=['blend','persistence'],default='blend')
+    a=p.parse_args();da=load_era5(a.data)
     report=run(da.values,da.time.values,a.train_until,a.validate_until,a.epochs,seed=a.seed,hot_weight=a.hot_weight,hot_threshold_kelvin=a.hot_threshold_kelvin,checkpoint_path=a.checkpoint_path,climatology_feature_mode=a.climatology_feature_mode,reference_mode=a.reference_mode)
     out=Path(a.output);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
