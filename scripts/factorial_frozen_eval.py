@@ -21,8 +21,11 @@ def frozen_evaluate(data,times,checkpoint,test_start="2022-01-01",threshold=305.
         params={k:jnp.asarray(z["param_"+k]) for k in ("w1","w2","w3","b1","b2","b3")}
         mean=float(z["source_train_mean"]);std=float(z["source_train_std"])
         weight=float(z["source_validation_selected_blend_weight"])
-        trained_feature_mode=str(z["climatology_feature_mode"].item()) if "climatology_feature_mode" in z else "historical"\n        reference_mode=str(z["reference_mode"].item()) if "reference_mode" in z else "blend"
-    if reference_mode not in ("blend","persistence") or (reference_mode=="persistence" and weight!=0.0):\n        raise ValueError("Invalid factorial checkpoint reference mode")\n    if not np.isfinite([mean,std,weight]).all() or std<=0 or not 0<=weight<=1:
+        trained_feature_mode=str(z["climatology_feature_mode"].item()) if "climatology_feature_mode" in z else "historical"
+        reference_mode=str(z["reference_mode"].item()) if "reference_mode" in z else "blend"
+    if reference_mode not in ("blend","persistence") or (reference_mode=="persistence" and weight!=0.0):
+        raise ValueError("Invalid factorial checkpoint reference mode")
+    if not np.isfinite([mean,std,weight]).all() or std<=0 or not 0<=weight<=1:
         raise ValueError("Invalid source metadata")
     months=(ts.astype("datetime64[M]").astype("int64")%12).astype(int)
     hours=(ts.astype("datetime64[h]").astype("int64")%24).astype(int)
