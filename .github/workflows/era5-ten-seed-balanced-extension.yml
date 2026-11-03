@@ -85,7 +85,7 @@ jobs:
             for year in 2022 2023; do
               mkdir -p "outputs/archive/$region-$year"
               for mode in historical source_mean; do
-                python scripts/frozen_spatial_eval.py --data "input/$region.nc" --checkpoint "outputs/archive/$mode/seed-$SEED.npz" --test-start "$year-01-01" --output "outputs/archive/$region-$year/$mode-target-$SEED.json" --diagnostics-output "outputs/archive/$region-$year/$mode-fields-$SEED.npz"
+                python scripts/frozen_spatial_eval.py --data "input/$region-$year.nc" --checkpoint "outputs/archive/$mode/seed-$SEED.npz" --test-start "$year-01-01" --output "outputs/archive/$region-$year/$mode-target-$SEED.json" --diagnostics-output "outputs/archive/$region-$year/$mode-fields-$SEED.npz"
               done
               for days in 3 7 14 28; do
                 python scripts/matched_direct_bootstrap.py --historical "outputs/archive/$region-$year/historical-fields-$SEED.npz" --source-mean "outputs/archive/$region-$year/source_mean-fields-$SEED.npz" --days "$days" --draws 2000 --output "outputs/archive/$region-$year/direct-seed-$SEED-block-$days.json"
