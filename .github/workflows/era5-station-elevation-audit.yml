@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/workflows/era5-station-elevation-audit.yml'
+      - 'scripts/verify_station_grid_elevations.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +21,7 @@ jobs:
       - name: Fetch grid geopotential and station elevation
         run: |
           python -m py_compile scripts/verify_station_grid_elevations.py
+          python scripts/verify_station_grid_elevations.py --self-test
           python scripts/verify_station_grid_elevations.py
       - name: Preserve provenance and package versions
         if: always()
