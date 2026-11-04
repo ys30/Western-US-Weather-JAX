@@ -1,10 +1,12 @@
 """Offline regression for the ASOS station result summary's acceptance gates."""
 import json
+import csv
 import tempfile
 from pathlib import Path
 import sys
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from summarize_asos_station_acceptance import collect, render
+from plot_verified_asos_station_contrasts import load as load_plot, draw as draw_plot
 
 def run():
     with tempfile.TemporaryDirectory() as d:
@@ -37,6 +39,15 @@ def run():
         rows=collect(root)
         assert len(rows)==6
         assert len([line for line in render(rows).splitlines() if line.startswith("| ABQ")])==3
+        # The chart must consume validated CSV, not synthesized figures.
+        metrics=root/"verified_station_metrics.csv"
+        with metrics.open("w",newline="") as stream:
+            writer=csv.DictWriter(stream,fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+        svg=draw_plot(load_plot(metrics))
+        assert svg.startswith("<svg") and svg.count("<circle ")==6
+
         seeds[0]["station_match"][0]["matched"]=100
         (root/"retrospective_station_results.json").write_text(json.dumps({
             "cross_seed_observation_identity_verified":True,
