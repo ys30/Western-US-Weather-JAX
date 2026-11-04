@@ -1,0 +1,74 @@
+name: Replay and publish additional ASOS elevation sensitivity
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/recompute_additional_asos_elevation.py'
+      - '.github/workflows/additional-asos-elevation-replay.yml'
+permissions:
+  contents: write
+  actions: read
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install analysis dependencies
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0'
+      - name: Retrieve original independently verified station and elevation artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p source/sw23 source/sp22 source/elev tmp
+          gh run download 41875075661 --repo "$GITHUB_REPOSITORY" --name additional-asos-southwest-2023 --dir source/sw23
+          gh run download 41875075661 --repo "$GITHUB_REPOSITORY" --name additional-asos-southern-plains-2022 --dir source/sp22
+          gh run download 41774740647 --repo "$GITHUB_REPOSITORY" --name station-grid-elevation-audit --dir source/elev
+          (cd source/sw23 && zip -qr ../additional-asos-southwest-2023.zip .)
+          (cd source/sp22 && zip -qr ../additional-asos-southern-plains-2022.zip .)
+          (cd source/elev && zip -qr ../elevation-audit.zip .)
+      - name: Recalculate all 144 cases against archived original score JSON
+        run: |
+          python scripts/recompute_additional_asos_elevation.py --input-dir source --elevation-zip source/elevation-audit.zip --output tmp/additional_asos_elevation_144_scenarios.csv
+      - name: Basic source and sensitivity validation
+        run: |
+          python - <<'PY'
+          import csv, math
+          with open("tmp/additional_asos_elevation_144_scenarios.csv") as stream:
+              rows=list(csv.DictReader(stream))
+          keys={(r["case"],r["station"],r["seed"],r["lapse_K_per_km"],r["block_days"]) for r in rows}
+          assert len(rows)==len(keys)==144
+          assert set(r["draws"] for r in rows)=={"2000"}
+          assert set(r["block_days"] for r in rows)=={"7","14","28"}
+          for r in rows:
+              lo=float(r["ci95_low_K"]);hi=float(r["ci95_high_K"])
+              assert math.isfinite(lo) and math.isfinite(hi) and lo<=hi
+              assert str(lo<=0<=hi)==r["includes_zero"]
+          print("Validated complete 144-row scenario factorial")
+          PY
+      - name: Store full public scientific results in GitHub
+        run: |
+          mkdir -p results
+          cp tmp/additional_asos_elevation_144_scenarios.csv results/additional_asos_elevation_144_scenarios.csv
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add results/additional_asos_elevation_144_scenarios.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Archive 144 independently reproduced regional ASOS elevation sensitivity scenarios"
+            git push origin HEAD:main
+          else
+            echo "Already identical to committed results"
+          fi
+      - name: Upload replication results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: additional-asos-elevation-144-replay
+          path: tmp/*.csv
+          retention-days: 30
