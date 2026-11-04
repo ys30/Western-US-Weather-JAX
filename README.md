@@ -105,6 +105,21 @@ The matrix [Actions run 41875075661](https://github.com/ys30/Western-US-Weather-
 
 Together with Southwest 2022 ABQ and ROW above, the validated station dataset covers **three region-year cases, six site-years and 18 fitted-seed/site-year comparisons**, with 9 positive and 9 negative annual channel differences. Five of the 12 new within-seed 14-day 95% intervals exclude zero, **but not in a consistent direction across seeds and sites**; these are not multiplicity-adjusted and are not independent across model seeds. Each case uses **retrospective airport observations potentially overlapping with ERA5 assimilation**, not independent operational 24-hour forecast skill. New regional comparisons are from the archived source-trained CNN predictions without target-specific retraining.
 
+### New audited station-error decomposition (54 model × site-year × seed rows)
+
+A separate [successful GitHub Actions replay](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41907423671) reloaded the three accepted ASOS observation–prediction artifacts, verified their matched CSV SHA256 records and identical observation timestamps across model seeds, reproduced the archived RMSE values, and partitioned each station-model error into mean signed error and centered residual variation. **[Full 54-row empirical CSV](results/asos_station_error_decomposition_54.csv)** · [Reproducible code](scripts/recompute_asos_error_decomposition.py).
+
+| Site-year | Historical annual RMSE (K) | Median forecast − ASOS mean error (K) | Squared mean bias / MSE |
+| --- | ---: | ---: | ---: |
+| Southwest 2022 · ABQ | 3.364 | −1.029 | 9.3% |
+| Southwest 2023 · ABQ | 3.219 | −1.191 | 13.7% |
+| Southwest 2022 · ROW | 4.313 | +0.306 | 0.5% |
+| Southwest 2023 · ROW | 3.586 | −0.015 | ~0.0% |
+| Southern Plains 2022 · ABI | 5.034 | −0.223 | 0.2% |
+| Southern Plains 2022 · OKC | 4.932 | +0.784 | 2.6% |
+
+Numbers above are medians over three archived historical-channel random seeds. The exact identity `RMSE² = mean_error² + centered_RMSE²` was validated for every row. Albuquerque exhibits a negative mean station error in **both years**; Roswell's mean error is small relative to total RMSE. This is a diagnostic of airport-versus-bilinear-grid agreement, **not** independent operational forecast skill, attribution of the bias to terrain alone, or a fitted bias-correction experiment. These error components place the minute historical-versus-source-mean channel differences in context; the pooled seeds are not independent climatic replicates.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
