@@ -40,7 +40,8 @@ def run():
         seeds[0]["station_match"][0]["matched"]=100
         (root/"retrospective_station_results.json").write_text(json.dumps({
             "cross_seed_observation_identity_verified":True,
-            "time_tolerance_minutes":30,"seeds":seeds}))
+            "time_tolerance_minutes":30,"bootstrap_days":14,
+            "bootstrap_draws":2000,"seeds":seeds}))
         try:
             collect(root)
         except ValueError as err:
