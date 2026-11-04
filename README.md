@@ -130,6 +130,8 @@ For the historical-channel arm, the three-seed median mean error was **−1.03 K
 
 **Interpretation hierarchy:** distinguish (i) absolute retrospective station mismatch of roughly 3–5 K, (ii) site-dependent systematic mean error, and (iii) the much smaller source-mean-versus-historical paired RMSE difference of approximately hundredths of a kelvin. Neither a station error decomposition nor within-seed temporal bootstrap constitutes independent operational forecast validation.
 
+**Baseline reproducibility clarification:** the implemented [Blend contract](docs/BLEND_BASELINE_IMPLEMENTATION_AUDIT.md) explicitly defines a 24-hour persistence forecast combined with a training-only month/UTC-hour grid-cell climatology, with climatology weight chosen over {0, 0.25, 0.5, 0.75, 1} on validation RMSE. A 6-hourly archive typically occupies 48 of 288 possible month–hour indices; exact winning weights require run records.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
