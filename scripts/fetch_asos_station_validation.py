@@ -47,13 +47,13 @@ def parse_observations(raw,station_code,year):
     return source,qa
 
 def self_test():
-    raw=("station,valid,tmpf\\n"+
-         "ABQ,2022-01-01 00:00,32\\n"+
-         "ABQ,2022-01-01 00:00,34\\n"+
-         "ABQ,2022-01-01 06:00,M\\n"+
-         "ABQ,2023-01-01 00:00,45\\n"+
-         "ROW,2022-01-01 00:00,41\\n"+
-         "ABQ,2022-01-01 12:00,140\\n").replace("\\\\n","\\n").encode()
+    raw=("station,valid,tmpf\n"+
+         "ABQ,2022-01-01 00:00,32\n"+
+         "ABQ,2022-01-01 00:00,34\n"+
+         "ABQ,2022-01-01 06:00,M\n"+
+         "ABQ,2023-01-01 00:00,45\n"+
+         "ROW,2022-01-01 00:00,41\n"+
+         "ABQ,2022-01-01 12:00,140\n").encode()
     data,qa=parse_observations(raw,"ABQ",2022)
     assert len(data)==1 and float(data.iloc[0]["tmpf"])==33
     assert qa["duplicate_report_times"]==1
