@@ -88,11 +88,11 @@ def run(case,archive_root,output,draws=2000):
         matched.to_csv(matched_path,index=False)
         score_path=output/f"station-scored-seed-{seed}.json"
         score=evaluate(matched_path,block_days=14,draws=draws)
-        score_path.write_text(json.dumps(score,indent=2,allow_nan=False)+"\\n")
+        score_path.write_text(json.dumps(score,indent=2,allow_nan=False)+"\n")
         for block in (7,28):
             sub=evaluate(matched_path,block_days=block,draws=draws)
             (output/f"station-scored-seed-{seed}-block-{block}d.json").write_text(
-                json.dumps(sub,indent=2,allow_nan=False)+"\\n")
+                json.dumps(sub,indent=2,allow_nan=False)+"\n")
         seed_records.append({"seed":seed,"matched_rows":len(matched),
               "station_match":counts,"tolerance_matched_rows":tolerance_counts,
               "scoring_json":score_path.name,
@@ -109,7 +109,7 @@ def run(case,archive_root,output,draws=2000):
        "required_match_rate":0.8,"required_matched_per_station":1000,
        "interpretation":"Retrospective airport station agreement; potential overlap with ERA5 assimilation, not operational forecasting",
        "seeds":seed_records}
-    (output/"retrospective_station_results.json").write_text(json.dumps(manifest,indent=2)+"\\n")
+    (output/"retrospective_station_results.json").write_text(json.dumps(manifest,indent=2)+"\n")
     print(json.dumps({"case":case,"stations":cfg["stations"],
                       "matched_by_seed":[r["matched_rows"] for r in seed_records]},indent=2))
 
