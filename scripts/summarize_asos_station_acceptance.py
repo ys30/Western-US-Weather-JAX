@@ -74,13 +74,13 @@ def render(rows):
         "",
         "Retrospective station agreement, **not** operational forecast skill; airport reports may overlap with ERA5-assimilated observations.",
         "",
-        "| Station | Seed | Matched n | Match % | Historical RMSE (K) | Source-mean RMSE (K) | Baseline RMSE (K) | Δ source-minus-historical (K) | Hot n |",
+        "| Station | Seed | Matched n | Match % | Historical RMSE (K) | Source-mean RMSE (K) | Baseline RMSE (K) | Δ source-minus-historical (K) | 14-day CI95 (K) | Hot n |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for r in rows:
         interval=(f"[{r['annual_ci95_low_K']:+.4f}, {r['annual_ci95_high_K']:+.4f}]" if
                   r["annual_ci95_low_K"] is not None and r["annual_ci95_high_K"] is not None else "insufficient")
         md.append("| {station} | {seed} | {matched_n} | {pct:.1f} | {historical_rmse_K:.4f} | {source_mean_rmse_K:.4f} | {baseline_rmse_K:.4f} | {delta_source_mean_minus_historical_rmse_K:+.4f} | {interval} | {hot_n} |".format(pct=100*r["match_rate"],interval=interval,**r))
-    md.extend(["","**Quality gates:** ≥80% and ≥1,000 matched records per station; exact cross-seed matched-time identity; common station coordinates and reference field. Confidence intervals use the archived paired seven-day bootstrap; hot CI is suppressed when sparse."])
+    md.extend(["","**Quality gates:** ≥80% and ≥1,000 matched records per station; exact cross-seed matched-time identity; common station coordinates and reference field. Primary confidence intervals use paired 14-day calendar blocks (2,000 draws); 7/28-day sensitivities are archived separately. Hot CI is suppressed when sparse."])
     return "\n".join(md)+"\n"
 
 def main():
