@@ -21,17 +21,19 @@ def run():
                 groups.append({"station":station,"year":2022,"n_hot":42,
                                "hot_ci_eligible":True,
                                "all":score,"observed_hot":score,
-                               "ci_all":{"ci95_low_K":-0.1,"ci95_high_K":0.2},
+                               "ci_all":{"block_days":14,"draws":2000,"ci95_low_K":-0.1,"ci95_high_K":0.2},
                                "ci_hot":{"ci95_low_K":-0.2,"ci95_high_K":0.4}})
                 matches.append({"station":station,"predictions":1460,
                                 "matched":n,"match_rate":n/1460})
             filename=f"station-scored-seed-{seed}.json"
             (root/filename).write_text(json.dumps({"groups":groups}))
+            for block_days in (7,28):
+                (root/f"station-scored-seed-{seed}-block-{block_days}d.json").write_text(json.dumps({"groups":groups}))
             seeds.append({"seed":seed,"scoring_json":filename,
                           "matched_rows":2400,"station_match":matches})
         (root/"retrospective_station_results.json").write_text(json.dumps({
             "cross_seed_observation_identity_verified":True,
-            "time_tolerance_minutes":30,"seeds":seeds}))
+            "time_tolerance_minutes":30,"bootstrap_days":14,"bootstrap_draws":2000,"seeds":seeds}))
         rows=collect(root)
         assert len(rows)==6
         assert len([line for line in render(rows).splitlines() if line.startswith("| ABQ")])==3
