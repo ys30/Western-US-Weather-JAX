@@ -19,7 +19,7 @@ from fetch_asos_station_validation import STATIONS, fetch
 from match_asos_prediction_times import PRED, load_csv, match
 from evaluate_paired_station_predictions import evaluate
 
-def run(sampled_root,output,year=2022,draws=200):
+def run(sampled_root,output,year=2022,draws=2000):
     output.mkdir(parents=True,exist_ok=True)
     obs_dir=output/"raw_station_observations"
     obs_dir.mkdir(parents=True,exist_ok=True)
@@ -64,8 +64,14 @@ def run(sampled_root,output,year=2022,draws=200):
         path=output/f"station-matched-seed-{seed}.csv"
         matched.to_csv(path,index=False)
         scored=output/f"station-scored-seed-{seed}.json"
-        evaluation=evaluate(path,block_days=7,draws=draws)
+        # Paper-aligned primary paired interval.
+        evaluation=evaluate(path,block_days=14,draws=draws)
         scored.write_text(json.dumps(evaluation,indent=2,allow_nan=False)+"\n")
+        # Same paired observations, with alternative calendar block lengths.
+        for block_days in (7,28):
+            sensitivity=evaluate(path,block_days=block_days,draws=draws)
+            sensitivity_path=output/f"station-scored-seed-{seed}-block-{block_days}d.json"
+            sensitivity_path.write_text(json.dumps(sensitivity,indent=2,allow_nan=False)+"\n")
         result.append({"seed":seed,"matched_rows":len(matched),
                        "station_match":matching,"tolerance_matched_rows":tolerance_counts,
                        "scoring_json":scored.name,
@@ -77,7 +83,7 @@ def run(sampled_root,output,year=2022,draws=200):
              "observation_files":records,
              "matched_observation_sha256":hashlib.sha256(obs_path.read_bytes()).hexdigest(),
              "time_tolerance_minutes":30,
-             "bootstrap_days":7,"bootstrap_draws":draws,
+             "bootstrap_days":14,"bootstrap_sensitivity_days":[7,28],"bootstrap_draws":draws,
              "required_match_rate":0.80,"required_matched_per_station":1000,
              "cross_seed_observation_identity_verified":True,
              "interpretation":"Retrospective observational agreement; not operational or independent from ERA5 assimilation",
@@ -90,7 +96,7 @@ if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("--sampled-root",required=True)
     p.add_argument("--output",default="outputs/station_observation_evaluation")
-    p.add_argument("--draws",type=int,default=200)
+    p.add_argument("--draws",type=int,default=2000)
     a=p.parse_args()
     if a.draws<20: p.error("draws must be >=20")
     run(Path(a.sampled_root),Path(a.output),draws=a.draws)
