@@ -1,0 +1,38 @@
+name: Retrospective ASOS station observation fetch
+on:
+  push:
+    paths:
+      - '.github/workflows/asos-station-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  archived-stations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install lightweight observation dependencies
+        run: python -m pip install pandas requests
+      - name: Compile and run ASOS downloader
+        run: |
+          python -m py_compile scripts/fetch_asos_station_validation.py
+          python scripts/fetch_asos_station_validation.py --output-dir outputs/station_validation
+      - name: Save provenance
+        if: always()
+        run: |
+          git rev-parse HEAD > outputs/station_validation_git_commit.txt
+          python -m pip freeze > outputs/station_validation_requirements.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: asos-stations-2022-2023-retrospective
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            outputs/station_validation/**
+            outputs/station_validation_git_commit.txt
+            outputs/station_validation_requirements.txt
