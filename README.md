@@ -22,6 +22,25 @@
 - Tested model sensitivity to climatology features across a second test year and a geographically distinct target.
 - Audited GPU execution, prediction parity, workflow success, model checkpoints, gridded predictions, and SHA256 checksums.
 
+## Expanded ten-seed cross-target findings (research update)
+
+The later research analysis extends the matched-feature comparison beyond the original three-seed showcase. These are **exploratory, retrospective ERA5 results**, not operational heat-warning scores. The primary contrast is source-mean minus historical-channel observed-hot RMSE (K): a positive difference favors the historical feature channel.
+
+| Frozen-source target | Historical channel better | Median paired ΔRMSE (K) | Across-seed IQR (K) |
+| --- | ---: | ---: | --- |
+| Southwest 2022 | 6/10 seeds | +0.0017 | [-0.0079, +0.0173] |
+| Southwest 2023 | 6/10 seeds | +0.0063 | [-0.0109, +0.0175] |
+| Southern Plains 2022 | 6/10 seeds | +0.0063 | [-0.0057, +0.0186] |
+| Southern Plains 2023 | 7/10 seeds | +0.0096 | [-0.0017, +0.0252] |
+
+These figures describe an across-initialization distribution, **not** a cross-seed confidence interval or proof of general superiority. Earlier three-seed charts below are historical subsets. The full four-case ten-seed data, archives and factorial interaction analyses require experiment-specific provenance; avoid conflating this with the separately regionally retrained experiments.
+
+### Current station validation engineering (not yet station-skill evidence)
+
+An archive-only retrospective validation pipeline has been added: recover matched-channel predictions from saved NPZ truth/error fields, check identical time/truth/reference/grid across arms, bilinearly sample target-valid-time predictions at ASOS coordinates, match station reports by UTC tolerance, then score identical paired samples with calendar-day block bootstrapping. [Analysis protocol](docs/STATION_VALIDATION_ANALYSIS_PROTOCOL.md) · [Archived Southwest 2022 acceptance workflow](.github/workflows/archived-station-spatial-acceptance.yml) · [Station QA workflow](.github/workflows/station-paired-evaluation-qa.yml).
+
+**Acceptance status:** code and workflow definitions are committed, but no new successful end-to-end station-observation workflow, station-level RMSE, or lapse-rate correction has yet been confirmed. The three full model archives documented below remain temporary GitHub Actions artifacts; their integrity checks refer to archival reruns. This is not independent operational forecasting validation.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
