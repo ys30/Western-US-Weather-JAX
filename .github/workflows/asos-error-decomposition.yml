@@ -1,0 +1,65 @@
+name: ASOS forecast-error decomposition from archived evidence
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/recompute_asos_error_decomposition.py
+      - .github/workflows/asos-error-decomposition.yml
+permissions:
+  actions: read
+  contents: write
+jobs:
+  evidence-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install audit dependencies
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0'
+      - name: Restore verified ASOS artifacts from three completed workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p input/sw22 input/sw23 input/sp22
+          gh run download 41862347926 --repo "$GITHUB_REPOSITORY" --name southwest-2022-asos-retrospective-results --dir input/sw22
+          gh run download 41875075661 --repo "$GITHUB_REPOSITORY" --name additional-asos-southwest-2023 --dir input/sw23
+          gh run download 41875075661 --repo "$GITHUB_REPOSITORY" --name additional-asos-southern-plains-2022 --dir input/sp22
+          (cd input/sw22 && zip -qr ../southwest-2022-asos.zip .)
+          (cd input/sw23 && zip -qr ../southwest-2023-asos.zip .)
+          (cd input/sp22 && zip -qr ../southern-plains-2022-asos.zip .)
+      - name: Recalculate error decomposition and independently check archived RMSE
+        run: |
+          python scripts/recompute_asos_error_decomposition.py --input-dir input --output results/asos_station_error_decomposition_54.csv
+      - name: Verify all 54 rows and bias-variance identity
+        run: |
+          python - <<'PY'
+          import csv,math
+          with open("results/asos_station_error_decomposition_54.csv") as handle:
+              records=list(csv.DictReader(handle))
+          keys={(r["case"],r["station"],r["seed"],r["model"]) for r in records}
+          assert len(keys)==len(records)==54
+          for r in records:
+              rmse=float(r["rmse_K"]);bias=float(r["mean_error_K"]);cr=float(r["centered_rmse_K"])
+              assert math.isclose(rmse**2,bias**2+cr**2,abs_tol=1e-7)
+              assert 0<=float(r["squared_bias_fraction"])<=1
+          print("All 54 real station/seed/model error decompositions validated")
+          PY
+      - name: Publish public numeric evidence only
+        run: |
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add results/asos_station_error_decomposition_54.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish archived ASOS 54-row station bias and centered error audit"
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: asos-error-decomposition-54
+          path: results/asos_station_error_decomposition_54.csv
+          retention-days: 30
