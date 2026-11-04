@@ -73,6 +73,21 @@ The independent [ERA5 surface geopotential and IEM station-elevation audit](http
 
 The [full 24-row audited scenario CSV](results/southwest_2022_asos_elevation_sensitivity_verified.csv) includes **0 / 3.0 / 6.5 / 9.8 K/km** corrections. Two ABQ seeds switch ranking at 6.5 K/km; no ROW seed does. These are **assumption-driven sensitivity scenarios** applied identically to all three forecast fields, *not* fitted or meteorologically time-varying station corrections, not a validation of lapse rate in all weather, and not proof of improved forecast skill. Recomputed **14-day, 2,000-draw paired temporal bootstrap intervals** for the 6.5 K/km scenario are available in [the adjusted-bootstrap CSV](results/southwest_2022_asos_elevation_bootstrap_14day.csv). For ABQ, all three adjusted within-seed intervals still include zero. For ROW seed 42 the interval is [+0.00514, +0.02391] K, and for ROW seed 7 it is [−0.01341, −0.00109] K; the two seeds disagree in direction. The full local audit also evaluates 7- and 28-day block lengths. These are conditional temporal, not cross-seed, intervals.
 
+### New cross-case elevation robustness (Southwest 2023 / Southern Plains 2022)
+
+Using the **previously verified four-station elevation audit** (run 41774740647) and the accepted Southwest 2023 / Southern Plains 2022 matched ASOS artifacts (run 41875075661), both historical and source-mean CNN fields were evaluated after an identical **6.5 K/km illustrative height correction**. No station calibration or new model training was performed.
+
+| Site-year | ERA5-to-station height difference (station − ERA5) | Annual ΔRMSE (K), 6.5 K/km, seeds 42 / 7 / 123 |
+| --- | ---: | --- |
+| Southwest 2023 ABQ | −155.08 m | −0.00787 / +0.00134 / +0.00178 |
+| Southwest 2023 ROW | −40.76 m | +0.01355 / −0.00152 / +0.00437 |
+| Southern Plains 2022 ABI | −19.30 m | +0.01608 / −0.00117 / −0.00261 |
+| Southern Plains 2022 OKC | +22.63 m | +0.01149 / −0.00570 / −0.00215 |
+
+[Exact 12-pair CSV](results/additional_asos_elevation_6p5K_12_verified.csv) · [144-scenario reproducibility code](scripts/recompute_additional_asos_elevation.py) · [144-scenario workflow](.github/workflows/additional-asos-elevation-replay.yml).
+
+Across the additional cases, ABQ seed 123 and ROW seed 7 switch the direction of the annual feature-channel contrast after this common adjustment; ABI and OKC do not. The **144-scenario** factorial includes two region-year targets, four site-years, three seeds, four lapse rates (0/3/6.5/9.8 K/km) and three temporal block sizes (7/14/28 days). Source-artifact calculations have been reproduced locally, while **the GitHub replay-and-publication CI must pass before calling its full committed archive verified**. These are hypothetical station–grid representativeness scenarios, not optimized physical height corrections, independent forecasts, or evidence of a reliable channel winner.
+
 ### Independent archive-backed ASOS replication: Southwest 2023 and Southern Plains 2022
 
 The matrix [Actions run 41875075661](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41875075661) **passed both cases**, including strict parsing of all generated JSON, archive SHA256 verification, year-and-region-specific IEM ASOS retrieval, matched-observation identity across three model initializations, primary 14-day/2,000-draw paired block bootstrap and 7/28-day sensitivities. Both full artifacts were downloaded and the RMSE was independently recomputed from their matched prediction/observation CSVs.
