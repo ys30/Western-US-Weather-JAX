@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/run_retrospective_station_case.py'
+      - 'scripts/summarize_asos_station_acceptance.py'
       - 'scripts/fetch_asos_station_validation.py'
       - 'scripts/match_asos_prediction_times.py'
       - 'scripts/evaluate_paired_station_predictions.py'
@@ -47,6 +48,10 @@ jobs:
       - name: Fetch 2022 ASOS for ABQ and ROW and score strict matched samples
         run: |
           python scripts/run_retrospective_station_case.py --sampled-root outputs/archived_station_acceptance --output outputs/station_observation_evaluation --draws 200
+      - name: Publish independently checkable station result table
+        run: |
+          python scripts/summarize_asos_station_acceptance.py --input outputs/station_observation_evaluation --markdown outputs/station_observation_evaluation/verified_station_summary.md --csv outputs/station_observation_evaluation/verified_station_metrics.csv
+          cat outputs/station_observation_evaluation/verified_station_summary.md >> "${GITHUB_STEP_SUMMARY}"
       - name: Save provenance and environment
         if: always()
         run: |
