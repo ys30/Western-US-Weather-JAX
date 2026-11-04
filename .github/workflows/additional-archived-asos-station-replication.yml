@@ -1,0 +1,70 @@
+name: Additional archived regional ASOS station replication
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/run_additional_asos_station_case.py'
+      - 'scripts/summarize_additional_asos_station_case.py'
+      - '.github/workflows/additional-archived-asos-station-replication.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  replicate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - case: southwest-2023
+            run: 41402185866
+            artifact: southwest-2023-full-reproducibility-archive
+          - case: southern-plains-2022
+            run: 41402189567
+            artifact: southern-plains-2022-full-reproducibility-archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install retrospective dependencies
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0' 'xarray>=2023.1' scipy netCDF4 requests
+      - name: Regression checks on matching and score statistics
+        run: |
+          python scripts/fetch_asos_station_validation.py --self-test
+          python scripts/match_asos_prediction_times.py --self-test
+          python scripts/evaluate_paired_station_predictions.py --self-test
+          python scripts/test_calendar_bootstrap_equivalence.py
+      - name: Obtain exactly matching archived model output
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCHIVE_RUN: ${{ matrix.run }}
+          ARCHIVE_NAME: ${{ matrix.artifact }}
+        run: |
+          mkdir -p downloaded
+          gh run download "$ARCHIVE_RUN" --repo "$GITHUB_REPOSITORY" --name "$ARCHIVE_NAME" --dir downloaded
+      - name: Verify archive hashes; fetch ASOS and match without model retraining
+        env:
+          CASE: ${{ matrix.case }}
+        run: |
+          python scripts/run_additional_asos_station_case.py --case "$CASE" --archive-root downloaded --output outputs/station_replication --draws 2000
+      - name: Audit matched samples, RMSE, bootstrap and publish CSV
+        run: |
+          python scripts/summarize_additional_asos_station_case.py --input outputs/station_replication --output outputs/station_replication/verified_station_metrics.csv | tee outputs/station_replication/summary.txt
+          cat outputs/station_replication/summary.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Save environment provenance
+        if: always()
+        run: |
+          mkdir -p outputs/station_replication
+          git rev-parse HEAD > outputs/station_replication/commit.txt
+          python -m pip freeze > outputs/station_replication/requirements.txt
+      - name: Upload empirical results only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: additional-asos-${{ matrix.case }}
+          path: outputs/station_replication/**
+          retention-days: 30
+          if-no-files-found: warn
