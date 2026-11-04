@@ -1,0 +1,50 @@
+name: Southwest 2022 retrospective ASOS station verification
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/run_retrospective_station_case.py'
+      - '.github/workflows/southwest-asos-retrospective.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  station-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install evaluation dependencies
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0' 'xarray>=2023.1' scipy netCDF4 requests
+      - name: Download original full reproducibility archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p downloaded
+          gh run download 41400003722 --repo "${GITHUB_REPOSITORY}" --name southwest-2022-full-reproducibility-archive --dir downloaded
+      - name: Validate all archived SHA256 records and sample target fields
+        run: |
+          python scripts/accept_archived_station_sampling.py --archive-root downloaded --output-dir outputs/archived_station_acceptance
+      - name: Fetch 2022 ASOS for ABQ and ROW and score strict matched samples
+        run: |
+          python scripts/run_retrospective_station_case.py --sampled-root outputs/archived_station_acceptance --output outputs/station_observation_evaluation --draws 200
+      - name: Save provenance and environment
+        if: always()
+        run: |
+          mkdir -p outputs/station_observation_evaluation
+          git rev-parse HEAD > outputs/station_observation_evaluation/commit.txt
+          python -m pip freeze > outputs/station_observation_evaluation/requirements.txt
+      - name: Publish reproducibility artifacts (no manuscript)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: southwest-2022-asos-retrospective-results
+          path: |
+            outputs/station_observation_evaluation/**
+            outputs/archived_station_acceptance/**
+          retention-days: 30
+          if-no-files-found: warn
