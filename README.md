@@ -58,6 +58,21 @@ ABQ had **99.8%** target-time coverage and ROW **99.9%**. The across-seed median
 
 **Evidence boundaries:** the two-station/three-seed comparison supplements—but does not replace—the separate four-case ten-seed ERA5-only analysis; intervals describe within-seed temporal resampling, not across-seed confidence or independent model deployment. Private manuscript text and submission figures remain local.
 
+### ASOS station–grid elevation sensitivity (real audited inputs)
+
+The independent [ERA5 surface geopotential and IEM station-elevation audit](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41774740647) passed. It found ABQ **1,620.0 m station vs 1,775.1 m ERA5 bilinear elevation** (station minus grid **−155.08 m**) and ROW **1,118.0 m vs 1,158.8 m** (**−40.76 m**). Re-evaluating the *same* observed station times and three archived CNN seed predictions with a common illustrative dry-environment lapse adjustment `T_adjusted = T_grid − lapse_rate × (z_station − z_grid) / 1000` changes the 6.5 K/km temperatures by **+1.008 K at ABQ** and **+0.265 K at ROW**.
+
+| Site | Seed | Raw source − historical annual ΔRMSE (K) | 6.5 K/km adjusted ΔRMSE (K) |
+| --- | ---: | ---: | ---: |
+| ABQ | 42 | −0.00819 | −0.00242 |
+| ABQ | 7 | +0.00320 | −0.00266 |
+| ABQ | 123 | −0.00058 | +0.00056 |
+| ROW | 42 | +0.01619 | +0.01436 |
+| ROW | 7 | −0.00610 | −0.00725 |
+| ROW | 123 | +0.00191 | +0.00218 |
+
+The [full 24-row audited scenario CSV](results/southwest_2022_asos_elevation_sensitivity_verified.csv) includes **0 / 3.0 / 6.5 / 9.8 K/km** corrections. Two ABQ seeds switch ranking at 6.5 K/km; no ROW seed does. These are **assumption-driven sensitivity scenarios** applied identically to all three forecast fields, *not* fitted or meteorologically time-varying station corrections, not a validation of lapse rate in all weather, and not proof of improved forecast skill. Temporal bootstrap CIs here are from the unadjusted comparison; adjusted scenario interval inference is not yet supplied.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
