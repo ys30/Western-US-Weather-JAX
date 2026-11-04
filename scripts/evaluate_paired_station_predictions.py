@@ -148,6 +148,14 @@ def self_test():
         assert group["n_hot"] == 24
         assert abs(group["all"]["delta_source_mean_minus_historical_rmse_K"] - 0.5) < 1e-10
         assert group["ci_hot"]["ci95_low_K"] > 0
+        # A rare hot day must be sampled from the full calendar, not as
+        # though every day were hot. Empty hot draws are explicitly tracked.
+        frame["observed_K"] = [306.0] * 4 + [300.0] * (len(frame) - 4)
+        frame.to_csv(handle.name, index=False)
+        rare = evaluate(handle.name, block_days=1, draws=100)
+        ci = rare["groups"][0]["ci_hot"]
+        assert ci is None or ci["empty_draws"] > 0
+        assert rare["groups"][0]["n_hot"] == 4
         frame.loc[1, "timestamp_utc"] = frame.loc[0, "timestamp_utc"]
         frame.to_csv(handle.name, index=False)
         try:
