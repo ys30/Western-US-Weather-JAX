@@ -2,7 +2,7 @@
 import tempfile
 from pathlib import Path
 import numpy as np
-from scripts.reconstruct_matched_archive_fields import reconstruct
+from reconstruct_matched_archive_fields import reconstruct
 
 def test_reconstruction():
     with tempfile.TemporaryDirectory() as dirname:
