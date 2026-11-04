@@ -86,6 +86,8 @@ The matrix [Actions run 41875075661](https://github.com/ys30/Western-US-Weather-
 
 [All 12 new site/seed metrics, actual RMSE and 14-day CIs](results/additional_asos_southwest2023_plains2022_verified.csv).
 
+![Verified 18 station-year × seed paired contrasts with 14-day block intervals](figures/asos_three_case_18_contrast_verified.svg)
+
 Together with Southwest 2022 ABQ and ROW above, the validated station dataset covers **three region-year cases, six site-years and 18 fitted-seed/site-year comparisons**, with 9 positive and 9 negative annual channel differences. Five of the 12 new within-seed 14-day 95% intervals exclude zero, **but not in a consistent direction across seeds and sites**; these are not multiplicity-adjusted and are not independent across model seeds. Each case uses **retrospective airport observations potentially overlapping with ERA5 assimilation**, not independent operational 24-hour forecast skill. New regional comparisons are from the archived source-trained CNN predictions without target-specific retraining.
 
 ## Key results — do not mix the two experimental protocols
