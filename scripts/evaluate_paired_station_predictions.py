@@ -107,18 +107,23 @@ def evaluate(path, threshold=305.0, block_days=14, draws=1000):
     groups = []
     for (site, year), group in data.groupby(["station", "year"], sort=True):
         hot = group.loc[group["observed_K"] >= threshold]
+        hot_days = int(hot["timestamp_utc"].dt.floor("D").nunique())
+        hot_ci_eligible = len(hot) >= 30 and hot_days >= 10
         groups.append({
             "station": str(site), "year": int(year),
             "all": metrics(group),
             "observed_hot": metrics(hot),
             "n_days": int(group["timestamp_utc"].dt.floor("D").nunique()),
             "n_hot": int(len(hot)),
+            "n_hot_days": hot_days,
+            "hot_ci_eligible": bool(hot_ci_eligible),
             "ci_all": daily_block_interval(group, block_days, draws),
-            "ci_hot": daily_block_interval(group, block_days, draws, hot_threshold=threshold) if len(hot) else None,
+            "ci_hot": daily_block_interval(group, block_days, draws, hot_threshold=threshold) if hot_ci_eligible else None,
         })
     return {
         "schema": "station-paired-evaluation-v1",
         "threshold_observed_K": threshold,
+        "hot_ci_minimum": {"observations": 30, "distinct_calendar_days": 10},
         "comparison_sign": "source_mean minus historical: positive favors historical",
         "interpretation": "Retrospective, exploratory, station-time matched; not an operational forecast or independent ERA5 validation",
         "groups": groups,
@@ -129,7 +134,7 @@ def evaluate(path, threshold=305.0, block_days=14, draws=1000):
 def self_test():
     import tempfile
     import os
-    times = pd.date_range("2022-07-01", periods=24, freq="6h", tz="UTC")
+    times = pd.date_range("2022-07-01", periods=60, freq="6h", tz="UTC")
     frame = pd.DataFrame({
         "station": ["ABQ"] * len(times),
         "timestamp_utc": times,
@@ -145,7 +150,7 @@ def self_test():
         result = evaluate(handle.name, block_days=3, draws=80)
         assert len(result["groups"]) == 1
         group = result["groups"][0]
-        assert group["n_hot"] == 24
+        assert group["n_hot"] == 60
         assert abs(group["all"]["delta_source_mean_minus_historical_rmse_K"] - 0.5) < 1e-10
         assert group["ci_hot"]["ci95_low_K"] > 0
         # A rare hot day must be sampled from the full calendar, not as
@@ -156,6 +161,7 @@ def self_test():
         ci = rare["groups"][0]["ci_hot"]
         assert ci is None or ci["empty_draws"] > 0
         assert rare["groups"][0]["n_hot"] == 4
+        assert rare["groups"][0]["ci_hot"] is None
         frame.loc[1, "timestamp_utc"] = frame.loc[0, "timestamp_utc"]
         frame.to_csv(handle.name, index=False)
         try:
