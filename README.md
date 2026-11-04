@@ -120,6 +120,16 @@ A separate [successful GitHub Actions replay](https://github.com/ys30/Western-US
 
 Numbers above are medians over three archived historical-channel random seeds. The exact identity `RMSE² = mean_error² + centered_RMSE²` was validated for every row. Albuquerque exhibits a negative mean station error in **both years**; Roswell's mean error is small relative to total RMSE. This is a diagnostic of airport-versus-bilinear-grid agreement, **not** independent operational forecast skill, attribution of the bias to terrain alone, or a fitted bias-correction experiment. These error components place the minute historical-versus-source-mean channel differences in context; the pooled seeds are not independent climatic replicates.
 
+### Station-error decomposition from archived IEM observations
+
+The source-derived [54-row error-decomposition table](results/asos_station_error_decomposition_54.csv) is independently reproducible via [successful CI run 41907423671](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41907423671) and [replay script](scripts/recompute_asos_error_decomposition.py). For each of 6 site-years × 3 seeds × 3 prediction arms, the audit reports absolute RMSE, forecast-minus-observed mean error, centered RMSE, MAE and correlation. Every row satisfies **RMSE² = mean-error² + centered-RMSE²**.
+
+For the historical-channel arm, the three-seed median mean error was **−1.03 K at ABQ in 2022** and **−1.19 K in 2023**, versus approximately **+0.31 K and −0.02 K at ROW**, respectively. The squared mean-error fraction at ABQ was **9.3% and 13.7%**, while ROW was close to zero. These year-to-year descriptive offsets are *not* evidence that station elevation is the sole cause; grid representativeness, interpolation, weather regime, station siting and ERA5 assimilation overlap may contribute. A common static lapse-rate shift cannot diagnose the physical source of residual temperature variability.
+
+![Historical-channel median airport forecast bias for six site-years](figures/asos_site_bias_historical_6_medians.svg)
+
+**Interpretation hierarchy:** distinguish (i) absolute retrospective station mismatch of roughly 3–5 K, (ii) site-dependent systematic mean error, and (iii) the much smaller source-mean-versus-historical paired RMSE difference of approximately hundredths of a kelvin. Neither a station error decomposition nor within-seed temporal bootstrap constitutes independent operational forecast validation.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
