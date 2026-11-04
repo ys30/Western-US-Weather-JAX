@@ -47,7 +47,7 @@ jobs:
           python scripts/accept_archived_station_sampling.py --archive-root downloaded --output-dir outputs/archived_station_acceptance
       - name: Fetch 2022 ASOS for ABQ and ROW and score strict matched samples
         run: |
-          python scripts/run_retrospective_station_case.py --sampled-root outputs/archived_station_acceptance --output outputs/station_observation_evaluation --draws 200
+          python scripts/run_retrospective_station_case.py --sampled-root outputs/archived_station_acceptance --output outputs/station_observation_evaluation --draws 2000
       - name: Publish independently checkable station result table
         run: |
           python scripts/summarize_asos_station_acceptance.py --input outputs/station_observation_evaluation --markdown outputs/station_observation_evaluation/verified_station_summary.md --csv outputs/station_observation_evaluation/verified_station_metrics.csv
