@@ -50,6 +50,17 @@ jobs:
           CASE: ${{ matrix.case }}
         run: |
           python scripts/run_additional_asos_station_case.py --case "$CASE" --archive-root downloaded --output outputs/station_replication --draws 2000
+      - name: Strictly validate every generated JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          paths=sorted(Path("outputs/station_replication").glob("*.json"))
+          assert len(paths)==10, f"Expected 10 JSON provenance and scores, saw {len(paths)}"
+          for p in paths:
+              json.loads(p.read_text())
+          print(f"Parsed all {len(paths)} generated JSON files without trailing garbage")
+          PY
       - name: Audit matched samples, RMSE, bootstrap and publish CSV
         run: |
           python scripts/summarize_additional_asos_station_case.py --input outputs/station_replication --output outputs/station_replication/verified_station_metrics.csv | tee outputs/station_replication/summary.txt
