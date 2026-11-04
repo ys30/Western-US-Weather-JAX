@@ -1,0 +1,45 @@
+name: Archived Southwest 2022 station-grid acceptance
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/accept_archived_station_sampling.py'
+      - '.github/workflows/archived-station-spatial-acceptance.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  spatial-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deterministic evaluation dependencies
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0' 'xarray>=2023.1' scipy netCDF4
+      - name: Retrieve previously successful full-data archival artifact (no retraining)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p downloaded
+          gh run download 41400003722 --repo "${GITHUB_REPOSITORY}" --name southwest-2022-full-reproducibility-archive --dir downloaded
+      - name: Check SHA256s and sample three-seed predictions at two stations
+        run: |
+          python scripts/accept_archived_station_sampling.py --archive-root downloaded --output-dir outputs/archived_station_acceptance
+      - name: Record archive and environment provenance
+        if: always()
+        run: |
+          mkdir -p outputs/archived_station_acceptance
+          git rev-parse HEAD > outputs/archived_station_acceptance/git-commit.txt
+          python -m pip freeze > outputs/archived_station_acceptance/resolved-requirements.txt
+      - name: Upload audited sampled data, not private manuscript
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: southwest-2022-archived-station-spatial-acceptance
+          path: outputs/archived_station_acceptance/**
+          retention-days: 30
+          if-no-files-found: warn
