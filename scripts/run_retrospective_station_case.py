@@ -35,6 +35,7 @@ def run(sampled_root,output,year=2022,draws=200):
     observations.to_csv(obs_path,index=False)
     o=load_csv(obs_path,("temperature_K",),"ASOS")
     result=[]
+    matched_reference_keys=None
     for seed in (42,7,123):
         source=sampled_root/f"station-predictions-seed-{seed}.csv"
         p=load_csv(source,PRED,"spatial predictions")
@@ -50,6 +51,16 @@ def run(sampled_root,output,year=2022,draws=200):
                     raise
                 tolerance_counts[str(tolerance)]=0
         matched,matching=match(p,o,tolerance_minutes=30)
+        # Do not report apparent skill from a small or incomparable station subset.
+        for item in matching:
+            if item["predictions"]!=1460 or item["matched"]<1000 or item.get("match_rate",0)<0.80:
+                raise ValueError("Station coverage gate failed: "+json.dumps(item))
+        keys=matched[["station","timestamp_utc","observation_time_utc"]].sort_values(
+            ["station","timestamp_utc"]).reset_index(drop=True)
+        if matched_reference_keys is None:
+            matched_reference_keys=keys
+        elif not matched_reference_keys.equals(keys):
+            raise ValueError("Different valid-time/observation keys across random seeds")
         path=output/f"station-matched-seed-{seed}.csv"
         matched.to_csv(path,index=False)
         scored=output/f"station-scored-seed-{seed}.json"
@@ -67,6 +78,8 @@ def run(sampled_root,output,year=2022,draws=200):
              "matched_observation_sha256":hashlib.sha256(obs_path.read_bytes()).hexdigest(),
              "time_tolerance_minutes":30,
              "bootstrap_days":7,"bootstrap_draws":draws,
+             "required_match_rate":0.80,"required_matched_per_station":1000,
+             "cross_seed_observation_identity_verified":True,
              "interpretation":"Retrospective observational agreement; not operational or independent from ERA5 assimilation",
              "seeds":result}
     (output/"retrospective_station_results.json").write_text(json.dumps(summary,indent=2)+"\n")
