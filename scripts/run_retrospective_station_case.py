@@ -38,6 +38,17 @@ def run(sampled_root,output,year=2022,draws=200):
     for seed in (42,7,123):
         source=sampled_root/f"station-predictions-seed-{seed}.csv"
         p=load_csv(source,PRED,"spatial predictions")
+        # Changing the tolerance affects report coverage and potentially the
+        # verification population; retain counts before comparing scores.
+        tolerance_counts={}
+        for tolerance in (15,30,60):
+            try:
+                candidate,_=match(p,o,tolerance_minutes=tolerance)
+                tolerance_counts[str(tolerance)]=int(len(candidate))
+            except ValueError as exc:
+                if "No predictions could be matched" not in str(exc):
+                    raise
+                tolerance_counts[str(tolerance)]=0
         matched,matching=match(p,o,tolerance_minutes=30)
         path=output/f"station-matched-seed-{seed}.csv"
         matched.to_csv(path,index=False)
@@ -45,7 +56,8 @@ def run(sampled_root,output,year=2022,draws=200):
         evaluation=evaluate(path,block_days=7,draws=draws)
         scored.write_text(json.dumps(evaluation,indent=2,allow_nan=False)+"\n")
         result.append({"seed":seed,"matched_rows":len(matched),
-                       "station_match":matching,"scoring_json":scored.name,
+                       "station_match":matching,"tolerance_matched_rows":tolerance_counts,
+                       "scoring_json":scored.name,
                        "matched_csv_sha256":hashlib.sha256(path.read_bytes()).hexdigest()})
     summary={"case":"Southwest 2022","source_archive_run":41400003722,
              "source_artifact_id":13122165252,
