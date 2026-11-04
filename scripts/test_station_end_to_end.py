@@ -18,7 +18,7 @@ def main():
     with tempfile.TemporaryDirectory() as folder:
         root=Path(folder)
         time=np.arange(np.datetime64("2022-07-01T00","h"),
-                       np.datetime64("2022-07-05T00","h"),np.timedelta64(6,"h"))
+                       np.datetime64("2022-07-16T00","h"),np.timedelta64(6,"h"))
         n=len(time)
         grid=np.full((n,2,2),306.,dtype=np.float32)
         common=dict(time=time,truth_kelvin=grid,reference_error_kelvin=np.full_like(grid,2.),
