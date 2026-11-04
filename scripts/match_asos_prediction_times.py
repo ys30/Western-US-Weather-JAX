@@ -26,7 +26,12 @@ def load_csv(path, fields, label):
     if absent:
         raise ValueError(f"{label} missing: {absent}")
     frame = frame[["station", "timestamp_utc", *fields]].copy()
+    # Validate missing identifiers before astype(str) turns NaN into "NAN".
+    if frame["station"].isna().any():
+        raise ValueError(f"{label}: missing station ID")
     frame["station"] = frame["station"].astype(str).str.upper().str.strip()
+    if frame["station"].isin(("", "NAN", "NONE", "NULL")).any():
+        raise ValueError(f"{label}: invalid station ID")
     frame["timestamp_utc"] = pd.to_datetime(frame["timestamp_utc"], utc=True, errors="raise")
     for field in fields:
         frame[field] = pd.to_numeric(frame[field], errors="raise")
@@ -54,7 +59,9 @@ def match(predictions, observations, tolerance_minutes=30):
         o = o.rename(columns={"timestamp_utc": "observation_time_utc",
                               "temperature_K": "observed_K"})
         if o.empty:
-            stats.append({"station": station, "predictions": len(p), "matched": 0})
+            stats.append({"station": station, "predictions": int(len(p)),
+                          "matched": 0, "match_rate": 0.0,
+                          "max_abs_offset_minutes": None})
             continue
         joined = pd.merge_asof(
             p, o.drop(columns="station"),
@@ -118,6 +125,18 @@ def self_test():
     assert matched["time_offset_minutes"].tolist() == [20, 0]
     narrow, _ = match(p, o, 15)
     assert len(narrow) == 1
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        bad = p.copy()
+        bad.loc[0, "station"] = np.nan
+        path = Path(tmp) / "missing_station.csv"
+        bad.to_csv(path, index=False)
+        try:
+            load_csv(path, PRED, "predictions")
+        except ValueError as exc:
+            assert "missing station" in str(exc)
+        else:
+            raise AssertionError("Missing station identifier was not rejected")
     print("Synthetic nearest-time matching tests passed")
 
 
