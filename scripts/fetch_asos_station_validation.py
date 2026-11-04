@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import requests
 import pandas as pd
+import time
 
 STATIONS = [
     {"station":"ABQ","network":"NM_ASOS","region":"southwest","name":"Albuquerque International Sunport","lat":35.0402,"lon":-106.6092},
@@ -27,9 +28,25 @@ def fetch(station,year,output):
         "tz":"Etc/UTC","format":"onlycomma","latlon":"no","elev":"no",
         "missing":"M","trace":"T","direct":"no","report_type":[3,4],
     }
-    r=requests.get(ENDPOINT,params=args,timeout=180)
-    r.raise_for_status()
-    raw=r.content
+    raw=None
+    for attempt in range(5):
+        r=requests.get(ENDPOINT,params=args,timeout=180)
+        if r.status_code==429 or r.status_code in (502,503,504):
+            if attempt==4:
+                r.raise_for_status()
+            retry=r.headers.get("Retry-After","")
+            try:
+                pause=max(15,min(180,float(retry)))
+            except ValueError:
+                pause=min(180,25*(2**attempt))
+            print(f"IEM returned {r.status_code}; polite retry in {pause:.0f}s",flush=True)
+            time.sleep(pause)
+            continue
+        r.raise_for_status()
+        raw=r.content
+        break
+    if raw is None:
+        raise RuntimeError("No station response after retries")
     if len(raw)<200 or b"<html" in raw[:500].lower():
         raise RuntimeError(f"No CSV returned from IEM for {station['station']} {year}: {raw[:150]!r}")
     frame=pd.read_csv(io.BytesIO(raw),comment="#",low_memory=False)
@@ -64,6 +81,8 @@ def main():
         for year in (2022,2023):
             out=dest/f"{st['station']}-{year}.csv"
             info=fetch(st,year,out);meta.append(info);print(info,flush=True)
+            # One request every 15 seconds at most; IEM applies public-service rate limits.
+            time.sleep(15)
     (dest/"station_manifest.json").write_text(json.dumps({
         "source":"Iowa Environmental Mesonet (ASOS/METAR as-is archive)",
         "endpoint":ENDPOINT,"stations":STATIONS,"files":meta,
