@@ -2,105 +2,105 @@
 <rect width="1100" height="980" fill="white"/>
 <text x="40" y="43" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#122a33">Archived station validation across regions and years</text>
 <text x="40" y="71" font-family="Arial,sans-serif" font-size="15" fill="#405465">Source-mean minus historical annual RMSE (K) · positive favors historical</text>
-<line x1="838.00" y1="109" x2="838.00" y2="864" stroke="#586b78" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="610.00" y1="109" x2="610.00" y2="864" stroke="#586b78" stroke-width="1.5" stroke-dasharray="5 4"/>
 <text x="40" y="131" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW22 · ABQ · seed 42</text>
-<line x1="495.18" y1="126" x2="919.57" y2="126" stroke="#226b8a" stroke-width="3"/>
-<line x1="495.18" y1="120" x2="495.18" y2="132" stroke="#226b8a" stroke-width="2"/>
-<line x1="919.57" y1="120" x2="919.57" y2="132" stroke="#226b8a" stroke-width="2"/>
-<circle cx="719.22" cy="126" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
+<line x1="401.94" y1="126" x2="659.50" y2="126" stroke="#226b8a" stroke-width="3"/>
+<line x1="401.94" y1="120" x2="401.94" y2="132" stroke="#226b8a" stroke-width="2"/>
+<line x1="659.50" y1="120" x2="659.50" y2="132" stroke="#226b8a" stroke-width="2"/>
+<circle cx="537.91" cy="126" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
 <text x="40" y="170" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW22 · ABQ · seed 7</text>
-<line x1="820.70" y1="165" x2="947.89" y2="165" stroke="#226b8a" stroke-width="3"/>
-<line x1="820.70" y1="159" x2="820.70" y2="171" stroke="#226b8a" stroke-width="2"/>
-<line x1="947.89" y1="159" x2="947.89" y2="171" stroke="#226b8a" stroke-width="2"/>
-<circle cx="884.39" cy="165" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
+<line x1="599.50" y1="165" x2="676.69" y2="165" stroke="#226b8a" stroke-width="3"/>
+<line x1="599.50" y1="159" x2="599.50" y2="171" stroke="#226b8a" stroke-width="2"/>
+<line x1="676.69" y1="159" x2="676.69" y2="171" stroke="#226b8a" stroke-width="2"/>
+<circle cx="638.15" cy="165" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
 <text x="40" y="209" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW22 · ABQ · seed 123</text>
-<line x1="745.68" y1="204" x2="910.34" y2="204" stroke="#226b8a" stroke-width="3"/>
-<line x1="745.68" y1="198" x2="745.68" y2="210" stroke="#226b8a" stroke-width="2"/>
-<line x1="910.34" y1="198" x2="910.34" y2="210" stroke="#226b8a" stroke-width="2"/>
-<circle cx="829.62" cy="204" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
+<line x1="553.97" y1="204" x2="653.90" y2="204" stroke="#226b8a" stroke-width="3"/>
+<line x1="553.97" y1="198" x2="553.97" y2="210" stroke="#226b8a" stroke-width="2"/>
+<line x1="653.90" y1="198" x2="653.90" y2="210" stroke="#226b8a" stroke-width="2"/>
+<circle cx="604.91" cy="204" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
 <text x="40" y="248" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW22 · ROW · seed 42</text>
-<line x1="939.40" y1="243" x2="1211.72" y2="243" stroke="#226b8a" stroke-width="3"/>
-<line x1="939.40" y1="237" x2="939.40" y2="249" stroke="#226b8a" stroke-width="2"/>
-<line x1="1211.72" y1="237" x2="1211.72" y2="249" stroke="#226b8a" stroke-width="2"/>
-<circle cx="1072.80" cy="243" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
+<line x1="671.54" y1="243" x2="836.81" y2="243" stroke="#226b8a" stroke-width="3"/>
+<line x1="671.54" y1="237" x2="671.54" y2="249" stroke="#226b8a" stroke-width="2"/>
+<line x1="836.81" y1="237" x2="836.81" y2="249" stroke="#226b8a" stroke-width="2"/>
+<circle cx="752.50" cy="243" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
 <text x="40" y="287" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW22 · ROW · seed 7</text>
-<line x1="656.53" y1="282" x2="842.91" y2="282" stroke="#226b8a" stroke-width="3"/>
-<line x1="656.53" y1="276" x2="656.53" y2="288" stroke="#226b8a" stroke-width="2"/>
-<line x1="842.91" y1="276" x2="842.91" y2="288" stroke="#226b8a" stroke-width="2"/>
-<circle cx="749.53" cy="282" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
+<line x1="499.87" y1="282" x2="612.98" y2="282" stroke="#226b8a" stroke-width="3"/>
+<line x1="499.87" y1="276" x2="499.87" y2="288" stroke="#226b8a" stroke-width="2"/>
+<line x1="612.98" y1="276" x2="612.98" y2="288" stroke="#226b8a" stroke-width="2"/>
+<circle cx="556.31" cy="282" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
 <text x="40" y="326" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW22 · ROW · seed 123</text>
-<line x1="766.50" y1="321" x2="961.27" y2="321" stroke="#226b8a" stroke-width="3"/>
-<line x1="766.50" y1="315" x2="766.50" y2="327" stroke="#226b8a" stroke-width="2"/>
-<line x1="961.27" y1="315" x2="961.27" y2="327" stroke="#226b8a" stroke-width="2"/>
-<circle cx="865.69" cy="321" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
-<line x1="36" y1="347" x2="1032" y2="347" stroke="#dae4e5"/><text x="40" y="387" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ABQ · seed 42</text>
-<line x1="387.85" y1="382" x2="825.75" y2="382" stroke="#397e65" stroke-width="3"/>
-<line x1="387.85" y1="376" x2="387.85" y2="388" stroke="#397e65" stroke-width="2"/>
-<line x1="825.75" y1="376" x2="825.75" y2="388" stroke="#397e65" stroke-width="2"/>
-<circle cx="604.44" cy="382" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
+<line x1="566.61" y1="321" x2="684.81" y2="321" stroke="#226b8a" stroke-width="3"/>
+<line x1="566.61" y1="315" x2="566.61" y2="327" stroke="#226b8a" stroke-width="2"/>
+<line x1="684.81" y1="315" x2="684.81" y2="327" stroke="#226b8a" stroke-width="2"/>
+<circle cx="626.80" cy="321" r="6" fill="#226b8a" stroke="white" stroke-width="1.5"/>
+<line x1="36" y1="347" x2="727.74" y2="347" stroke="#dae4e5"/><text x="40" y="387" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ABQ · seed 42</text>
+<line x1="336.81" y1="382" x2="602.57" y2="382" stroke="#397e65" stroke-width="3"/>
+<line x1="336.81" y1="376" x2="336.81" y2="388" stroke="#397e65" stroke-width="2"/>
+<line x1="602.57" y1="376" x2="602.57" y2="388" stroke="#397e65" stroke-width="2"/>
+<circle cx="468.25" cy="382" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
 <text x="40" y="426" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ABQ · seed 7</text>
-<line x1="871.14" y1="421" x2="993.80" y2="421" stroke="#397e65" stroke-width="3"/>
-<line x1="871.14" y1="415" x2="871.14" y2="427" stroke="#397e65" stroke-width="2"/>
-<line x1="993.80" y1="415" x2="993.80" y2="427" stroke="#397e65" stroke-width="2"/>
-<circle cx="932.59" cy="421" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
+<line x1="630.11" y1="421" x2="704.55" y2="421" stroke="#397e65" stroke-width="3"/>
+<line x1="630.11" y1="415" x2="630.11" y2="427" stroke="#397e65" stroke-width="2"/>
+<line x1="704.55" y1="415" x2="704.55" y2="427" stroke="#397e65" stroke-width="2"/>
+<circle cx="667.41" cy="421" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
 <text x="40" y="465" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ABQ · seed 123</text>
-<line x1="738.21" y1="460" x2="913.09" y2="460" stroke="#397e65" stroke-width="3"/>
-<line x1="738.21" y1="454" x2="738.21" y2="466" stroke="#397e65" stroke-width="2"/>
-<line x1="913.09" y1="454" x2="913.09" y2="466" stroke="#397e65" stroke-width="2"/>
-<circle cx="824.46" cy="460" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
+<line x1="549.44" y1="460" x2="655.57" y2="460" stroke="#397e65" stroke-width="3"/>
+<line x1="549.44" y1="454" x2="549.44" y2="466" stroke="#397e65" stroke-width="2"/>
+<line x1="655.57" y1="454" x2="655.57" y2="466" stroke="#397e65" stroke-width="2"/>
+<circle cx="601.78" cy="460" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
 <text x="40" y="504" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ROW · seed 42</text>
-<line x1="924.17" y1="499" x2="1172.02" y2="499" stroke="#397e65" stroke-width="3"/>
-<line x1="924.17" y1="493" x2="924.17" y2="505" stroke="#397e65" stroke-width="2"/>
-<line x1="1172.02" y1="493" x2="1172.02" y2="505" stroke="#397e65" stroke-width="2"/>
-<circle cx="1050.08" cy="499" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
+<line x1="662.30" y1="499" x2="812.72" y2="499" stroke="#397e65" stroke-width="3"/>
+<line x1="662.30" y1="493" x2="662.30" y2="505" stroke="#397e65" stroke-width="2"/>
+<line x1="812.72" y1="493" x2="812.72" y2="505" stroke="#397e65" stroke-width="2"/>
+<circle cx="738.71" cy="499" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
 <text x="40" y="543" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ROW · seed 7</text>
-<line x1="768.46" y1="538" x2="919.28" y2="538" stroke="#397e65" stroke-width="3"/>
-<line x1="768.46" y1="532" x2="768.46" y2="544" stroke="#397e65" stroke-width="2"/>
-<line x1="919.28" y1="532" x2="919.28" y2="544" stroke="#397e65" stroke-width="2"/>
-<circle cx="840.72" cy="538" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
+<line x1="567.80" y1="538" x2="659.33" y2="538" stroke="#397e65" stroke-width="3"/>
+<line x1="567.80" y1="532" x2="567.80" y2="544" stroke="#397e65" stroke-width="2"/>
+<line x1="659.33" y1="532" x2="659.33" y2="544" stroke="#397e65" stroke-width="2"/>
+<circle cx="611.65" cy="538" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
 <text x="40" y="582" font-family="Arial,sans-serif" font-size="14" fill="#263842">SW23 · ROW · seed 123</text>
-<line x1="812.18" y1="577" x2="965.76" y2="577" stroke="#397e65" stroke-width="3"/>
-<line x1="812.18" y1="571" x2="812.18" y2="583" stroke="#397e65" stroke-width="2"/>
-<line x1="965.76" y1="571" x2="965.76" y2="583" stroke="#397e65" stroke-width="2"/>
-<circle cx="887.32" cy="577" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
-<line x1="36" y1="603" x2="1032" y2="603" stroke="#dae4e5"/><text x="40" y="643" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · ABI · seed 42</text>
-<line x1="950.62" y1="638" x2="1192.64" y2="638" stroke="#a45a39" stroke-width="3"/>
-<line x1="950.62" y1="632" x2="950.62" y2="644" stroke="#a45a39" stroke-width="2"/>
-<line x1="1192.64" y1="632" x2="1192.64" y2="644" stroke="#a45a39" stroke-width="2"/>
-<circle cx="1069.42" cy="638" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
+<line x1="594.33" y1="577" x2="687.54" y2="577" stroke="#397e65" stroke-width="3"/>
+<line x1="594.33" y1="571" x2="594.33" y2="583" stroke="#397e65" stroke-width="2"/>
+<line x1="687.54" y1="571" x2="687.54" y2="583" stroke="#397e65" stroke-width="2"/>
+<circle cx="639.93" cy="577" r="6" fill="#397e65" stroke="white" stroke-width="1.5"/>
+<line x1="36" y1="603" x2="727.74" y2="603" stroke="#dae4e5"/><text x="40" y="643" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · ABI · seed 42</text>
+<line x1="678.35" y1="638" x2="825.23" y2="638" stroke="#a45a39" stroke-width="3"/>
+<line x1="678.35" y1="632" x2="678.35" y2="644" stroke="#a45a39" stroke-width="2"/>
+<line x1="825.23" y1="632" x2="825.23" y2="644" stroke="#a45a39" stroke-width="2"/>
+<circle cx="750.45" cy="638" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
 <text x="40" y="682" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · ABI · seed 7</text>
-<line x1="762.64" y1="677" x2="892.86" y2="677" stroke="#a45a39" stroke-width="3"/>
-<line x1="762.64" y1="671" x2="762.64" y2="683" stroke="#a45a39" stroke-width="2"/>
-<line x1="892.86" y1="671" x2="892.86" y2="683" stroke="#a45a39" stroke-width="2"/>
-<circle cx="825.21" cy="677" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
+<line x1="564.26" y1="677" x2="643.29" y2="677" stroke="#a45a39" stroke-width="3"/>
+<line x1="564.26" y1="671" x2="564.26" y2="683" stroke="#a45a39" stroke-width="2"/>
+<line x1="643.29" y1="671" x2="643.29" y2="683" stroke="#a45a39" stroke-width="2"/>
+<circle cx="602.24" cy="677" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
 <text x="40" y="721" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · ABI · seed 123</text>
-<line x1="700.85" y1="716" x2="891.31" y2="716" stroke="#a45a39" stroke-width="3"/>
-<line x1="700.85" y1="710" x2="700.85" y2="722" stroke="#a45a39" stroke-width="2"/>
-<line x1="891.31" y1="710" x2="891.31" y2="722" stroke="#a45a39" stroke-width="2"/>
-<circle cx="796.13" cy="716" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
+<line x1="526.76" y1="716" x2="642.35" y2="716" stroke="#a45a39" stroke-width="3"/>
+<line x1="526.76" y1="710" x2="526.76" y2="722" stroke="#a45a39" stroke-width="2"/>
+<line x1="642.35" y1="710" x2="642.35" y2="722" stroke="#a45a39" stroke-width="2"/>
+<circle cx="584.59" cy="716" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
 <text x="40" y="760" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · OKC · seed 42</text>
-<line x1="898.25" y1="755" x2="1100.83" y2="755" stroke="#a45a39" stroke-width="3"/>
-<line x1="898.25" y1="749" x2="898.25" y2="761" stroke="#a45a39" stroke-width="2"/>
-<line x1="1100.83" y1="749" x2="1100.83" y2="761" stroke="#a45a39" stroke-width="2"/>
-<circle cx="1001.36" cy="755" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
+<line x1="646.57" y1="755" x2="769.51" y2="755" stroke="#a45a39" stroke-width="3"/>
+<line x1="646.57" y1="749" x2="646.57" y2="761" stroke="#a45a39" stroke-width="2"/>
+<line x1="769.51" y1="749" x2="769.51" y2="761" stroke="#a45a39" stroke-width="2"/>
+<circle cx="709.14" cy="755" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
 <text x="40" y="799" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · OKC · seed 7</text>
-<line x1="656.97" y1="794" x2="849.19" y2="794" stroke="#a45a39" stroke-width="3"/>
-<line x1="656.97" y1="788" x2="656.97" y2="800" stroke="#a45a39" stroke-width="2"/>
-<line x1="849.19" y1="788" x2="849.19" y2="800" stroke="#a45a39" stroke-width="2"/>
-<circle cx="752.06" cy="794" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
+<line x1="500.13" y1="794" x2="616.79" y2="794" stroke="#a45a39" stroke-width="3"/>
+<line x1="500.13" y1="788" x2="500.13" y2="800" stroke="#a45a39" stroke-width="2"/>
+<line x1="616.79" y1="788" x2="616.79" y2="800" stroke="#a45a39" stroke-width="2"/>
+<circle cx="557.84" cy="794" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
 <text x="40" y="838" font-family="Arial,sans-serif" font-size="14" fill="#263842">SP22 · OKC · seed 123</text>
-<line x1="721.20" y1="833" x2="889.99" y2="833" stroke="#a45a39" stroke-width="3"/>
-<line x1="721.20" y1="827" x2="721.20" y2="839" stroke="#a45a39" stroke-width="2"/>
-<line x1="889.99" y1="827" x2="889.99" y2="839" stroke="#a45a39" stroke-width="2"/>
-<circle cx="802.88" cy="833" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
+<line x1="539.11" y1="833" x2="641.55" y2="833" stroke="#a45a39" stroke-width="3"/>
+<line x1="539.11" y1="827" x2="539.11" y2="839" stroke="#a45a39" stroke-width="2"/>
+<line x1="641.55" y1="827" x2="641.55" y2="839" stroke="#a45a39" stroke-width="2"/>
+<circle cx="588.69" cy="833" r="6" fill="#a45a39" stroke="white" stroke-width="1.5"/>
 <text x="258.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.04</text>
-<text x="403.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.03</text>
-<text x="548.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.02</text>
-<text x="693.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.01</text>
-<text x="838.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.00</text>
-<text x="983.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.01</text>
-<text x="1128.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.02</text>
-<text x="1273.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.03</text>
-<text x="1418.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.04</text>
+<text x="346.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.03</text>
+<text x="434.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.02</text>
+<text x="522.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">-0.01</text>
+<text x="610.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.00</text>
+<text x="698.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.01</text>
+<text x="786.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.02</text>
+<text x="874.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.03</text>
+<text x="962.00" y="907" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="#536674">0.04</text>
 <text x="40" y="934" font-family="Arial,sans-serif" font-size="13" fill="#495c66">18 paired seed×site-year contrasts · 9 positive, 9 negative. Whiskers are 14-day within-seed 95% bootstrap intervals.</text>
 <text x="40" y="955" font-family="Arial,sans-serif" font-size="13" fill="#495c66">Retrospective ASOS / ERA5 agreement; not independent operational forecast validation or a multiplicity-adjusted inference.</text></svg>
