@@ -79,3 +79,11 @@ IEM's official network table labels elevation explicitly as **Elevation [m]**. T
 The paired station evaluator continues to report descriptive observed-hot counts and errors whenever observations exist, but only constructs its hot-subset calendar-day block interval for at least **30 hot observations spanning 10 distinct UTC calendar days**. Smaller or more temporally concentrated hot subsets have `ci_hot=null` and `hot_ci_eligible=false`. This conservative threshold is a display/inference guard, not a demonstration of adequate independent sample size, and cannot turn ERA5-assimilated airport observations into an independent operational forecast benchmark.
 
 Current workflow and commit checks should be confirmed from GitHub Actions run/job logs before labeling these tests passed. Public workstream outputs can be posted only after archive SHA256, observation coverage, cross-seed matched-time and temperature-unit checks pass.
+
+## ASOS source response preservation and offline preflight gate
+
+The IEM downloader now emits a per-station-year row-exclusion audit distinguishing invalid timestamps, missing temperatures, conservative Fahrenheit bounds, out-of-year records, duplicate report timestamps and retained unique times. Each public-service response is saved unchanged as `*.iem-raw.csv`, with its original SHA256 stored in the station record; the normalized Kelvin CSV retains its separate digest. These files are placed in the public scientific Actions artifacts and must be preserved separately before artifact expiry.
+
+The Southwest 2022 real-station workflow now executes the offline parser, matching, paired-statistics and NPZ-to-station synthetic regressions **before** downloading the earlier full ERA5 archive. A source or statistical script modification triggers re-evaluation. This makes parser/metadata regressions fail sooner, but a committed workflow still needs its actual GitHub Actions completion result before any scientific acceptance claim.
+
+The 2022 ASOS source archive contains airport reports with limited observational QC and may overlap with observations assimilated into ERA5. The geographic-scale limitation and the mismatch between 0.25-degree gridded 2-m temperature and point airport temperature must remain explicit. The data do not establish deployable 24-hour operational forecast skill.
