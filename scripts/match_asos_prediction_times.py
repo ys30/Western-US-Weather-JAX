@@ -116,22 +116,8 @@ def self_test():
     assert len(matched) == 2
     assert summary[0]["matched"] == 2
     assert matched["time_offset_minutes"].tolist() == [20, 0]
-    try:
-        match(p, o, 15)
-    except ValueError as exc:
-        assert "No predictions" not in str(exc)
-        raise
-    else:
-        # A 15 minute tolerance yields one exact valid-time report.
-        pass
     narrow, _ = match(p, o, 15)
     assert len(narrow) == 1
-    o.loc[1, "timestamp_utc"] = o.loc[0, "timestamp_utc"]
-    try:
-        load_check = o.duplicated(["station", "timestamp_utc"])
-        assert load_check.any()
-    except Exception:
-        raise
     print("Synthetic nearest-time matching tests passed")
 
 
