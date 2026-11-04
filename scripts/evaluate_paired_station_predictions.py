@@ -42,41 +42,51 @@ def metrics(frame):
 
 
 def daily_block_interval(frame, days=14, draws=1000, seed=20261103, hot_threshold=None):
-    """Calendar-day circular blocks, including dates with no hot reports.
+    """Paired circular calendar-day blocks using sufficient error statistics.
 
-    Resample complete dates and then apply any fixed observation-temperature
-    condition within each draw. Never resample only heat-bearing days.
+    Draw calendar days *including dates with no qualifying hot reports*. For
+    each draw, calculate both model RMSEs from sum-of-squared-errors and count.
+    This is algebraically identical to row concatenation, without copying
+    thousands of observation frames per bootstrap draw.
     """
     if days < 1 or draws < 20:
         raise ValueError("Block length must be >=1 and draws >=20")
     if frame.empty:
         return None
-    frame = frame.sort_values("timestamp_utc").copy()
-    first = frame["timestamp_utc"].dt.floor("D").iloc[0]
-    last = frame["timestamp_utc"].dt.floor("D").iloc[-1]
-    days_all = pd.date_range(first, last, freq="D")
-    if len(days_all) < 2:
+    frame = frame.sort_values("timestamp_utc")
+    calendar_days = frame["timestamp_utc"].dt.floor("D")
+    first, last = calendar_days.iloc[0], calendar_days.iloc[-1]
+    full_days = pd.date_range(first, last, freq="D")
+    n = len(full_days)
+    if n < 2:
         return None
-    by_day = {day: part for day, part in frame.groupby(frame["timestamp_utc"].dt.floor("D"))}
-    daily = [by_day.get(day) for day in days_all]
-    n = len(daily)
+    selected = (np.ones(len(frame), dtype=bool) if hot_threshold is None
+                else frame["observed_K"].to_numpy() >= hot_threshold)
+    if not selected.any():
+        return None
+    # Preserve missing calendar days as all-zero rows, never compress hot days.
+    obs = frame.loc[selected, "observed_K"].to_numpy(dtype=np.float64)
+    historical = frame.loc[selected, "historical_K"].to_numpy(dtype=np.float64)
+    source = frame.loc[selected, "source_mean_K"].to_numpy(dtype=np.float64)
+    day_index = ((calendar_days[selected] - first) / pd.Timedelta(days=1)).to_numpy(dtype=int)
+    counts = np.bincount(day_index, minlength=n).astype(np.float64)
+    historical_sse = np.bincount(day_index, weights=(historical-obs)**2, minlength=n)
+    source_sse = np.bincount(day_index, weights=(source-obs)**2, minlength=n)
+    stats = np.column_stack((counts, historical_sse, source_sse))
     rng = np.random.default_rng(seed)
     values = []
     empty_draws = 0
+    blocks = (n + days - 1) // days
+    offsets = np.arange(days, dtype=int)
     for _ in range(draws):
-        starts = rng.integers(0, n, size=(n + days - 1) // days)
-        indices = [int((start + offset) % n) for start in starts for offset in range(days)][:n]
-        sampled = [daily[i] for i in indices if daily[i] is not None]
-        if not sampled:
+        starts = rng.integers(0, n, size=blocks)
+        indices = ((starts[:, None] + offsets[None, :]) % n).ravel()[:n]
+        total_count, total_h, total_s = stats[indices].sum(axis=0)
+        if total_count < 1:
             empty_draws += 1
             continue
-        picked = pd.concat(sampled, ignore_index=True)
-        if hot_threshold is not None:
-            picked = picked.loc[picked["observed_K"] >= hot_threshold]
-        if picked.empty:
-            empty_draws += 1
-            continue
-        values.append(metrics(picked)["delta_source_mean_minus_historical_rmse_K"])
+        values.append(float(np.sqrt(total_s / total_count) -
+                            np.sqrt(total_h / total_count)))
     if len(values) < max(10, int(0.8 * draws)):
         return None
     low, high = np.quantile(values, [0.025, 0.975])
@@ -84,7 +94,6 @@ def daily_block_interval(frame, days=14, draws=1000, seed=20261103, hot_threshol
             "empty_draws": empty_draws,
             "calendar_days": n,
             "ci95_low_K": float(low), "ci95_high_K": float(high)}
-
 
 def evaluate(path, threshold=305.0, block_days=14, draws=1000):
     data = pd.read_csv(path)
