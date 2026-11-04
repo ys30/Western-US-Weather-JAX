@@ -10,6 +10,8 @@ on:
       - 'scripts/station_lapse_rate_sensitivity.py'
       - 'scripts/test_station_end_to_end.py'
       - 'scripts/test_calendar_bootstrap_equivalence.py'
+      - 'scripts/summarize_asos_station_acceptance.py'
+      - 'scripts/test_summarize_asos_station_acceptance.py'
       - 'scripts/test_reconstruct_matched_archive_fields.py'
       - '.github/workflows/station-paired-evaluation-qa.yml'
   workflow_dispatch:
@@ -37,3 +39,4 @@ jobs:
           python scripts/station_lapse_rate_sensitivity.py --self-test
           python scripts/test_station_end_to_end.py
           python scripts/test_calendar_bootstrap_equivalence.py
+          python scripts/test_summarize_asos_station_acceptance.py
