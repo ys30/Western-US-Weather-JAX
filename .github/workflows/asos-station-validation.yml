@@ -1,4 +1,4 @@
-name: Retrospective ASOS station observation fetch
+name: Retrospective ASOS station observation fetch (rate-limited)
 on:
   push:
     paths:
@@ -9,7 +9,7 @@ permissions:
 jobs:
   archived-stations:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
