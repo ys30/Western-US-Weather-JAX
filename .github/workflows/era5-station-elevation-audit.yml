@@ -1,0 +1,36 @@
+name: ERA5 station-grid elevation source audit
+on:
+  push:
+    paths:
+      - '.github/workflows/era5-station-elevation-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  elevation-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Scientific dependencies
+        run: python -m pip install numpy pandas xarray zarr gcsfs requests beautifulsoup4
+      - name: Fetch grid geopotential and station elevation
+        run: |
+          python -m py_compile scripts/verify_station_grid_elevations.py
+          python scripts/verify_station_grid_elevations.py
+      - name: Preserve provenance and package versions
+        if: always()
+        run: |
+          mkdir -p outputs/elevation_audit
+          git rev-parse HEAD > outputs/elevation_audit/git_commit.txt
+          python -m pip freeze > outputs/elevation_audit/requirements.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: station-grid-elevation-audit
+          if-no-files-found: error
+          retention-days: 30
+          path: outputs/elevation_audit/**
