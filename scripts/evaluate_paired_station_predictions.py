@@ -41,37 +41,48 @@ def metrics(frame):
     return result
 
 
-def daily_block_interval(frame, days=14, draws=1000, seed=20261103):
-    """Circular moving-day bootstrap; all reports from a sampled day stay together."""
-    indexed = [(day, piece) for day, piece in frame.groupby(frame["timestamp_utc"].dt.floor("D"), sort=True)]
-    n = len(indexed)
-    if n < 2:
+def daily_block_interval(frame, days=14, draws=1000, seed=20261103, hot_threshold=None):
+    """Calendar-day circular blocks, including dates with no hot reports.
+
+    Resample complete dates and then apply any fixed observation-temperature
+    condition within each draw. Never resample only heat-bearing days.
+    """
+    if days < 1 or draws < 20:
+        raise ValueError("Block length must be >=1 and draws >=20")
+    if frame.empty:
         return None
-    # Sample consecutive *observed calendar dates* only: do not bridge missing dates.
-    all_days = pd.date_range(indexed[0][0], indexed[-1][0], freq="D", tz="UTC")
-    pieces = {day: part for day, part in indexed}
-    if len(all_days) != n:
-        # Missing days may have zero station observations. Keep empty days in the resampling frame.
-        daily = [pieces.get(day) for day in all_days]
-    else:
-        daily = [part for _, part in indexed]
+    frame = frame.sort_values("timestamp_utc").copy()
+    first = frame["timestamp_utc"].dt.floor("D").iloc[0]
+    last = frame["timestamp_utc"].dt.floor("D").iloc[-1]
+    days_all = pd.date_range(first, last, freq="D")
+    if len(days_all) < 2:
+        return None
+    by_day = {day: part for day, part in frame.groupby(frame["timestamp_utc"].dt.floor("D"))}
+    daily = [by_day.get(day) for day in days_all]
     n = len(daily)
     rng = np.random.default_rng(seed)
     values = []
+    empty_draws = 0
     for _ in range(draws):
-        indices = []
-        while len(indices) < n:
-            start = int(rng.integers(n))
-            indices.extend((start + k) % n for k in range(days))
-        sampled = [daily[i] for i in indices[:n] if daily[i] is not None]
+        starts = rng.integers(0, n, size=(n + days - 1) // days)
+        indices = [int((start + offset) % n) for start in starts for offset in range(days)][:n]
+        sampled = [daily[i] for i in indices if daily[i] is not None]
         if not sampled:
+            empty_draws += 1
             continue
-        m = metrics(pd.concat(sampled, ignore_index=True))
-        values.append(m["delta_source_mean_minus_historical_rmse_K"])
-    if len(values) < max(10, draws // 2):
+        picked = pd.concat(sampled, ignore_index=True)
+        if hot_threshold is not None:
+            picked = picked.loc[picked["observed_K"] >= hot_threshold]
+        if picked.empty:
+            empty_draws += 1
+            continue
+        values.append(metrics(picked)["delta_source_mean_minus_historical_rmse_K"])
+    if len(values) < max(10, int(0.8 * draws)):
         return None
     low, high = np.quantile(values, [0.025, 0.975])
     return {"block_days": days, "draws": len(values),
+            "empty_draws": empty_draws,
+            "calendar_days": n,
             "ci95_low_K": float(low), "ci95_high_K": float(high)}
 
 
@@ -103,7 +114,7 @@ def evaluate(path, threshold=305.0, block_days=14, draws=1000):
             "n_days": int(group["timestamp_utc"].dt.floor("D").nunique()),
             "n_hot": int(len(hot)),
             "ci_all": daily_block_interval(group, block_days, draws),
-            "ci_hot": daily_block_interval(hot, block_days, draws) if len(hot) else None,
+            "ci_hot": daily_block_interval(group, block_days, draws, hot_threshold=threshold) if len(hot) else None,
         })
     return {
         "schema": "station-paired-evaluation-v1",
