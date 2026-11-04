@@ -20,6 +20,48 @@ STATIONS = [
 ]
 ENDPOINT="https://mesonet.agron.iastate.edu/cgi-bin/request/asos.py"
 
+def parse_observations(raw,station_code,year):
+    """Explicit IEM row-level QA before any report-time deduplication."""
+    source=pd.read_csv(io.BytesIO(raw),comment="#",low_memory=False)
+    required={"station","valid","tmpf"}
+    if not required.issubset(source.columns):
+        raise ValueError(f"Unexpected IEM columns: {source.columns.tolist()}")
+    qa={"raw_rows":int(len(source))}
+    source["station"]=source["station"].astype(str).str.upper().str.strip()
+    source=source.loc[source["station"]==station_code.upper()].copy()
+    qa["matching_station_rows"]=int(len(source))
+    source["valid"]=pd.to_datetime(source["valid"],utc=True,errors="coerce")
+    source["tmpf"]=pd.to_numeric(source["tmpf"],errors="coerce")
+    qa["missing_time_rows"]=int(source["valid"].isna().sum())
+    qa["missing_temperature_rows"]=int(source["tmpf"].isna().sum())
+    source=source.dropna(subset=["valid","tmpf"])
+    start=pd.Timestamp(f"{year}-01-01",tz="UTC")
+    stop=pd.Timestamp(f"{year+1}-01-01",tz="UTC")
+    qa["outside_year_rows"]=int((~source["valid"].between(start,stop,inclusive="left")).sum())
+    source=source.loc[(source["valid"]>=start)&(source["valid"]<stop)]
+    qa["outside_conservative_fahrenheit_range_rows"]=int((~source["tmpf"].between(-40,130)).sum())
+    source=source.loc[source["tmpf"].between(-40,130)]
+    qa["duplicate_report_times"]=int(source["valid"].duplicated().sum())
+    source=source.groupby("valid",as_index=False)["tmpf"].median().sort_values("valid")
+    qa["retained_unique_reports"]=int(len(source))
+    return source,qa
+
+def self_test():
+    raw=("station,valid,tmpf\\n"+
+         "ABQ,2022-01-01 00:00,32\\n"+
+         "ABQ,2022-01-01 00:00,34\\n"+
+         "ABQ,2022-01-01 06:00,M\\n"+
+         "ABQ,2023-01-01 00:00,45\\n"+
+         "ROW,2022-01-01 00:00,41\\n"+
+         "ABQ,2022-01-01 12:00,140\\n").replace("\\\\n","\\n").encode()
+    data,qa=parse_observations(raw,"ABQ",2022)
+    assert len(data)==1 and float(data.iloc[0]["tmpf"])==33
+    assert qa["duplicate_report_times"]==1
+    assert qa["missing_temperature_rows"]==1
+    assert qa["outside_year_rows"]==1
+    assert qa["outside_conservative_fahrenheit_range_rows"]==1
+    print("ASOS source parsing, duplicate and exclusion audit passed")
+
 def fetch(station,year,output):
     args={
         "network":station["network"],"station":station["station"],
@@ -49,28 +91,15 @@ def fetch(station,year,output):
         raise RuntimeError("No station response after retries")
     if len(raw)<200 or b"<html" in raw[:500].lower():
         raise RuntimeError(f"No CSV returned from IEM for {station['station']} {year}: {raw[:150]!r}")
-    frame=pd.read_csv(io.BytesIO(raw),comment="#",low_memory=False)
-    required={"station","valid","tmpf"}
-    if not required.issubset(frame.columns):
-        raise ValueError(f"Unexpected IEM columns: {frame.columns.tolist()}")
-    frame["valid"]=pd.to_datetime(frame["valid"],utc=True,errors="coerce")
-    frame["tmpf"]=pd.to_numeric(frame["tmpf"],errors="coerce")
-    frame=frame.dropna(subset=["valid","tmpf"])
-    frame=frame.loc[frame["station"].astype(str).str.upper()==station["station"]]
-    frame=frame.loc[frame["tmpf"].between(-40,130)]
-    # Repeated routine/special reports at an identical instant are aggregated by median.
-    frame=frame.groupby("valid",as_index=False)["tmpf"].median().sort_values("valid")
-    start=pd.Timestamp(f"{year}-01-01",tz="UTC")
-    stop=pd.Timestamp(f"{year+1}-01-01",tz="UTC")
-    frame=frame.loc[(frame["valid"]>=start)&(frame["valid"]<stop)]
+    frame,qa=parse_observations(raw,station["station"],year)
     if len(frame)<1000:
-        raise ValueError(f"Station data insufficient: {station['station']} {year} {len(frame)} reports")
+        raise ValueError(f"Station data insufficient: {station['station']} {year} {len(frame)} reports; QA={qa}")
     output.parent.mkdir(parents=True,exist_ok=True)
     with output.open("w",newline="") as f:
         w=csv.writer(f);w.writerow(["station","region","year","timestamp_utc","temperature_K","station_lat","station_lon","source"])
         for _,rec in frame.iterrows():
             w.writerow([station["station"],station["region"],year,rec["valid"].strftime("%Y-%m-%dT%H:%M:%SZ"),round((rec["tmpf"]-32)*5/9+273.15,4),station["lat"],station["lon"],"IEM_ASOS_METAR"])
-    return {"station":station["station"],"year":year,"reports":len(frame),
+    return {"station":station["station"],"year":year,"reports":len(frame),"qa":qa,
             "sha256":hashlib.sha256(output.read_bytes()).hexdigest(),"bytes":output.stat().st_size}
 
 def main():
@@ -88,4 +117,9 @@ def main():
         "endpoint":ENDPOINT,"stations":STATIONS,"files":meta,
         "qa_notes":"IEM reports have limited QC; no station selected by model skill; 6-hour nearest-time matching is deferred; station observation is not necessarily independent of ERA5 assimilation.",
     },indent=2))
-if __name__=="__main__":main()
+if __name__=="__main__":
+    import sys
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        main()
