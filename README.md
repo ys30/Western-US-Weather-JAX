@@ -73,6 +73,21 @@ The independent [ERA5 surface geopotential and IEM station-elevation audit](http
 
 The [full 24-row audited scenario CSV](results/southwest_2022_asos_elevation_sensitivity_verified.csv) includes **0 / 3.0 / 6.5 / 9.8 K/km** corrections. Two ABQ seeds switch ranking at 6.5 K/km; no ROW seed does. These are **assumption-driven sensitivity scenarios** applied identically to all three forecast fields, *not* fitted or meteorologically time-varying station corrections, not a validation of lapse rate in all weather, and not proof of improved forecast skill. Recomputed **14-day, 2,000-draw paired temporal bootstrap intervals** for the 6.5 K/km scenario are available in [the adjusted-bootstrap CSV](results/southwest_2022_asos_elevation_bootstrap_14day.csv). For ABQ, all three adjusted within-seed intervals still include zero. For ROW seed 42 the interval is [+0.00514, +0.02391] K, and for ROW seed 7 it is [−0.01341, −0.00109] K; the two seeds disagree in direction. The full local audit also evaluates 7- and 28-day block lengths. These are conditional temporal, not cross-seed, intervals.
 
+### Independent archive-backed ASOS replication: Southwest 2023 and Southern Plains 2022
+
+The matrix [Actions run 41875075661](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41875075661) **passed both cases**, including strict parsing of all generated JSON, archive SHA256 verification, year-and-region-specific IEM ASOS retrieval, matched-observation identity across three model initializations, primary 14-day/2,000-draw paired block bootstrap and 7/28-day sensitivities. Both full artifacts were downloaded and the RMSE was independently recomputed from their matched prediction/observation CSVs.
+
+| Site-year | Matched / 1,460 | Observed-hot n (≥305 K) | Annual source-mean − historical ΔRMSE across seeds 42 / 7 / 123 (K) | Median ΔRMSE (K) |
+| --- | ---: | ---: | --- | ---: |
+| Southwest 2023 · ABQ | 1,458 | 88 | −0.01611 / +0.00652 / −0.00093 | −0.00093 |
+| Southwest 2023 · ROW | 1,457 | 184 | +0.01463 / +0.00019 / +0.00340 | +0.00340 |
+| Southern Plains 2022 · ABI | 1,456 | 234 | +0.01596 / −0.00088 / −0.00289 | −0.00088 |
+| Southern Plains 2022 · OKC | 1,453 | 123 | +0.01127 / −0.00593 / −0.00242 | −0.00242 |
+
+[All 12 new site/seed metrics, actual RMSE and 14-day CIs](results/additional_asos_southwest2023_plains2022_verified.csv).
+
+Together with Southwest 2022 ABQ and ROW above, the validated station dataset covers **three region-year cases, six site-years and 18 fitted-seed/site-year comparisons**, with 9 positive and 9 negative annual channel differences. Five of the 12 new within-seed 14-day 95% intervals exclude zero, **but not in a consistent direction across seeds and sites**; these are not multiplicity-adjusted and are not independent across model seeds. Each case uses **retrospective airport observations potentially overlapping with ERA5 assimilation**, not independent operational 24-hour forecast skill. New regional comparisons are from the archived source-trained CNN predictions without target-specific retraining.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
