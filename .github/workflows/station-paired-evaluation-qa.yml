@@ -5,6 +5,8 @@ on:
       - 'scripts/evaluate_paired_station_predictions.py'
       - 'scripts/match_asos_prediction_times.py'
       - 'scripts/sample_forecast_grid_at_stations.py'
+      - 'scripts/reconstruct_matched_archive_fields.py'
+      - 'scripts/test_reconstruct_matched_archive_fields.py'
       - '.github/workflows/station-paired-evaluation-qa.yml'
   workflow_dispatch:
 permissions:
@@ -26,3 +28,4 @@ jobs:
           python scripts/evaluate_paired_station_predictions.py --self-test
           python scripts/match_asos_prediction_times.py --self-test
           python scripts/sample_forecast_grid_at_stations.py --self-test
+          python scripts/test_reconstruct_matched_archive_fields.py
