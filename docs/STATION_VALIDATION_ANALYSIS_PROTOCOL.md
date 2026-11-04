@@ -71,3 +71,11 @@ The workflow `.github/workflows/southwest-asos-retrospective.yml` and runner `sc
 The Southwest ASOS runner now requires at least **80% of expected forecast valid times** at each station (with at least 1,000 matched samples per site) before allowing station RMSE tables. It also asserts that all three fitted seeds use identical station, valid-time and observed-report keys. The purpose is to prevent numerical differences caused by missingness or sample-selection rather than model performance. A 15/30/60-minute matching-coverage audit is retained, with 30 minutes the primary tolerance.
 
 The synthetic integrated regression `scripts/test_station_end_to_end.py` exercises archival NPZ reconstruction, spatial interpolation, nearest-report matching and paired evaluation with known exact errors. It does **not** validate a real observation, but its test is part of the CI QA workflow. Real-run conclusions remain withheld until the Actions job success, ASOS response metadata, station coverage counts and result artifact hashes are independently inspected.
+
+## Elevation source QA and minimum hot-subset uncertainty gate
+
+IEM's official network table labels elevation explicitly as **Elevation [m]**. The source parser now requires that field name and checks its unit before reading station metadata; a meter-versus-foot synthetic regression is run ahead of the online ERA5 geopotential audit. This is metadata QA, **not** evidence that the ERA5 acquisition or any lapse-rate-adjusted station comparison succeeded.
+
+The paired station evaluator continues to report descriptive observed-hot counts and errors whenever observations exist, but only constructs its hot-subset calendar-day block interval for at least **30 hot observations spanning 10 distinct UTC calendar days**. Smaller or more temporally concentrated hot subsets have `ci_hot=null` and `hot_ci_eligible=false`. This conservative threshold is a display/inference guard, not a demonstration of adequate independent sample size, and cannot turn ERA5-assimilated airport observations into an independent operational forecast benchmark.
+
+Current workflow and commit checks should be confirmed from GitHub Actions run/job logs before labeling these tests passed. Public workstream outputs can be posted only after archive SHA256, observation coverage, cross-seed matched-time and temperature-unit checks pass.
