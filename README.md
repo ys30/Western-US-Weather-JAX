@@ -33,7 +33,7 @@ The later research analysis extends the matched-feature comparison beyond the or
 | Southern Plains 2022 | 6/10 seeds | +0.0063 | [-0.0057, +0.0186] |
 | Southern Plains 2023 | 7/10 seeds | +0.0096 | [-0.0017, +0.0252] |
 
-These figures describe an across-initialization distribution, **not** a cross-seed confidence interval or proof of general superiority. Earlier three-seed charts below are historical subsets. The full four-case ten-seed data, archives and factorial interaction analyses require experiment-specific provenance; avoid conflating this with the separately regionally retrained experiments.
+[Download the aggregate ten-seed and factorial-interaction CSV](results/ten_seed_four_case_research_summary.csv). This is a curated numeric summary transcribed from the private research draft, not a newly rerun raw-data experiment. These figures describe an across-initialization distribution, **not** a cross-seed confidence interval or proof of general superiority. Earlier three-seed charts below are historical subsets. The full four-case ten-seed data, archives and factorial interaction analyses require experiment-specific provenance; avoid conflating this with the separately regionally retrained experiments.
 
 ### Current station validation engineering (not yet station-skill evidence)
 
