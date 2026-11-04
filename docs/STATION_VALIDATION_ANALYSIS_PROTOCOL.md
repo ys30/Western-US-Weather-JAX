@@ -34,3 +34,14 @@ Status: **protocol and code review; no station-skill result is inferred from thi
 **Local/private only:** manuscript DOCX, journal submission supplements, cover letters, referee correspondence and submission-ready plates.
 
 Do not overwrite earlier study protocols or conflate the regionally retrained Protocol A with frozen source-trained matched-channel Protocol B.
+
+## Implemented staged validation utilities (2026-11-03)
+
+1. `scripts/sample_forecast_grid_at_stations.py`: accepts a **target-valid-time NetCDF** with `historical_K`, `source_mean_K`, and `baseline_K` on a shared `(time, latitude, longitude)` grid. Performs consistent bilinear/nearest spatial sampling at fixed ASOS coordinates, checks longitude convention and out-of-domain requests, and records SHA256 audit metadata.
+2. `scripts/match_asos_prediction_times.py`: matches resulting station predictions to ASOS reports by nearest UTC timestamp within a prespecified tolerance, preserving the observation time and offset.
+3. `scripts/evaluate_paired_station_predictions.py`: computes paired site-year annual/hot RMSE, MAE, bias and day-block intervals. Hot-subset bootstrap samples **full calendar days first**, *then* applies the observed ≥305 K condition. Empty bootstrap draws are tracked.
+4. `.github/workflows/station-paired-evaluation-qa.yml`: runs synthetic unit/smoke checks for all three stages. **Workflow definition and push commits do not demonstrate CI success**; record completed run ID before claiming acceptance.
+
+**Unresolved interface:** Existing experiment archives describe gridded NPZ prediction/error bundles, whereas the spatial sampling module consumes a three-arm NetCDF. Inspect the actual archive array keys, grid metadata, target-valid-time offsets and arms before implementing the NPZ-to-NetCDF adapter. Do not infer a time coordinate from file names or assume a source-trained model's target slice has the same timestamp as the corresponding input. Reuse identical station/time keys for all three prediction arms.
+
+**No new scientific result is asserted by these commits.** Evaluation and optional station-elevation lapse-rate sensitivity require successful real-data staging, completed provenance/QA checks, and sufficient station report matches. Keep all manuscript versions and submission plates private.
