@@ -19,12 +19,17 @@ def collect(folder):
         raise ValueError("Cross-seed sample identity has not been verified")
     if manifest.get("time_tolerance_minutes")!=30:
         raise ValueError("Unexpected primary matching tolerance")
+    if manifest.get("bootstrap_days") != 14 or manifest.get("bootstrap_draws",0) < 2000:
+        raise ValueError("Paper primary requires 14-day blocks and >=2000 draws")
     records={int(x["seed"]):x for x in manifest["seeds"]}
     if set(records)!=set(SEEDS):
         raise ValueError("Incomplete seed set")
     rows=[]
     for seed in SEEDS:
         rec=records[seed]
+        for block_days in (7,28):
+            if not (folder/f"station-scored-seed-{seed}-block-{block_days}d.json").is_file():
+                raise ValueError("Missing bootstrap sensitivity artifact")
         scores=json.loads((folder/rec["scoring_json"]).read_text())
         groups={(g["station"],int(g["year"])):g for g in scores["groups"]}
         if set(groups)!={(station,2022) for station in STATIONS}:
@@ -42,6 +47,8 @@ def collect(folder):
             group=groups[(station,2022)]
             if group["all"]["n"]!=n:
                 raise ValueError("Score and matching sample-size mismatch")
+            if group.get("ci_all") and group["ci_all"]["block_days"]!=14:
+                raise ValueError("Wrong primary interval block length")
             all_scores=group["all"]
             if any(all_scores.get(field) is None for field in METRICS):
                 raise ValueError("Missing model metrics")
