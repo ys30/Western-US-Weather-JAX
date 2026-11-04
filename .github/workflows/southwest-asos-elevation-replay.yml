@@ -1,0 +1,76 @@
+name: Southwest ASOS elevation 72-scenario reproducibility
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/recompute_asos_elevation_bootstrap.py'
+      - 'results/southwest_2022_asos_elevation_bootstrap_full_72.csv'
+      - '.github/workflows/southwest-asos-elevation-replay.yml'
+permissions:
+  actions: read
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install scientific dependencies
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0'
+      - name: Fetch immutable source run artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p input/asos input/elevation output
+          gh run download 41862347926 --repo "${GITHUB_REPOSITORY}" --name southwest-2022-asos-retrospective-results --dir input/asos
+          gh run download 41774740647 --repo "${GITHUB_REPOSITORY}" --name station-grid-elevation-audit --dir input/elevation
+          (cd input/asos && zip -qr ../asos-41862347926.zip .)
+          (cd input/elevation && zip -qr ../elevation-41774740647.zip .)
+      - name: Recompute full 72-row sensitivity dataset
+        run: |
+          python scripts/recompute_asos_elevation_bootstrap.py \
+            --asos-archive input/asos-41862347926.zip \
+            --elevation-archive input/elevation-41774740647.zip \
+            --output output/elevation-bootstrap-full-72-replayed.csv
+      - name: Exact input keys and numeric tolerance checks
+        run: |
+          python - <<'PY'
+          import csv
+          import math
+          from pathlib import Path
+          source=Path("results/southwest_2022_asos_elevation_bootstrap_full_72.csv")
+          reproduced=Path("output/elevation-bootstrap-full-72-replayed.csv")
+          with source.open() as f:
+              expected=list(csv.DictReader(f))
+          with reproduced.open() as f:
+              actual=list(csv.DictReader(f))
+          names=("station","seed","lapse_K_per_km","block_days")
+          key=lambda r:(r["station"],int(r["seed"]),float(r["lapse_K_per_km"]),int(r["block_days"]))
+          e={key(r):r for r in expected}
+          a={key(r):r for r in actual}
+          assert len(e)==len(a)==len(expected)==len(actual)==72, "Incomplete or duplicate scenario factorial"
+          assert set(e)==set(a), "Scenario keys differ"
+          for k in e:
+              old,new=e[k],a[k]
+              assert int(old["draws"])==int(new["draws"])==2000
+              assert old["includes_zero"]==new["includes_zero"], k
+              for field in ("paired_delta_rmse_K","ci95_low_K","ci95_high_K"):
+                  v,w=float(old[field]),float(new[field])
+                  assert math.isfinite(v) and math.isfinite(w) and abs(v-w)<1e-9,(k,field,v,w)
+          print("All 72 source-derived scenario rows match published values at <1e-9 K.")
+          PY
+      - name: Archive replay output and environment
+        if: always()
+        run: |
+          git rev-parse HEAD > output/commit.txt
+          python -m pip freeze > output/requirements.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: southwest-asos-elevation-72-replay
+          path: output/
+          retention-days: 30
