@@ -1,0 +1,5 @@
+target,seed_count,historical_better_seeds,median_source_mean_minus_historical_hot_rmse_K,iqr_low_K,iqr_high_K,persistence_reference_historical_better_seeds,median_interaction_blend_minus_persistence_K,negative_interaction_seeds
+Southwest 2022,10,6,0.0017,-0.0079,0.0173,9,-0.0450,9
+Southwest 2023,10,6,0.0063,-0.0109,0.0175,7,-0.0155,6
+Southern Plains 2022,10,6,0.0063,-0.0057,0.0186,8,-0.0123,6
+Southern Plains 2023,10,7,0.0096,-0.0017,0.0252,9,-0.0500,9
