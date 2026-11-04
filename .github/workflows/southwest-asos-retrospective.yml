@@ -6,6 +6,7 @@ on:
     paths:
       - 'scripts/run_retrospective_station_case.py'
       - 'scripts/summarize_asos_station_acceptance.py'
+      - 'scripts/plot_verified_asos_station_contrasts.py'
       - 'scripts/test_summarize_asos_station_acceptance.py'
       - 'scripts/fetch_asos_station_validation.py'
       - 'scripts/match_asos_prediction_times.py'
@@ -54,6 +55,7 @@ jobs:
         run: |
           python scripts/summarize_asos_station_acceptance.py --input outputs/station_observation_evaluation --markdown outputs/station_observation_evaluation/verified_station_summary.md --csv outputs/station_observation_evaluation/verified_station_metrics.csv
           cat outputs/station_observation_evaluation/verified_station_summary.md >> "${GITHUB_STEP_SUMMARY}"
+          python scripts/plot_verified_asos_station_contrasts.py --metrics-csv outputs/station_observation_evaluation/verified_station_metrics.csv --output outputs/station_observation_evaluation/verified_station_contrasts.svg
       - name: Save provenance and environment
         if: always()
         run: |
