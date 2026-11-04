@@ -35,11 +35,28 @@ The later research analysis extends the matched-feature comparison beyond the or
 
 [Download the aggregate ten-seed and factorial-interaction CSV](results/ten_seed_four_case_research_summary.csv). This is a curated numeric summary transcribed from the private research draft, not a newly rerun raw-data experiment. These figures describe an across-initialization distribution, **not** a cross-seed confidence interval or proof of general superiority. Earlier three-seed charts below are historical subsets. The full four-case ten-seed data, archives and factorial interaction analyses require experiment-specific provenance; avoid conflating this with the separately regionally retrained experiments.
 
-### Current station validation engineering (not yet station-skill evidence)
+### Verified airport-station observations — Southwest 2022 (new empirical result)
 
-An archive-only retrospective validation pipeline has been added: recover matched-channel predictions from saved NPZ truth/error fields, check identical time/truth/reference/grid across arms, bilinearly sample target-valid-time predictions at ASOS coordinates, match station reports by UTC tolerance, then score identical paired samples with calendar-day block bootstrapping. [Analysis protocol](docs/STATION_VALIDATION_ANALYSIS_PROTOCOL.md) · [Archived Southwest 2022 acceptance workflow](.github/workflows/archived-station-spatial-acceptance.yml) · [Station QA workflow](.github/workflows/station-paired-evaluation-qa.yml).
+The archive-backed ASOS verification **completed successfully** in [GitHub Actions run 41862347926](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41862347926), artifact `13340986074`. The full artifact was independently read and audited against source SHA256s; RMSE was recomputed from each matched station×seed CSV, and all three seeds used exactly the same observation-time samples. This is **retrospective airport/reanalysis agreement** and is not an independent prospective or operational forecast benchmark.
 
-**Acceptance status:** code and workflow definitions are committed, but no new successful end-to-end station-observation workflow, station-level RMSE, or lapse-rate correction has yet been confirmed. The three full model archives documented below remain temporary GitHub Actions artifacts; their integrity checks refer to archival reruns. This is not independent operational forecasting validation.
+| Station | Seed | Matched / expected | Historical RMSE (K) | Source-mean RMSE (K) | Δ source − historical (K) | 14-day block 95% CI (K) |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Albuquerque (ABQ) | 42 | 1,457 / 1,460 | 3.3640 | 3.3558 | −0.0082 | [−0.0236, +0.0056] |
+| Albuquerque (ABQ) | 7 | 1,457 / 1,460 | 3.3706 | 3.3738 | +0.0032 | [−0.0012, +0.0076] |
+| Albuquerque (ABQ) | 123 | 1,457 / 1,460 | 3.3467 | 3.3461 | −0.0006 | [−0.0064, +0.0050] |
+| Roswell (ROW) | 42 | 1,459 / 1,460 | 4.3043 | 4.3205 | +0.0162 | [+0.0070, +0.0258] |
+| Roswell (ROW) | 7 | 1,459 / 1,460 | 4.3129 | 4.3068 | −0.0061 | [−0.0125, +0.0003] |
+| Roswell (ROW) | 123 | 1,459 / 1,460 | 4.3241 | 4.3260 | +0.0019 | [−0.0049, +0.0085] |
+
+ABQ had **99.8%** target-time coverage and ROW **99.9%**. The across-seed median annual ΔRMSE was **−0.0006 K (ABQ)** and **+0.0019 K (ROW)**; all six absolute contrasts were below 0.017 K, with no seed-invariant direction. The main temporal uncertainty intervals used **14-day calendar blocks and 2,000 paired resamples**; 7/28-day-block sensitivity files are present in the artifact.
+
+**Observed-hot (station temperature ≥305 K):** ABQ had 42 paired hot times across 35 UTC days, ROW 180 across 112 days. The hot-subset source-minus-historical RMSE differences across seeds 42 / 7 / 123 were **ABQ +0.1155 / +0.0098 / +0.0041 K** and **ROW +0.0663 / +0.0307 / −0.0275 K**. These are exploratory, threshold-conditioned, seed-dependent diagnostics, *not* heat-event detection. Station temperatures may already inform ERA5 assimilation; grid-point representativeness, elevation and local-site biases are unresolved.
+
+[Exact numeric CSV](results/southwest_2022_asos_run41862347926_verified.csv) · [Methods / QA protocol](docs/STATION_VALIDATION_ANALYSIS_PROTOCOL.md) · [Original Actions artifact](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41862347926).
+
+![Verified Southwest 2022 ABQ/ROW paired annual RMSE contrasts](figures/southwest_2022_asos_station_contrasts_verified.svg)
+
+**Evidence boundaries:** the two-station/three-seed comparison supplements—but does not replace—the separate four-case ten-seed ERA5-only analysis; intervals describe within-seed temporal resampling, not across-seed confidence or independent model deployment. Private manuscript text and submission figures remain local.
 
 ## Key results — do not mix the two experimental protocols
 
