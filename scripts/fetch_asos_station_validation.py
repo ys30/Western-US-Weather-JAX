@@ -92,14 +92,18 @@ def fetch(station,year,output):
     if len(raw)<200 or b"<html" in raw[:500].lower():
         raise RuntimeError(f"No CSV returned from IEM for {station['station']} {year}: {raw[:150]!r}")
     frame,qa=parse_observations(raw,station["station"],year)
+    raw_sha256=hashlib.sha256(raw).hexdigest()
     if len(frame)<1000:
         raise ValueError(f"Station data insufficient: {station['station']} {year} {len(frame)} reports; QA={qa}")
     output.parent.mkdir(parents=True,exist_ok=True)
+    raw_path=output.with_suffix(".iem-raw.csv")
+    raw_path.write_bytes(raw)
     with output.open("w",newline="") as f:
         w=csv.writer(f);w.writerow(["station","region","year","timestamp_utc","temperature_K","station_lat","station_lon","source"])
         for _,rec in frame.iterrows():
             w.writerow([station["station"],station["region"],year,rec["valid"].strftime("%Y-%m-%dT%H:%M:%SZ"),round((rec["tmpf"]-32)*5/9+273.15,4),station["lat"],station["lon"],"IEM_ASOS_METAR"])
     return {"station":station["station"],"year":year,"reports":len(frame),"qa":qa,
+            "raw_response_sha256":raw_sha256,"raw_response_file":str(raw_path),
             "sha256":hashlib.sha256(output.read_bytes()).hexdigest(),"bytes":output.stat().st_size}
 
 def main():
