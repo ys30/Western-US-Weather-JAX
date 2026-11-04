@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'scripts/evaluate_paired_station_predictions.py'
+      - 'scripts/fetch_asos_station_validation.py'
       - 'scripts/match_asos_prediction_times.py'
       - 'scripts/sample_forecast_grid_at_stations.py'
       - 'scripts/reconstruct_matched_archive_fields.py'
@@ -23,10 +24,11 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install evaluation dependencies
-        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0' 'xarray>=2023.1' scipy netCDF4
+        run: python -m pip install 'numpy>=1.24' 'pandas>=2.0' 'xarray>=2023.1' scipy netCDF4 requests
       - name: Check compilation and synthetic end-to-end invariants
         run: |
           python -m py_compile scripts/evaluate_paired_station_predictions.py scripts/match_asos_prediction_times.py scripts/sample_forecast_grid_at_stations.py
+          python scripts/fetch_asos_station_validation.py --self-test
           python scripts/evaluate_paired_station_predictions.py --self-test
           python scripts/match_asos_prediction_times.py --self-test
           python scripts/sample_forecast_grid_at_stations.py --self-test
