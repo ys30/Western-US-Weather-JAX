@@ -18,20 +18,55 @@ SITES=[
     ("ABI","TX_ASOS",32.41133,-99.68189),
     ("OKC","OK_ASOS",35.3931,-97.6007),
 ]
+def parse_station_height(html, site):
+    """Require explicit Elevation [m] table header, not a fixed table index."""
+    from bs4 import BeautifulSoup
+    soup=BeautifulSoup(html,"html.parser")
+    for tab in soup.select("table"):
+        rows=tab.select("tr")
+        headers=[]
+        for row in rows:
+            cells=row.select("th")
+            if cells:
+                headers=[c.get_text(" ",strip=True).lower().replace(" ","") for c in cells]
+                break
+        if not headers:
+            continue
+        idx_id=next((i for i,h in enumerate(headers) if h=="id"),None)
+        idx_elev=next((i for i,h in enumerate(headers)
+                       if h in ("elevation[m]","elevation(m)","elevationmeters")),None)
+        if idx_id is None or idx_elev is None:
+            continue
+        for row in rows:
+            cells=[x.get_text(" ",strip=True) for x in row.select("td")]
+            if len(cells)>max(idx_id,idx_elev) and cells[idx_id].upper()==site.upper():
+                value=float(cells[idx_elev].replace(",",""))
+                if not np.isfinite(value):
+                    raise ValueError("Nonfinite IEM station elevation")
+                return value,cells
+    raise RuntimeError(f"Station {site} not found in a labeled elevation-meters table")
+
+
 def station_meters(net,site):
     url=f"https://mesonet.agron.iastate.edu/sites/networks.php?network={net}"
     r=requests.get(url,timeout=90)
     r.raise_for_status()
-    from bs4 import BeautifulSoup
-    soup=BeautifulSoup(r.text,"html.parser")
-    tables=soup.select("table")
-    for tab in tables:
-        rows=tab.select("tr")
-        for tr in rows:
-            cols=[x.get_text(" ",strip=True) for x in tr.select("td")]
-            if cols and cols[0].strip()==site and len(cols)>=5:
-                return float(cols[4].replace(",","")),url,cols
-    raise RuntimeError(f"IEM elevation not found: {net}/{site} in {len(tables)} tables")
+    height,row=parse_station_height(r.text,site)
+    return height,url,row
+
+def self_test():
+    html="""<table><tr><th>ID</th><th>Station Name</th><th>Latitude</th><th>Longitude</th><th>Elevation [m]</th></tr>
+    <tr><td>ABQ</td><td>Albuquerque</td><td>35.04</td><td>-106.61</td><td>1631.4</td></tr></table>"""
+    val,_=parse_station_height(html,"ABQ")
+    assert abs(val-1631.4)<1e-9
+    try:
+        parse_station_height(html.replace("Elevation [m]","Elevation [ft]"),"ABQ")
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("Unlabeled elevation units should fail")
+    print("IEM elevation header/unit parsing regression passed")
+
 def main():
     # Same regular 0.25 degree regridded data product as existing temperature input.
     ds=xr.open_zarr(ZARR,chunks=None,storage_options={"token":"anon"})
@@ -70,4 +105,9 @@ def main():
         "note":"Station elevations may not coincide exactly with ASOS sensor height; no lapse-rate adjustment has been applied",
         "elevation_sha256":hashlib.sha256(path.read_bytes()).hexdigest()
     },indent=2))
-if __name__=="__main__": main()
+if __name__=="__main__":
+    import sys
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        main()
