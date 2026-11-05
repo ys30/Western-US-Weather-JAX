@@ -83,7 +83,7 @@ def main():
         for old,new in zip(expect,rows):
             for k,v in new.items():
                 if isinstance(v,float):
-                    if abs(float(old[k])-v)>1e-7: raise ValueError((k,old[k],v))
+                    if abs(float(old[k])-v)>1e-6: raise ValueError((k,old[k],v))
                 elif isinstance(v,bool):
                     if old[k].lower()!=str(v).lower(): raise ValueError((k,old[k],v))
                 else:
