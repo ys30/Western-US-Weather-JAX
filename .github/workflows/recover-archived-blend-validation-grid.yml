@@ -1,0 +1,44 @@
+name: Recompute original Blend validation candidate RMSE grid
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/recover_archived_blend_validation_grid.py'
+      - 'results/source_blend_validation_weight_grid_verified.csv'
+      - '.github/workflows/recover-archived-blend-validation-grid.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  validation-grid:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Scientific dependencies
+        run: python -m pip install 'numpy>=1.24' h5py
+      - name: Retrieve original immutable source archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p restored
+          gh run download 41400003722 --repo "$GITHUB_REPOSITORY" --name southwest-2022-full-reproducibility-archive --dir restored
+          test -f restored/input/source.nc
+      - name: Reproduce five candidate RMSE and compare to public evidence
+        run: |
+          python scripts/recover_archived_blend_validation_grid.py \
+            --source restored/input/source.nc \
+            --expected results/source_blend_validation_weight_grid_verified.csv \
+            --output outputs/recovered_source_blend_grid.csv
+          cat outputs/recovered_source_blend_grid.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload verified source validation table
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovered-source-blend-validation-grid
+          path: outputs/recovered_source_blend_grid.csv
+          retention-days: 30
