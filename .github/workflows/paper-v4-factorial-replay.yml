@@ -109,5 +109,6 @@ jobs:
           git add results/paper-v4/
           if ! git diff --cached --quiet; then
             git commit -m "Archive verified paper v4 factorial RMSE and interaction tables"
+            git pull --rebase origin paper-v4-factorial-reanalysis
             git push origin HEAD:paper-v4-factorial-reanalysis
           fi
