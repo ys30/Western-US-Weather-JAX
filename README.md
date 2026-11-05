@@ -135,6 +135,8 @@ For the historical-channel arm, the three-seed median mean error was **−1.03 K
 
 **Manuscript metric provenance:** [audited metric families and figure-caption checklist](docs/METRIC_PROVENANCE_AND_FIGURE_AUDIT.md) separates source 2021 Blend validation, frozen target ERA5, regionally retrained ERA5 tests and matched ASOS station agreement; these RMSEs must not be pooled or interpreted as one benchmark.
 
+**Figure-to-data acceptance:** the [public figure evidence register](docs/PUBLIC_FIGURE_EVIDENCE_REGISTER.md) distinguishes ERA5, locally retrained CNN and ASOS visualizations. The 18 ASOS station/seed point positions and 36 interval endpoints were independently checked against committed CSVs in [successful run 41965309997](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41965309997) (9 positive / 9 negative paired differences; 6/18 nominal intervals exclude zero). The remaining gridded plot coordinates still need source-artifact level numerical audit before submission.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
