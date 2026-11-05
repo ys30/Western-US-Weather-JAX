@@ -1,0 +1,42 @@
+name: Verify archived Blend weight selections
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/audit_archived_blend_selections.py
+      - results/archived_blend_weights_18_reports_verified.csv
+      - .github/workflows/archived-blend-weights-audit.yml
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Retrieve the three original verified archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p archive/sw22 archive/sw23 archive/sp22
+          gh run download 41400003722 --repo "$GITHUB_REPOSITORY" --name southwest-2022-full-reproducibility-archive --dir archive/sw22
+          gh run download 41402185866 --repo "$GITHUB_REPOSITORY" --name southwest-2023-full-reproducibility-archive --dir archive/sw23
+          gh run download 41402189567 --repo "$GITHUB_REPOSITORY" --name southern-plains-2022-full-reproducibility-archive --dir archive/sp22
+          (cd archive/sw22 && zip -qr ../southwest-2022-full-archive.zip .)
+          (cd archive/sw23 && zip -qr ../southwest-2023-full-archive.zip .)
+          (cd archive/sp22 && zip -qr ../southern-plains-2022-full-archive.zip .)
+      - name: Verify all 159 SHA256 records and all 18 selected source weights
+        run: |
+          python scripts/audit_archived_blend_selections.py --archive-dir archive --expected results/archived_blend_weights_18_reports_verified.csv --output output/archived_blend_weights_replayed.csv
+          cat output/archived_blend_weights_replayed.csv >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: archived-blend-selection-18-replay
+          path: output/archived_blend_weights_replayed.csv
+          retention-days: 30
