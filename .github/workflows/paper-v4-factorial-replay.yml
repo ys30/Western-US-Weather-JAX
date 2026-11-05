@@ -1,0 +1,103 @@
+name: Paper v4 archived factorial numerical replay
+on:
+  push:
+    paths:
+      - '.github/workflows/paper-v4-factorial-replay.yml'
+      - 'scripts/paper_v4_factorial_tables.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover-json:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {seed: 7, artifact: 13269937716}
+          - {seed: 42, artifact: 13269123148}
+          - {seed: 123, artifact: 13269979105}
+          - {seed: 11, artifact: 13273462626}
+          - {seed: 19, artifact: 13273467317}
+          - {seed: 29, artifact: 13273357870}
+          - {seed: 37, artifact: 13273742101}
+          - {seed: 53, artifact: 13274830615}
+          - {seed: 71, artifact: 13275375345}
+          - {seed: 97, artifact: 13274403863}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original immutable Actions artifact ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ matrix.artifact }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}/zip" \
+            -o original.zip
+          unzip -tqq original.zip
+      - name: Recover only target JSON evidence, retaining original archive paths
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          python - <<'PY'
+          import os,zipfile,pathlib,hashlib,json
+          seed=int(os.environ["SEED"])
+          out=pathlib.Path("recovered")/f"seed-{seed}"
+          count=0
+          with zipfile.ZipFile("original.zip") as z:
+              for member in z.infolist():
+                  name=member.filename.replace(chr(92),"/")
+                  parts=pathlib.PurePosixPath(name).parts
+                  if len(parts)!=6 or parts[:2]!=("outputs","factorial"):
+                      continue
+                  if parts[2] not in ("southwest-2022","southwest-2023","plains-2022","plains-2023"):
+                      continue
+                  if parts[3] not in ("blend","persistence") or parts[4] not in ("historical","source_mean"):
+                      continue
+                  if parts[5]!=f"target-{seed}.json":
+                      continue
+                  raw=z.read(member)
+                  json.loads(raw)
+                  dst=out.joinpath(*parts)
+                  dst.parent.mkdir(parents=True,exist_ok=True)
+                  dst.write_bytes(raw)
+                  count+=1
+          assert count==16, f"Expected sixteen target reports per seed, obtained {count}"
+          print(f"Recovered {count} verified target JSON reports for seed {seed}")
+          PY
+          rm original.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v4-factorial-target-json-seed-${{ matrix.seed }}
+          path: recovered/
+          retention-days: 90
+          if-no-files-found: error
+  aggregate:
+    needs: recover-json
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v4-factorial-target-json-seed-*
+          path: recovered/
+          merge-multiple: true
+      - name: Validate 160 reports and calculate true annual/hot factorial contrasts
+        run: python scripts/paper_v4_factorial_tables.py --root recovered --out paper-v4-results
+      - name: Output verified summary to Actions log
+        run: cat paper-v4-results/factorial_case_summary.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-v4-factorial-absolute-rmse-10-seed
+          path: paper-v4-results/
+          retention-days: 90
+          if-no-files-found: error
