@@ -32,3 +32,21 @@ The original archived model source JSONs for **Southwest 2022 (Actions 414000037
 All three archive runs use the same source-domain 2019–2020 training and 2021 validation timeline; the repeated 0.25 values do **not** represent 18 independent validation datasets. Some source diagnostics and training timing differ across reruns, so identical checkpoints must not be asserted without checking their own hashes.
 
 **Metric naming warning:** `best_validation_rmse_kelvin` in the source report is the **best CNN validation RMSE**, not the validation RMSE of the five Blend candidates. The complete candidate `validation_rmse_k` vector exists as a value returned by the baseline helper, but it is **not recorded in the source-training report JSONs found in these three archives**. Therefore this archive audit verifies the chosen weight but cannot provide the five candidate RMSEs or the margin over the next-best Blend weight. An actual occupied month-hour training-bin count is likewise not exported in those reports; 48 bins is the value expected for a complete 00/06/12/18 UTC training calendar, not an observed bin-count claim.
+
+## Recovered and independently replayed 2021 Blend validation RMSE grid
+
+The absent five-candidate validation-RMSE vector has now been **recovered from the original 56,182,643-byte source NetCDF** embedded in the full Southwest 2022 archival ZIP, rather than inferred from the CNN report. Original input SHA256: `ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6`. The same source SHA occurs in all three full experiment archives. The independent [CI run 41961414371](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41961414371) **passed** using [the recovery script](../scripts/recover_archived_blend_validation_grid.py). Numerical comparison tolerance is 1e-6 K to accommodate sub-microkelvin NumPy float32 rounding differences (initial stricter run 41961283651 failed solely at 1.27e-7 K for weight 1.0).
+
+| Climatology weight | 2021 source validation RMSE (K) |
+| ---: | ---: |
+| 0.00 | 3.15880251 |
+| **0.25** | **2.91271019** |
+| 0.50 | 3.00108528 |
+| 0.75 | 3.39793062 |
+| 1.00 | 4.01274681 |
+
+Selected `w=0.25` minimizes validation RMSE across these five candidates, beating the second-best grid value `w=0.50` by **0.08837509 K**. The actual source array shape is **5,844 times × 49 × 49**, with **2,924** six-hour samples for training (2019–2020), **1,460** for validation (2021), and **1,460** for 2022 test. There are **48 occupied training month×UTC-hour bins**, precisely 00/06/12/18 UTC for each of 12 months, and none of the 2021 validation timestamps requires the fallback climatology. These bins and the selected weight have been measured, not assumed.
+
+[Public five-row source validation CSV](../results/source_blend_validation_weight_grid_verified.csv) · [Recovery workflow](../.github/workflows/recover-archived-blend-validation-grid.yml).
+
+**Important separation:** this is the source-domain 2021 **Blend validation** RMSE, not the CNN best-validation RMSE, and not a target 2022/2023 benchmark. All three target experiments share the same byte-identical source input, so these five values should be reported **once** rather than counted as multiple independent selections. `w=0.25` was then applied to source-selected matched model comparisons, with pre-test target-history climatology where documented.
