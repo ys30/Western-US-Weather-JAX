@@ -1,0 +1,24 @@
+# Public figure-to-evidence verification register
+
+This public register tracks figure provenance and labels, not private manuscript text. **Do not infer that public-portfolio numbering is the final manuscript numbering.**
+
+| Existing public figure | Population / protocol | What is shown | Verification and caption requirement |
+| --- | --- | --- | --- |
+| [manuscript_protocol_public.svg](../figures/manuscript_protocol_public.svg) | Source training 2019–2020, validation 2021; frozen-target ERA5 test 2022/2023 | Training and target flow | State target-history climatology may be used without updating CNN weights; this is not zero-target-history transfer |
+| [manuscript_performance_public.svg](../figures/manuscript_performance_public.svg) | **ERA5 verifying grid cells**, target-year observed-hot ≥305 K, 3 source-trained seeds and paired feature channels | Point-by-point feature-channel hot RMSE; lines connect seeds | Not station RMSE, not regional retraining, and lines are not confidence intervals |
+| [manuscript_bootstrap_public.svg](../figures/manuscript_bootstrap_public.svg) | **ERA5 verifying grid cells**, source-mean minus historical observed-hot RMSE | Nine point estimates only | The public figure does **not display interval whiskers**; reference the separate interval figure; avoid labeling point-only image as a full uncertainty plot |
+| [paper_bootstrap_14day.svg](../figures/paper_bootstrap_14day.svg) | ERA5 verifying grid cells, observed-hot ≥305 K, paired seed-specific feature channels | Nine 14-day bootstrap point estimates and 95% intervals | Interpret as within-seed uncertainty, no multiple-comparison correction; NOT the ASOS station intervals |
+| [heat_rmse_regions.svg](../figures/heat_rmse_regions.svg) | Original-region and second Southwest **locally retrained** models, ERA5 2022 observed-hot subset | Heat-weighted CNN vs regionally selected Blend | Explicitly say retrained locally. Never cite as evidence of frozen-source cross-region improvement |
+| [asos_three_case_18_contrast_verified.svg](../figures/asos_three_case_18_contrast_verified.svg) | IEM ASOS airports ABQ/ROW (2022, 2023), ABI/OKC (2022), 3 seeds | 18 annual source-mean minus historical RMSE differences, 14-day paired 95% intervals | **Geometry of all 18 plotted points and 36 CI endpoints now independently checked** against both public CSVs, successful [Actions #41965309997](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41965309997). 9 positive, 9 negative; 6/18 nominal intervals exclude zero; not 18 independent tests |
+| [asos_site_bias_historical_6_medians.svg](../figures/asos_site_bias_historical_6_medians.svg) | Same ASOS cases; Historical arm only | Six site-year medians across three seed mean errors, bias²/MSE shares | Mean signed error is not annual RMSE nor paired channel contrast; bias² fraction does not establish elevation causation |
+
+## Numeric control for ASOS figure
+
+- Source tables: [SW22 matched ASOS](../results/southwest_2022_asos_run41862347926_verified.csv) and [SW23/SP22 matched ASOS](../results/additional_asos_southwest2023_plains2022_verified.csv).
+- Executable geometry test: [scripts/audit_public_asos_18_figure.py](../scripts/audit_public_asos_18_figure.py), independently passing in [Actions run 41965309997](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41965309997). Maps documented x-axis data (K) to x=610+8800×ΔRMSE and verifies each original plotted point and interval. It reports 9/9 sign split and 6/18 14-day intervals not covering zero.
+- ASOS site-bias medians originate from [54-row archived error decomposition](../results/asos_station_error_decomposition_54.csv), successful replay [41907423671](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41907423671).
+- All ASOS interpretations are retrospective station matches and do not establish prospective operational skill or observation independence.
+
+## Remaining figure QA boundary
+
+This register **does not independently replay all nine gridded hot-Era5 plot coordinates**; their CI workflows and generation provenance should be checked at the original artifact level before final journal submission. The full paper main draft and final bibliography were not available for direct figure-number and reference-link reconciliation. Do not claim full manuscript visual or citation acceptance based on the one successfully audited ASOS SVG.
