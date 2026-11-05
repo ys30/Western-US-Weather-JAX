@@ -137,6 +137,8 @@ For the historical-channel arm, the three-seed median mean error was **−1.03 K
 
 **Figure-to-data acceptance:** the [public figure evidence register](docs/PUBLIC_FIGURE_EVIDENCE_REGISTER.md) distinguishes ERA5, locally retrained CNN and ASOS visualizations. The 18 ASOS station/seed point positions and 36 interval endpoints were independently checked against committed CSVs in [successful run 41965309997](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41965309997) (9 positive / 9 negative paired differences; 6/18 nominal intervals exclude zero). The three public **ERA5 observed-hot figures** also now have independent geometry acceptance against all three immutable archived runs ([success #41968062987](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41968062987), [nine source rows](results/era5_hot_nine_archival_figure_verification.csv)); 8/9 nominal 14-day intervals exclude zero, but source-mean wins seed 123 in each of three targets. These are different from annual ASOS station agreement results.
 
+**Model architecture audit:** the matched-channel experiment uses an [8-input-channel, three-convolution residual-correction JAX network](docs/MATCHED_CNN_ARCHITECTURE_AND_TRAINING_AUDIT.md) with 12 hidden channels, zero-initialized residual output and fixed-step gradient descent. This is distinct from large global ML weather models and from locally retrained heat-weighted experiments.
+
 ## Key results — do not mix the two experimental protocols
 
 **Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
