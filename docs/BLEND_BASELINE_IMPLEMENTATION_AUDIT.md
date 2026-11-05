@@ -22,3 +22,13 @@ The code searches the climatology weight `w ∈ {0, 0.25, 0.5, 0.75, 1}`, select
 - Target-region station scores are retrospective agreement, not prospective and independent forecast-skill estimates.
 
 Source-code and run data, rather than this document, are the provenance of numerical performance claims.
+
+## Verified source-trained weights from all three full archives (4 Nov 2026)
+
+The original archived model source JSONs for **Southwest 2022 (Actions 41400003722), Southwest 2023 (41402185866), and Southern Plains 2022 (41402189567)** have now been independently read, and the complete input SHA256 manifest checked for each archive (53 digests × 3 archives = **159 passed**). The successful [independent replay run 41960278995](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41960278995) re-downloaded the archives and compared every published record.
+
+[Exact 18-record audited source and target metrics](../results/archived_blend_weights_18_reports_verified.csv) show that for each archive, mode (`historical`, `source_mean`), and seed (42, 7, 123), **`selected_blend_climatology_weight = 0.25`**, with the same value propagated into the corresponding target prediction report as `source_validation_blend_weight`. Thus the archived source-selected reference has **75% persistence and 25% source-trained month/UTC-hour climatology weight**. The target evaluation applies that source-selected weight without tuning on held-out target test observations. The target protocol uses **pre-test target-history climatology**, however, so it is *not strict zero-target-history transfer*.
+
+All three archive runs use the same source-domain 2019–2020 training and 2021 validation timeline; the repeated 0.25 values do **not** represent 18 independent validation datasets. Some source diagnostics and training timing differ across reruns, so identical checkpoints must not be asserted without checking their own hashes.
+
+**Metric naming warning:** `best_validation_rmse_kelvin` in the source report is the **best CNN validation RMSE**, not the validation RMSE of the five Blend candidates. The complete candidate `validation_rmse_k` vector exists as a value returned by the baseline helper, but it is **not recorded in the source-training report JSONs found in these three archives**. Therefore this archive audit verifies the chosen weight but cannot provide the five candidate RMSEs or the margin over the next-best Blend weight. An actual occupied month-hour training-bin count is likewise not exported in those reports; 48 bins is the value expected for a complete 00/06/12/18 UTC training calendar, not an observed bin-count claim.
