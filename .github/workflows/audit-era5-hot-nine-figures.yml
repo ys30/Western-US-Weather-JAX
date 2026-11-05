@@ -1,0 +1,50 @@
+name: Verify ERA5 nine hot-grid figure points and intervals
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - scripts/audit_era5_hot_nine_figures.py
+      - .github/workflows/audit-era5-hot-nine-figures.yml
+      - figures/manuscript_bootstrap_public.svg
+      - figures/paper_bootstrap_14day.svg
+      - figures/manuscript_performance_public.svg
+permissions:
+  actions: read
+  contents: write
+jobs:
+  archive-figure-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve three independently accepted original archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p source/sw22 source/sw23 source/pl22
+          gh run download 41400003722 --repo "$GITHUB_REPOSITORY" --name southwest-2022-full-reproducibility-archive --dir source/sw22
+          gh run download 41402185866 --repo "$GITHUB_REPOSITORY" --name southwest-2023-full-reproducibility-archive --dir source/sw23
+          gh run download 41402189567 --repo "$GITHUB_REPOSITORY" --name southern-plains-2022-full-reproducibility-archive --dir source/pl22
+          (cd source/sw22 && zip -qr ../southwest-2022-full-archive.zip .)
+          (cd source/sw23 && zip -qr ../southwest-2023-full-archive.zip .)
+          (cd source/pl22 && zip -qr ../southern-plains-2022-full-archive.zip .)
+      - name: Independently verify all SVG marks and 159 input hashes
+        run: |
+          python scripts/audit_era5_hot_nine_figures.py --archives source --figures figures --output outputs/era5_hot_nine_verified.csv
+      - name: Publish data-backed archive comparison table
+        run: |
+          cp outputs/era5_hot_nine_verified.csv results/era5_hot_nine_archival_figure_verification.csv
+          git config user.name github-actions
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add results/era5_hot_nine_archival_figure_verification.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Archive independently verified nine observed-hot ERA5 figure estimates and intervals"
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: era5-hot-nine-figure-audit
+          path: outputs/era5_hot_nine_verified.csv
+          retention-days: 30
