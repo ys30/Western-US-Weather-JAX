@@ -1,229 +1,99 @@
 # Western-US-Weather-JAX
 
-**Reproducible ERA5 regional temperature forecasting, JAX CNN engineering, and validated CPU/GPU execution.**
+**Regional 24-hour temperature hindcasting with JAX — reproducible GPU engineering and a reference × climatology-channel research study.**
 
-[Portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html) · [Recruiter evidence brief](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Experiment provenance and full archives](docs/EXPERIMENT_REPRODUCIBILITY_MANIFEST.md) · [GitHub Actions](../../actions)
+[Portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html) · [Engineering evidence](docs/ENGINEERING_STATUS.md) · [Factorial research results](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/docs/PAPER_V4_FACTORIAL_RESULTS.md) · [CI runs](../../actions)
 
-## At a glance
+This repository has **two related but distinct outcomes**. The engineering track verifies real ERA5 data pipelines, residual CNN training and NVIDIA GPU execution. The research track evaluates how supplying climatological information via a residual reference changes the *marginal* value of a dedicated historical-climatology feature. Their metrics and training protocols should not be conflated.
 
-| Scope | Verified evidence |
+## 1. Engineering results · JAX, GPU and reproducibility
+
+| Validated component | Evidence |
 | --- | --- |
-| Task | **24-hour-ahead** ERA5 2 m temperature regression; four six-hourly inputs, **49 × 49** regional fields |
-| Implementation | Python, **JAX**, residual CNNs, chronological train/validation/test splits, spatial climatology, multi-seed evaluation |
-| GPU engineering | Real **NVIDIA Tesla T4**: 258.51 s single CPU reference vs 33.29 s initial GPU training (**7.76× descriptive ratio**); three additional GPU runs averaged 33.45 ± 1.92 s |
-| Evaluation | Source training 2019–2020, validation 2021; target tests **Southwest 2022**, **Southwest 2023**, **Southern Plains 2022** |
-| Statistical sensitivity | Three seeds (42, 7, 123), direct paired moving-block bootstrap (3, 7, 14, 28 days) for matched channel arms |
-| Reproducibility | All **three** archival reruns preserved **54 files each**, with **53/53** independently verified file digests per ZIP |
+| Implementation | Python/JAX, 24-h lead residual CNN; four temperature frames (42–24 h before verification), UTC-hour features, historical-climatology input, reference correction |
+| Real GPU execution | **NVIDIA Tesla T4 (Colab)**; CUDA-backed JAX training and GPU-resident parameters audited |
+| Training time | **258.51 s** one CPU reference versus **33.29 s** initial GPU run: **7.76× observed elapsed-time ratio** |
+| GPU repeats | Three additional GPU runs averaged **33.45 s**, sample SD **1.92 s** |
+| CPU/GPU numerical parity | Both execution paths reported **3.191155 K** test RMSE under the audited matched configuration; repeated GPU runs reproduced this test score |
+| Data & CI | Real six-hourly ERA5 acquisition, chronological partitions, model checkpoints, gridded outputs, hashes, automated validation and replay scripts |
 
-### Why this work is useful
+The 7.76× result is **not** an end-to-end or statistically paired speedup distribution. The GPU timing and RMSE parity were audited in the earlier engineering protocol, **not** in the later frozen-target four-arm experiment.
 
-- Built and tested a real-data scientific ML pipeline, not a synthetic weather-model demo.
-- Compared CNNs with meaningful persistence/climatology baselines, including cases where the CNN **did not** outperform the comparator.
-- Tested model sensitivity to climatology features across a second test year and a geographically distinct target.
-- Audited GPU execution, prediction parity, workflow success, model checkpoints, gridded predictions, and SHA256 checksums.
+![Real Tesla T4 GPU versus CPU elapsed-time evidence](figures/gpu_training_time.svg)
 
-## Expanded ten-seed cross-target findings (research update)
+**Engineering verification:** [GPU acceptance](docs/GPU_ACCEPTANCE.md) · [GPU execution](docs/GPU_EXECUTION.md) · [repeat benchmark](docs/GPU_REPEAT_BENCHMARK.md) · [technical brief](docs/RECRUITER_EVIDENCE_BRIEF.md) · [engineering status](docs/ENGINEERING_STATUS.md).
 
-The later research analysis extends the matched-feature comparison beyond the original three-seed showcase. These are **exploratory, retrospective ERA5 results**, not operational heat-warning scores. The primary contrast is source-mean minus historical-channel observed-hot RMSE (K): a positive difference favors the historical feature channel.
+**Separate exploratory engineering/modeling results:** The regionally retrained heat-weighted CNNs were compared with region-specific blended references under a *different* protocol. Those results are retained in [engineering status](docs/ENGINEERING_STATUS.md) and [modeling evidence](docs/RECRUITER_EVIDENCE_BRIEF.md), not presented as frozen-weight transfer or as evidence for the factorial channel interaction.
 
-| Frozen-source target | Historical channel better | Median paired ΔRMSE (K) | Across-seed IQR (K) |
-| --- | ---: | ---: | --- |
-| Southwest 2022 | 6/10 seeds | +0.0017 | [-0.0079, +0.0173] |
-| Southwest 2023 | 6/10 seeds | +0.0063 | [-0.0109, +0.0175] |
-| Southern Plains 2022 | 6/10 seeds | +0.0063 | [-0.0057, +0.0186] |
-| Southern Plains 2023 | 7/10 seeds | +0.0096 | [-0.0017, +0.0252] |
+![Locally retrained model and reference on retrospective hot subsets](figures/heat_rmse_regions.svg)
 
-[Download the aggregate ten-seed and factorial-interaction CSV](results/ten_seed_four_case_research_summary.csv). This is a curated numeric summary transcribed from the private research draft, not a newly rerun raw-data experiment. These figures describe an across-initialization distribution, **not** a cross-seed confidence interval or proof of general superiority. Earlier three-seed charts below are historical subsets. The full four-case ten-seed data, archives and factorial interaction analyses require experiment-specific provenance; avoid conflating this with the separately regionally retrained experiments.
+## 2. Research / paper results · Where climatology enters matters
 
-### Verified airport-station observations — Southwest 2022 (new empirical result)
+**Manuscript status:** private *Atmospheric Research* submission draft under preparation; **not published or peer reviewed**. The manuscript and submission-only figures are not stored here.
 
-The archive-backed ASOS verification **completed successfully** in [GitHub Actions run 41862347926](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41862347926), artifact `13340986074`. The full artifact was independently read and audited against source SHA256s; RMSE was recomputed from each matched station×seed CSV, and all three seeds used exactly the same observation-time samples. This is **retrospective airport/reanalysis agreement** and is not an independent prospective or operational forecast benchmark.
+**Research question.** Does the dedicated historical climatology channel contribute equally when the residual reference is (P) 24-h persistence or (B) a validation-selected persistence–climatology blend? For each reference, separately trained CNNs use either a historical target-pretest climatology channel (H) or a source-training mean replacement (S).
 
-| Station | Seed | Matched / expected | Historical RMSE (K) | Source-mean RMSE (K) | Δ source − historical (K) | 14-day block 95% CI (K) |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| Albuquerque (ABQ) | 42 | 1,457 / 1,460 | 3.3640 | 3.3558 | −0.0082 | [−0.0236, +0.0056] |
-| Albuquerque (ABQ) | 7 | 1,457 / 1,460 | 3.3706 | 3.3738 | +0.0032 | [−0.0012, +0.0076] |
-| Albuquerque (ABQ) | 123 | 1,457 / 1,460 | 3.3467 | 3.3461 | −0.0006 | [−0.0064, +0.0050] |
-| Roswell (ROW) | 42 | 1,459 / 1,460 | 4.3043 | 4.3205 | +0.0162 | [+0.0070, +0.0258] |
-| Roswell (ROW) | 7 | 1,459 / 1,460 | 4.3129 | 4.3068 | −0.0061 | [−0.0125, +0.0003] |
-| Roswell (ROW) | 123 | 1,459 / 1,460 | 4.3241 | 4.3260 | +0.0019 | [−0.0049, +0.0085] |
+- Training: source ERA5 in **2019–2020**, checkpoint selection using **2021** validation; weights frozen in target evaluation.
+- Evaluation: **Southwest 2022/2023** and **Southern Plains 2022/2023**, with **10 matched initialization seeds × 4 independently fitted arms**. Each case has **1,460** six-hourly valid times over **25 × 25** ERA5 grid cells.
+- Blend: **75% persistence + 25% climatology**, selected on source validation all-case RMSE, not target test performance.
+- Outcomes: full-year RMSE and retrospective observed-hot RMSE (verifying ERA5 T2m **≥305 K**).
 
-ABQ had **99.8%** target-time coverage and ROW **99.9%**. The across-seed median annual ΔRMSE was **−0.0006 K (ABQ)** and **+0.0019 K (ROW)**; all six absolute contrasts were below 0.017 K, with no seed-invariant direction. The main temporal uncertainty intervals used **14-day calendar blocks and 2,000 paired resamples**; 7/28-day-block sensitivity files are present in the artifact.
+Define ΔP = RMSE(P,S) − RMSE(P,H); ΔB = RMSE(B,S) − RMSE(B,H); and the interaction **I = ΔB − ΔP**. Positive Δ means that the historical channel reduced error; **negative I** indicates a smaller incremental benefit with the blended reference.
 
-**Observed-hot (station temperature ≥305 K):** ABQ had 42 paired hot times across 35 UTC days, ROW 180 across 112 days. The hot-subset source-minus-historical RMSE differences across seeds 42 / 7 / 123 were **ABQ +0.1155 / +0.0098 / +0.0041 K** and **ROW +0.0663 / +0.0307 / −0.0275 K**. These are exploratory, threshold-conditioned, seed-dependent diagnostics, *not* heat-event detection. Station temperatures may already inform ERA5 assimilation; grid-point representativeness, elevation and local-site biases are unresolved.
+### Ten-seed results from original archived target reports
 
-[Exact numeric CSV](results/southwest_2022_asos_run41862347926_verified.csv) · [Methods / QA protocol](docs/STATION_VALIDATION_ANALYSIS_PROTOCOL.md) · [Original Actions artifact](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41862347926).
+| Target case | Full-year median I (K) | Full-year negative I | Hot median I (K) | Hot negative I | Hot historical wins: P / B |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Southwest 2022 | −0.0795 | 10/10 | −0.0450 | 9/10 | 9/10 · 6/10 |
+| Southwest 2023 | −0.0608 | 9/10 | −0.0155 | 6/10 | 7/10 · 6/10 |
+| Southern Plains 2022 | −0.1101 | 10/10 | −0.0123 | 6/10 | 8/10 · 6/10 |
+| Southern Plains 2023 | −0.0752 | 10/10 | −0.0500 | 9/10 | 9/10 · 7/10 |
 
-![Verified Southwest 2022 ABQ/ROW paired annual RMSE contrasts](figures/southwest_2022_asos_station_contrasts_verified.svg)
+The full-year interaction is negative for **39 of 40** seed–case evaluations; observed-hot for **30 of 40**. These are **correlated initialization/case descriptions**, not 40 independent climatic replications or confirmatory significance tests. The smaller blend-column contrast is consistent with overlapping climatology information, but changing the residual anchor also changes the optimization target; this does **not** isolate a physical causal mechanism.
 
-**Evidence boundaries:** the two-station/three-seed comparison supplements—but does not replace—the separate four-case ten-seed ERA5-only analysis; intervals describe within-seed temporal resampling, not across-seed confidence or independent model deployment. Private manuscript text and submission figures remain local.
+### Absolute hot RMSE · mean across ten CNN seeds (K)
 
-### ASOS station–grid elevation sensitivity (real audited inputs)
+| Case | P + historical CNN | B + source-mean CNN | B + historical CNN | Persistence baseline | Blend baseline |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Southwest 2022 | 2.416 | 2.344 | **2.338** | 2.400 | 2.479 |
+| Southwest 2023 | 2.113 | 2.075 | **2.072** | 2.077 | 2.222 |
+| Southern Plains 2022 | **2.535** | 2.558 | 2.553 | 2.484 | 2.687 |
+| Southern Plains 2023 | 2.636 | 2.500 | **2.487** | 2.626 | 2.628 |
 
-The independent [ERA5 surface geopotential and IEM station-elevation audit](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41774740647) passed. It found ABQ **1,620.0 m station vs 1,775.1 m ERA5 bilinear elevation** (station minus grid **−155.08 m**) and ROW **1,118.0 m vs 1,158.8 m** (**−40.76 m**). Re-evaluating the *same* observed station times and three archived CNN seed predictions with a common illustrative dry-environment lapse adjustment `T_adjusted = T_grid − lapse_rate × (z_station − z_grid) / 1000` changes the 6.5 K/km temperatures by **+1.008 K at ABQ** and **+0.265 K at ROW**.
+The lowest mean CNN arm is **not** universally the blended historical arm (Southern Plains 2022 is an exception). The standalone persistence and blend values are *reference* scores, not CNN arms, and can outperform the CNN in a target case. This table intentionally omits the exploratory ridge MOS because it has not been recalibrated for a like-for-like hot-weighted comparison.
 
-| Site | Seed | Raw source − historical annual ΔRMSE (K) | 6.5 K/km adjusted ΔRMSE (K) |
-| --- | ---: | ---: | ---: |
-| ABQ | 42 | −0.00819 | −0.00242 |
-| ABQ | 7 | +0.00320 | −0.00266 |
-| ABQ | 123 | −0.00058 | +0.00056 |
-| ROW | 42 | +0.01619 | +0.01436 |
-| ROW | 7 | −0.00610 | −0.00725 |
-| ROW | 123 | +0.00191 | +0.00218 |
+**Verified primary numerical evidence:** [full 80-row annual/hot factorial CSV](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/results/paper-v4/factorial_10seed_4case_absolute_rmse.csv) · [case summary](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/results/paper-v4/factorial_case_summary.csv) · [successful 160-report numerical replay](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/42124190191) · [factorial analysis PR](https://github.com/ys30/Western-US-Weather-JAX/pull/1). These data currently live on the research analysis branch until that PR is merged.
 
-The [full 24-row audited scenario CSV](results/southwest_2022_asos_elevation_sensitivity_verified.csv) includes **0 / 3.0 / 6.5 / 9.8 K/km** corrections. Two ABQ seeds switch ranking at 6.5 K/km; no ROW seed does. These are **assumption-driven sensitivity scenarios** applied identically to all three forecast fields, *not* fitted or meteorologically time-varying station corrections, not a validation of lapse rate in all weather, and not proof of improved forecast skill. Recomputed **14-day, 2,000-draw paired temporal bootstrap intervals** for the 6.5 K/km scenario are available in [the adjusted-bootstrap CSV](results/southwest_2022_asos_elevation_bootstrap_14day.csv). For ABQ, all three adjusted within-seed intervals still include zero. For ROW seed 42 the interval is [+0.00514, +0.02391] K, and for ROW seed 7 it is [−0.01341, −0.00109] K; the two seeds disagree in direction. The full local audit also evaluates 7- and 28-day block lengths. These are conditional temporal, not cross-seed, intervals.
+### Spatial and independent-observation context
 
-### New cross-case elevation robustness (Southwest 2023 / Southern Plains 2022)
+- The archived spatial diagnostics identify hot-sample coverage differences and edge-versus-interior sensitivity. The published public figures below are **earlier three-seed diagnostic subsets**, not new ten-seed spatial estimates.
+- Four selected ASOS airport sites (ABQ, ROW, ABI, OKC) over 2022–2023 yield **eight station-years**. At station-observed hot times, the CNN historical arm improves on the shared blend reference in **80/80 seed–station-year point comparisons**, while the concurrent **ERA5 analysis** better matches the station observations. That analysis is a valid-time reanalysis, **not** an issue-time 24-h forecast.
+- A separate **six-station-year × three-seed** source-archive audit produced **9 positive and 9 negative annual** matched channel contrasts. This is a subset with a different verification population, not a contradiction or another independent experiment.
 
-Using the **previously verified four-station elevation audit** (run 41774740647) and the accepted Southwest 2023 / Southern Plains 2022 matched ASOS artifacts (run 41875075661), both historical and source-mean CNN fields were evaluated after an identical **6.5 K/km illustrative height correction**. No station calibration or new model training was performed.
+![ERA5 source and target regions](figures/paper_study_domains.svg)
 
-| Site-year | ERA5-to-station height difference (station − ERA5) | Annual ΔRMSE (K), 6.5 K/km, seeds 42 / 7 / 123 |
-| --- | ---: | --- |
-| Southwest 2023 ABQ | −155.08 m | −0.00787 / +0.00134 / +0.00178 |
-| Southwest 2023 ROW | −40.76 m | +0.01355 / −0.00152 / +0.00437 |
-| Southern Plains 2022 ABI | −19.30 m | +0.01608 / −0.00117 / −0.00261 |
-| Southern Plains 2022 OKC | +22.63 m | +0.01149 / −0.00570 / −0.00215 |
+![Archived matched-channel temporal bootstrap diagnostic (earlier three-seed subset)](figures/paper_bootstrap_14day.svg)
 
-[Exact 12-pair CSV](results/additional_asos_elevation_6p5K_12_verified.csv) · [144-scenario reproducibility code](scripts/recompute_additional_asos_elevation.py) · [144-scenario workflow](.github/workflows/additional-asos-elevation-replay.yml).
+**Station / spatial evidence:** [ASOS validation protocol](docs/STATION_VALIDATION_ANALYSIS_PROTOCOL.md) · [verified six-station-year CSV](results/additional_asos_southwest2023_plains2022_verified.csv) · [station error decomposition](results/asos_station_error_decomposition_54.csv) · [metric provenance](docs/METRIC_PROVENANCE_AND_FIGURE_AUDIT.md) · [figure register](docs/PUBLIC_FIGURE_EVIDENCE_REGISTER.md).
 
-Across the additional cases, ABQ seed 123 and ROW seed 7 switch the direction of the annual feature-channel contrast after this common adjustment; ABI and OKC do not. The **144-scenario** factorial includes two region-year targets, four site-years, three seeds, four lapse rates (0/3/6.5/9.8 K/km) and three temporal block sizes (7/14/28 days). All **144 scenario rows are publicly archived**, with independent source-artifact replay and GitHub publication confirmed by [successful Actions run 41878154087](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41878154087). [Download the verified complete CSV](results/additional_asos_elevation_144_scenarios.csv). Across the 12 new site/seed pairs, 14-day within-seed intervals excluding zero number **5, 5, 3 and 3** for lapse assumptions 0, 3.0, 6.5 and 9.8 K/km respectively; neither of the two 6.5 K/km sign-reversal pairs has an interval excluding zero. These are hypothetical station–grid representativeness scenarios, not optimized physical height corrections, independent forecasts, or evidence of a reliable channel winner.
-
-### Independent archive-backed ASOS replication: Southwest 2023 and Southern Plains 2022
-
-The matrix [Actions run 41875075661](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41875075661) **passed both cases**, including strict parsing of all generated JSON, archive SHA256 verification, year-and-region-specific IEM ASOS retrieval, matched-observation identity across three model initializations, primary 14-day/2,000-draw paired block bootstrap and 7/28-day sensitivities. Both full artifacts were downloaded and the RMSE was independently recomputed from their matched prediction/observation CSVs.
-
-| Site-year | Matched / 1,460 | Observed-hot n (≥305 K) | Annual source-mean − historical ΔRMSE across seeds 42 / 7 / 123 (K) | Median ΔRMSE (K) |
-| --- | ---: | ---: | --- | ---: |
-| Southwest 2023 · ABQ | 1,458 | 88 | −0.01611 / +0.00652 / −0.00093 | −0.00093 |
-| Southwest 2023 · ROW | 1,457 | 184 | +0.01463 / +0.00019 / +0.00340 | +0.00340 |
-| Southern Plains 2022 · ABI | 1,456 | 234 | +0.01596 / −0.00088 / −0.00289 | −0.00088 |
-| Southern Plains 2022 · OKC | 1,453 | 123 | +0.01127 / −0.00593 / −0.00242 | −0.00242 |
-
-[All 12 new site/seed metrics, actual RMSE and 14-day CIs](results/additional_asos_southwest2023_plains2022_verified.csv).
-
-![Verified 18 station-year × seed paired contrasts with 14-day block intervals](figures/asos_three_case_18_contrast_verified.svg)
-
-Together with Southwest 2022 ABQ and ROW above, the validated station dataset covers **three region-year cases, six site-years and 18 fitted-seed/site-year comparisons**, with 9 positive and 9 negative annual channel differences. Five of the 12 new within-seed 14-day 95% intervals exclude zero, **but not in a consistent direction across seeds and sites**; these are not multiplicity-adjusted and are not independent across model seeds. Each case uses **retrospective airport observations potentially overlapping with ERA5 assimilation**, not independent operational 24-hour forecast skill. New regional comparisons are from the archived source-trained CNN predictions without target-specific retraining.
-
-### New audited station-error decomposition (54 model × site-year × seed rows)
-
-A separate [successful GitHub Actions replay](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41907423671) reloaded the three accepted ASOS observation–prediction artifacts, verified their matched CSV SHA256 records and identical observation timestamps across model seeds, reproduced the archived RMSE values, and partitioned each station-model error into mean signed error and centered residual variation. **[Full 54-row empirical CSV](results/asos_station_error_decomposition_54.csv)** · [Reproducible code](scripts/recompute_asos_error_decomposition.py).
-
-| Site-year | Historical annual RMSE (K) | Median forecast − ASOS mean error (K) | Squared mean bias / MSE |
-| --- | ---: | ---: | ---: |
-| Southwest 2022 · ABQ | 3.364 | −1.029 | 9.3% |
-| Southwest 2023 · ABQ | 3.219 | −1.191 | 13.7% |
-| Southwest 2022 · ROW | 4.313 | +0.306 | 0.5% |
-| Southwest 2023 · ROW | 3.586 | −0.015 | ~0.0% |
-| Southern Plains 2022 · ABI | 5.034 | −0.223 | 0.2% |
-| Southern Plains 2022 · OKC | 4.932 | +0.784 | 2.6% |
-
-Numbers above are medians over three archived historical-channel random seeds. The exact identity `RMSE² = mean_error² + centered_RMSE²` was validated for every row. Albuquerque exhibits a negative mean station error in **both years**; Roswell's mean error is small relative to total RMSE. This is a diagnostic of airport-versus-bilinear-grid agreement, **not** independent operational forecast skill, attribution of the bias to terrain alone, or a fitted bias-correction experiment. These error components place the minute historical-versus-source-mean channel differences in context; the pooled seeds are not independent climatic replicates.
-
-### Station-error decomposition from archived IEM observations
-
-The source-derived [54-row error-decomposition table](results/asos_station_error_decomposition_54.csv) is independently reproducible via [successful CI run 41907423671](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41907423671) and [replay script](scripts/recompute_asos_error_decomposition.py). For each of 6 site-years × 3 seeds × 3 prediction arms, the audit reports absolute RMSE, forecast-minus-observed mean error, centered RMSE, MAE and correlation. Every row satisfies **RMSE² = mean-error² + centered-RMSE²**.
-
-For the historical-channel arm, the three-seed median mean error was **−1.03 K at ABQ in 2022** and **−1.19 K in 2023**, versus approximately **+0.31 K and −0.02 K at ROW**, respectively. The squared mean-error fraction at ABQ was **9.3% and 13.7%**, while ROW was close to zero. These year-to-year descriptive offsets are *not* evidence that station elevation is the sole cause; grid representativeness, interpolation, weather regime, station siting and ERA5 assimilation overlap may contribute. A common static lapse-rate shift cannot diagnose the physical source of residual temperature variability.
-
-![Historical-channel median airport forecast bias for six site-years](figures/asos_site_bias_historical_6_medians.svg)
-
-**Interpretation hierarchy:** distinguish (i) absolute retrospective station mismatch of roughly 3–5 K, (ii) site-dependent systematic mean error, and (iii) the much smaller source-mean-versus-historical paired RMSE difference of approximately hundredths of a kelvin. Neither a station error decomposition nor within-seed temporal bootstrap constitutes independent operational forecast validation.
-
-**Baseline reproducibility clarification:** the implemented [Blend contract](docs/BLEND_BASELINE_IMPLEMENTATION_AUDIT.md) explicitly defines a 24-hour persistence forecast combined with a training-only month/UTC-hour grid-cell climatology, with climatology weight chosen over {0, 0.25, 0.5, 0.75, 1} on validation RMSE. A 6-hourly archive typically occupies 48 of 288 possible month–hour indices; the original three archived source-training runs now independently verify **0.25 climatology / 0.75 persistence** for all 18 source reports ([verified table](results/archived_blend_weights_18_reports_verified.csv), [passing replay 41960278995](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41960278995)). Although the five-candidate validation RMSE vector was **not archived in source report JSON**, it has now been [recomputed from the original archived source NetCDF](results/source_blend_validation_weight_grid_verified.csv) and independently verified by [successful CI 41961414371](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41961414371): weights 0 / 0.25 / 0.50 / 0.75 / 1.00 achieved 2021 RMSE **3.15880 / 2.91271 / 3.00109 / 3.39793 / 4.01275 K**, with 48 actual occupied month×UTC-hour bins and no validation fallback. The 0.25 option improves on the next-best candidate by 0.08838 K.
-
-
-**Manuscript metric provenance:** [audited metric families and figure-caption checklist](docs/METRIC_PROVENANCE_AND_FIGURE_AUDIT.md) separates source 2021 Blend validation, frozen target ERA5, regionally retrained ERA5 tests and matched ASOS station agreement; these RMSEs must not be pooled or interpreted as one benchmark.
-
-**Figure-to-data acceptance:** the [public figure evidence register](docs/PUBLIC_FIGURE_EVIDENCE_REGISTER.md) distinguishes ERA5, locally retrained CNN and ASOS visualizations. The 18 ASOS station/seed point positions and 36 interval endpoints were independently checked against committed CSVs in [successful run 41965309997](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41965309997) (9 positive / 9 negative paired differences; 6/18 nominal intervals exclude zero). The three public **ERA5 observed-hot figures** also now have independent geometry acceptance against all three immutable archived runs ([success #41968062987](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41968062987), [nine source rows](results/era5_hot_nine_archival_figure_verification.csv)); 8/9 nominal 14-day intervals exclude zero, but source-mean wins seed 123 in each of three targets. These are different from annual ASOS station agreement results.
-
-**Model architecture audit:** the matched-channel experiment uses an [8-input-channel, three-convolution residual-correction JAX network](docs/MATCHED_CNN_ARCHITECTURE_AND_TRAINING_AUDIT.md) with 12 hidden channels, zero-initialized residual output and fixed-step gradient descent. This is distinct from large global ML weather models and from locally retrained heat-weighted experiments.
-
-## Key results — do not mix the two experimental protocols
-
-**Protocol A: heat-weighted, regionally retrained models vs a regional validation-selected persistence–climatology blend.** Lower RMSE is better; observed-hot means verifying ERA5 2 m temperature ≥305 K.
-
-| 2022 test / metric | Blend RMSE (K) | CNN seeds 42 / 7 / 123 RMSE (K) |
-| --- | ---: | --- |
-| Original region · annual | 2.99462 | 2.98450 / 2.99741 / 2.99243 |
-| Original region · observed-hot | 2.15930 | 2.05492 / 2.04506 / 2.03982 |
-| Second Southwest region · annual | 3.80252 | 3.77695 / 3.79943 / 3.78322 |
-| Second Southwest region · observed-hot | 2.40826 | 2.31885 / 2.31365 / 2.32763 |
-
-All three seeds improved observed-hot RMSE in both target regions under this **local retraining** protocol. Annual improvement was not uniform in the original region. These numbers **do not imply frozen-weight zero-shot transfer**. See [verified runs and GPU audit](docs/RECRUITER_EVIDENCE_BRIEF.md).
-
-**Protocol B: frozen source-trained matched climatology-channel models**, evaluated without target CNN retraining (historical channel vs source-mean channel). Both arms still receive a shared baseline carrying historical climatology. The comparison isolates a **specific feature-channel substitution**, not complete removal of target history.
-
-| Target / metric | Historical feature channel (seeds 42 / 7 / 123) | Source-mean feature channel (same seeds) |
-| --- | --- | --- |
-| Southwest 2022 · observed-hot RMSE (K) | 2.3474 / 2.3308 / 2.3228 | 2.3876 / 2.3524 / 2.3074 |
-| Southwest 2023 · observed-hot RMSE (K) | 2.0932 / 2.0724 / 2.0568 | 2.1144 / 2.1022 / 2.0457 |
-| Southern Plains 2022 · observed-hot RMSE (K) | 2.5704 / 2.5645 / 2.5347 | 2.6020 / 2.5960 / 2.5291 |
-
-In each target, historical-channel training helped **two of three** seeds but not the third. No seed-invariant advantage is established. The directly paired time-block CIs are seed- and block-dependent. Source-model transfer is **not** purely zero-history transfer.
-
-- [Southwest 2022 matched evaluation](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41356348903)
-- [Southwest 2023 temporal replication](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41362832891)
-- [Southern Plains 2022 geographical replication](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41386676606)
-
-### Journal-style study-domain and uncertainty figures
-
-![Coordinate-verified ERA5 study regions](figures/paper_study_domains.svg)
-
-**Study domains:** Source 31–43°N, 121–109°W; Southwest 30–36°N, 108–102°W; Southern Plains 32–38°N, 101–95°W. Region rectangles are drawn from coordinates rather than an unverified illustrated basemap.
-
-![Matched 14-day paired-bootstrap intervals](figures/paper_bootstrap_14day.svg)
-
-The error bars are 14-day paired-bootstrap exploratory 95% intervals; unlike the earlier simplified web graphic they preserve uncertainty bounds. The final submission figures remain private.
-
-## Manuscript-derived visual evidence (public adaptations)
-
-The following accessible SVG figures **adapt the research structure and verified numbers** from the private manuscript; they are **not the original private PNG plates**. The third graphic shows point differences only (the complete 14-day confidence intervals remain in the unpublished manuscript and CI JSON).
-
-![Source training to independent target evaluation protocol](figures/manuscript_protocol_public.svg)
-
-![Matched-channel observed-hot RMSE by target and seed](figures/manuscript_performance_public.svg)
-
-![Source-mean minus historical paired hot-RMSE differences](figures/manuscript_bootstrap_public.svg)
-
-Source-mean minus historical **positive** differences favor the historical-feature channel; this occurred in **two of three** seeds for each target. These are retrospective error diagnostics, not heat-alert detection or a demonstration of universal improvement.
-
-## Earlier public engineering charts
-
-![Real Tesla T4 versus one CPU training-time reference](figures/gpu_training_time.svg)
-
-![Regional observed-hot RMSE under local retraining](figures/heat_rmse_regions.svg)
-
-![Retrospectively selected multiday hot episode comparisons](figures/hot_episode_coverage.svg)
-
-The regional and episode figures depict **Protocol A**, not the frozen-weight matched-channel experiments in Protocol B. Truth-defined high-temperature subsets and episodes are retrospective diagnostics, **not forecast event detection or operational warning skill**.
-
-## Reproduce and inspect
+## 3. Run the engineering workflow / inspect research outputs
 
 ```bash
 python -m pip install -e '.[test,zarr]' gcsfs
 pytest -q
-python -m weatherjax --epochs 4
+python -m weatherjax --epochs 4 --output outputs/quick-smoke
 ```
 
-The three full-data archives each contain **2 ERA5 NetCDF inputs, 6 checkpoint NPZ, 6 prediction/error NPZ, 12 diagnostics CSV, 24 experiment JSON, one SHA256 manifest and 3 environment/provenance files**.
+The basic smoke run is not the full ERA5 factorial reproduction. To reproduce the paper tables from downloaded and extracted original Actions archives:
 
-| Full archival rerun | GitHub Actions | Artifact |
-| --- | --- | --- |
-| Southwest 2022 | [41400003722](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41400003722) | `13122165252` |
-| Southwest 2023 | [41402185866](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41402185866) | `13122890221` |
-| Southern Plains 2022 | [41402189567](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41402189567) | `13121977420` |
+```bash
+python scripts/paper_v4_factorial_tables.py --root /path/to/extracted-artifacts --out results/paper-v4
+```
 
-After downloading any ZIP, run `python scripts/verify_full_archive.py archive.zip`. See [hashes, full run metadata, and retention deadlines](docs/EXPERIMENT_REPRODUCIBILITY_MANIFEST.md). **GitHub artifacts expire on 2027-01-31 UTC; independent permanent storage is not yet established.**
+Reanalysis source training and target reports were produced in [three-seed factorial run 41714440020](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41714440020) and [seven-seed extension 41721732092](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41721732092). Full raw artifacts are **finite-retention**; results CSVs and scripts remain in GitHub, while permanent source/checkpoint/field archival deposit is still outstanding.
 
-## Scientific and engineering boundaries
+## 4. Scope and interpretation
 
-- ERA5 reanalysis evaluations are retrospective; this is **not** an operational weather forecasting system or evidence of forecast-time availability.
-- The ≥305 K *observed*-hot RMSE metric conditions on the verifying temperature: it is **not event-detection accuracy**.
-- The 2021 window was part of model development; multiple validations are **development-stage exploratory evidence**, not pre-registered independent prospective tests.
-- The channel substitution retains historical climatology through the common blend; no causal attribution to historical features or general cross-seed superiority is claimed.
-- CPU/GPU comparisons use a single earlier CPU timing; the 7.76× figure is a **descriptive elapsed-time ratio**, not a paired GPU speedup distribution.
-- The archived inputs and weights belong to **new archival reruns**; the original historical experiment bytes were not proven identical. Dependencies and upstream ARCO snapshots were not pinned immutably.
-- Draft manuscripts, submission figures, and private supplementary material are **not published here**.
+This is a **retrospective ERA5 hindcasting and applied research engineering project**, not operational 24-h weather service validation. A model with frozen source weights can still use pre-test target climatology and recently available target-temperature inputs; “frozen weights” does not mean no target history. The observed-hot subset conditions on verifying temperature and is **not** event detection. Temporal bootstrap intervals describe sampling conditional on a fitted network; seed contrasts do not establish broad climate-population inference. GPU timing, locally retrained temperature models, four-arm frozen CNN comparisons, and station verification are separate protocols.
 
-**Further reading:** [Recruiter brief](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Engineering status](docs/ENGINEERING_STATUS.md) · [Reproducibility manifest](docs/EXPERIMENT_REPRODUCIBILITY_MANIFEST.md) · [Portfolio](https://ys30.github.io/projects/western-us-weather-jax.html).
+For the current recruitment-facing overview, see [the two-track portfolio page](https://ys30.github.io/projects/western-us-weather-jax.html).
