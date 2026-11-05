@@ -1,0 +1,22 @@
+name: Audit ASOS 18-observation figure geometry
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit_public_asos_18_figure.py'
+      - 'figures/asos_three_case_18_contrast_verified.svg'
+      - '.github/workflows/audit-asos-figure-geometry.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify all displayed points and intervals against public source tables
+        run: |
+          python scripts/audit_public_asos_18_figure.py \
+            --svg figures/asos_three_case_18_contrast_verified.svg \
+            --sw22 results/southwest_2022_asos_run41862347926_verified.csv \
+            --others results/additional_asos_southwest2023_plains2022_verified.csv
