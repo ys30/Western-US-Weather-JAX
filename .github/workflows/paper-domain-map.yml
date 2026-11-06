@@ -61,7 +61,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add figures/paper_study_domains_era5_jja.png figures/paper_study_domains_era5_jja.svg
+          git add figures/paper_study_domains_era5_jja_citylabels_v2.png figures/paper_study_domains_era5_jja_citylabels_v2.svg
           if ! git diff --cached --quiet; then
             git commit -m "Publish paper Figure 1b geographic ERA5 temperature map from archived NetCDF"
             git pull --rebase origin main
@@ -71,6 +71,6 @@ jobs:
         with:
           name: paper-study-domains-ERA5-JJA-verified
           path: |
-            figures/paper_study_domains_era5_jja.png
-            figures/paper_study_domains_era5_jja.svg
+            figures/paper_study_domains_era5_jja_citylabels_v2.png
+            figures/paper_study_domains_era5_jja_citylabels_v2.svg
           retention-days: 90
