@@ -70,7 +70,9 @@ The lowest mean CNN arm is **not** universally the blended historical arm (South
 - Four selected ASOS airport sites (ABQ, ROW, ABI, OKC) over 2022–2023 yield **eight station-years**. At station-observed hot times, the CNN historical arm improves on the shared blend reference in **80/80 seed–station-year point comparisons**, while the concurrent **ERA5 analysis** better matches the station observations. That analysis is a valid-time reanalysis, **not** an issue-time 24-h forecast.
 - A separate **six-station-year × three-seed** source-archive audit produced **9 positive and 9 negative annual** matched channel contrasts. This is a subset with a different verification population, not a contradiction or another independent experiment.
 
-![ERA5 source and target regions](figures/paper_study_domains.svg)
+![Paper Fig. 1(b): archived 2019–2020 summer ERA5 temperatures on source, Southwest and Southern Plains regions](figures/paper_study_domains_era5_jja.svg)
+
+*Figure drawn directly from archived 2019–2020 JJA ERA5 source and target NetCDF fields, with paper-matched geographic bounds and a corrected map layout; [successful figure replay](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/42133897861). The original coordinate-only schematic remains available for provenance.*
 
 ![Archived matched-channel temporal bootstrap diagnostic (earlier three-seed subset)](figures/paper_bootstrap_14day.svg)
 
