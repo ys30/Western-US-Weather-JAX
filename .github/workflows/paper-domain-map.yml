@@ -1,0 +1,76 @@
+name: Replot paper study-region map from archived ERA5
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/paper-domain-map.yml'
+      - 'scripts/plot_paper_domain_map.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  paper-domain-map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Load only original archived ERA5 source/target datasets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p input archived-zips
+          for pair in "southwest 13122165252" "plains 13121977420"; do
+            set -- $pair
+            curl --fail --location --silent --show-error --retry 3 \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/$2/zip" \
+              -o "archived-zips/$1.zip"
+            unzip -tqq "archived-zips/$1.zip"
+          done
+          python - <<'PY'
+          import hashlib
+          import pathlib
+          import zipfile
+          output=pathlib.Path("input")
+          for case in ("southwest","plains"):
+              with zipfile.ZipFile(f"archived-zips/{case}.zip") as archive:
+                  for src,dst in (("input/source.nc","source.nc"),("input/target.nc",f"{case}.nc")):
+                      if case=="plains" and src=="input/source.nc":
+                          continue
+                      info=archive.getinfo(src)
+                      target=output/dst
+                      with archive.open(info) as rf,target.open("wb") as wf:
+                          import shutil
+                          shutil.copyfileobj(rf,wf,1024*1024)
+                      print(dst, target.stat().st_size, hashlib.sha256(target.read_bytes()).hexdigest(), flush=True)
+          assert hashlib.sha256((output/"source.nc").read_bytes()).hexdigest()=="ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6"
+          PY
+          rm -rf archived-zips
+      - name: Install only geographic plotting requirements
+        run: |
+          python -m pip install "numpy<2.4" "matplotlib<4" "xarray" "netCDF4" "basemap>=1.4,<3"
+      - name: Render exact ERA5 JJA 2019–2020 source/target domains
+        run: python scripts/plot_paper_domain_map.py --input input --output figures
+      - name: Commit both paper-style figure formats
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add figures/paper_study_domains_era5_jja.png figures/paper_study_domains_era5_jja.svg
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish paper Figure 1b geographic ERA5 temperature map from archived NetCDF"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-study-domains-ERA5-JJA-verified
+          path: |
+            figures/paper_study_domains_era5_jja.png
+            figures/paper_study_domains_era5_jja.svg
+          retention-days: 90
