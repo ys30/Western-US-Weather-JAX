@@ -55,7 +55,7 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(12.8, 7.3), dpi=160)
-    fig.subplots_adjust(left=.075, right=.90, top=.93, bottom=.14)
+    fig.subplots_adjust(left=.075, right=.90, top=.93, bottom=.205)
     world = Basemap(projection="cyl", llcrnrlon=-126.5, llcrnrlat=27,
                     urcrnrlon=-93, urcrnrlat=48.5, resolution="l", ax=ax)
     world.drawmapboundary(fill_color="#f8fbfd", linewidth=.8, color="#bdc9d1")
@@ -85,21 +85,36 @@ def main():
         ax.text(lon, lat, label, ha=horizontal, va="center", fontsize=9.3,
                 color=color, weight="bold", zorder=5,
                 bbox=dict(facecolor="white", edgecolor="none", alpha=.75, pad=1.7))
+    # Grounded city coordinates are never shifted to improve appearance. Only
+    # text-label display offsets change. Offsets are in screen points, not degrees.
+    # The Albuquerque station is ~22.5% from the western edge of the SW box and
+    # ~15.3% below its northern edge: (-106.6504, 35.0844).
     cities = [
-        ("Salt Lake City", -111.891, 40.760, -3.0, 0.72),
-        ("Las Vegas", -115.139, 36.169, .35, .48),
-        ("Los Angeles", -118.244, 34.052, .5, -.72),
-        ("Phoenix", -112.074, 33.448, .6, -.64),
-        ("Albuquerque", -106.650, 35.084, .55, .60),
-        ("Denver", -104.990, 39.739, .44, .48),
-        ("Oklahoma City", -97.516, 35.467, .50, .55),
-        ("Dallas", -96.797, 32.777, .5, -.70),
+        # city, longitude, latitude, text offset in points (x, y)
+        ("Salt Lake City", -111.8910, 40.7608, (-52, 9)),
+        ("Las Vegas", -115.1398, 36.1699, (7, 7)),
+        ("Los Angeles", -118.2437, 34.0522, (7, -12)),
+        ("Phoenix", -112.0740, 33.4484, (7, -14)),
+        ("Albuquerque", -106.6504, 35.0844, (10, -17)),
+        ("Denver", -104.9903, 39.7392, (8, 8)),
+        ("Oklahoma City", -97.5164, 35.4676, (-15, -17)),
+        ("Dallas", -96.7970, 32.7767, (-28, -14)),
     ]
-    for name, x, y, ox, oy in cities:
-        ax.plot(x, y, marker="o", markersize=2.7, color="#243a4b", zorder=6)
-        ax.text(x+ox, y+oy, name, fontsize=7.5, color="#273946",
-                ha="left", zorder=6,
-                bbox=dict(facecolor="white", edgecolor="none", alpha=.55, pad=.6))
+    for name, x, y, offset in cities:
+        # White ring distinguishes the geographic anchor from the ERA5 raster.
+        ax.scatter([x], [y], s=29, facecolor="white", edgecolor="white",
+                   linewidth=1.2, zorder=7)
+        ax.scatter([x], [y], s=11, facecolor="#203746", edgecolor="none",
+                   zorder=8)
+        ax.annotate(name, xy=(x, y), xycoords="data",
+                    xytext=offset, textcoords="offset points", fontsize=8.0,
+                    color="#203746", fontweight="bold" if name=="Albuquerque" else "normal",
+                    ha="right" if offset[0]<0 else "left",
+                    va="center", zorder=9,
+                    arrowprops=dict(arrowstyle="-", lw=0.65, color="#617785",
+                                    shrinkA=2.0, shrinkB=2.0),
+                    bbox=dict(facecolor="white", edgecolor="none",
+                              alpha=.88, pad=1.0))
     ax.set_xlim(-126.5, -93)
     ax.set_ylim(27, 48.5)
     ax.set_xticks([-125, -120, -115, -110, -105, -100, -95])
@@ -115,14 +130,14 @@ def main():
     cb.ax.tick_params(labelsize=8)
     handles = [Line2D([0],[0],lw=2.6,color=color,label=key)
                for key,color in (("Source","#1c72a9"),("Southwest","#009e73"),("Southern Plains","#d55e00"))]
-    fig.legend(handles=handles, loc="lower center", bbox_to_anchor=(.47,.058),
+    fig.legend(handles=handles, loc="lower center", bbox_to_anchor=(.47,.075),
                ncol=3, frameon=False, fontsize=9)
-    fig.text(.075, .017,
+    fig.text(.075, .022,
              "Archived ERA5 temperature is shown only on the three study grids. "
              "State boundaries and city labels provide geographic context.",
              fontsize=8, color="#52646a")
     for ext in ("png", "svg"):
-        path = args.output / f"paper_study_domains_era5_jja.{ext}"
+        path = args.output / f"paper_study_domains_era5_jja_citylabels_v2.{ext}"
         fig.savefig(path, dpi=170, facecolor="white", bbox_inches="tight")
         print(f"Saved {path}")
     plt.close(fig)
