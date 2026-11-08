@@ -86,10 +86,12 @@ def run(input_dir,output_dir):
                                   rho_24h=no_intercept_slope(x[take],y[take])))
         error0=ds["prev"]-ds["truth"]
         diff=ds["clim"]-ds["prev"]
-        analytic_w=np.clip(-np.mean(error0.astype(np.float64)*diff),
-                           0, np.inf) / np.mean(np.square(diff,dtype=np.float64)),0.,1.)
-        analytic_w_hot=np.clip(-np.mean((error0[ds["hot"]]).astype(np.float64)*diff[ds["hot"]])/
-                                    np.mean(np.square(diff[ds["hot"]],dtype=np.float64)),0.,1.)
+        analytic_w=np.clip(
+            -np.mean(error0.astype(np.float64)*diff.astype(np.float64))/
+            np.mean(np.square(diff,dtype=np.float64)),0.,1.)
+        analytic_w_hot=np.clip(
+            -np.mean(error0[ds["hot"]].astype(np.float64)*diff[ds["hot"]].astype(np.float64))/
+            np.mean(np.square(diff[ds["hot"]],dtype=np.float64)),0.,1.)
         rows=[]
         for w in WEIGHTS:
             err=error0+w*diff
