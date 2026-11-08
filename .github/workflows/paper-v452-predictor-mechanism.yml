@@ -1,0 +1,68 @@
+name: Paper v4.5.2 predictor-conditioned mechanism diagnostics (no training)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/paper-v452-predictor-mechanism.yml'
+      - 'scripts/paper_v452_predictor_conditioned_diagnostics.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  diagnostic-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Extract ONLY original ERA5 NetCDF inputs from archived factorial artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/13273462626/zip" \
+            -o original-artifact.zip
+          unzip -tqq original-artifact.zip
+          python - <<'PY'
+          import hashlib,pathlib,zipfile
+          names=["input/source.nc","input/southwest-2022.nc","input/southwest-2023.nc",
+                 "input/plains-2022.nc","input/plains-2023.nc"]
+          with zipfile.ZipFile("original-artifact.zip") as arc:
+              for name in names:
+                  dst=pathlib.Path(name)
+                  dst.parent.mkdir(exist_ok=True)
+                  with arc.open(name) as f, dst.open("wb") as o:
+                      import shutil
+                      shutil.copyfileobj(f,o)
+                  print(name,dst.stat().st_size,hashlib.sha256(dst.read_bytes()).hexdigest(),flush=True)
+          expected="ed8bd0813282030e7f6b2d3447bdb2f4005d741d6daa8ec8c5435eb78387aed6"
+          assert hashlib.sha256(pathlib.Path("input/source.nc").read_bytes()).hexdigest()==expected
+          PY
+          rm original-artifact.zip
+      - name: Install small analysis stack
+        run: python -m pip install "numpy<2.4" "xarray" "netCDF4" "matplotlib<4"
+      - name: Run predictor-conditioned diagnostic A and B
+        run: python scripts/paper_v452_predictor_conditioned_diagnostics.py --input input --output results/paper-v452
+      - name: Inspect generated summary
+        run: cat results/paper-v452/predictor_conditioned_summary.csv
+      - name: Commit reproducible non-CNN diagnostic results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/paper-v452/
+          if ! git diff --cached --quiet; then
+            git commit -m "Archive predictor-conditioned persistence and blend-weight diagnostics"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: paper-v452-anomaly-and-blend-mechanism
+          path: results/paper-v452/
+          retention-days: 90
+          if-no-files-found: error
