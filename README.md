@@ -4,6 +4,18 @@
 
 [Portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html) · [Research release v4.5.3](https://github.com/ys30/Western-US-Weather-JAX/releases/tag/v4.5.3-research) · [Engineering evidence](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Factorial research results](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/docs/PAPER_V4_FACTORIAL_RESULTS.md) · [CI runs](../../actions)
 
+## Project at a glance · verified evidence and publication status
+
+| Area | Verified evidence |
+| --- | --- |
+| **Real ERA5 data** | Public Google Cloud Storage **ARCO-ERA5 Zarr** ingestion into local six-hourly NetCDF; source training **2019–2020**, validation **2021**, and frozen-weight evaluation **Southwest / Southern Plains, 2022–2023**. [GCS ingestion source](scripts/fetch_arco_era5.py) |
+| **JAX model** | Small residual CNN, 24-h lead, time/climatology inputs, and fixed 305 K heat emphasis. Factorial training used 40 epochs. **Pure JAX**, not Flax/Optax. [Model](weatherjax/model.py) · [Training](weatherjax/train.py) |
+| **Actual Colab GPU training** | **NVIDIA Tesla T4** with real ERA5. **33.29 s GPU versus 258.51 s** for one CPU reference (**7.76× descriptive timing ratio**); three GPU repeats **33.45 ± 1.92 s**; matching CPU/GPU test RMSE **3.191155 K**. These are engineering benchmarks, not claims that the full factorial ran on GPU. [GPU entry point](scripts/gpu_training.py) · [evidence](docs/RECRUITER_EVIDENCE_BRIEF.md) |
+| **Paper findings** | **2 × 2 reference × dedicated climatology channel; ten paired seeds and four target region–years**. The blended-reference/source-mean arm gave **0.226–0.342 K lower mean full-year RMSE** than the persistence-reference/historical-channel arm, and **39/40 full-year seed–case interactions were negative**. The absolute contrast and interaction count are different metrics. [Verified four-arm CSV](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/results/paper-v4/factorial_10seed_4case_absolute_rmse.csv) |
+| **Publication** | Submitted to ***Atmospheric Research*** and **under peer review** (author-reported November 2026); **not accepted or published**. [Fixed code release v4.5.3](https://github.com/ys30/Western-US-Weather-JAX/releases/tag/v4.5.3-research) |
+
+> **Current status versus early milestones:** Synthetic CPU-only smoke tests were the project's initial milestones, **not its present state**. Real ERA5 and Colab T4 experiments have since been completed. GPU parity, regionally retrained engineering comparisons, and the frozen-weight paper factorial are separate protocols.
+
 This repository has **two related but distinct outcomes**. The engineering track verifies real ERA5 data pipelines, residual CNN training and NVIDIA GPU execution. The research track evaluates how supplying climatological information via a residual reference changes the *marginal* value of a dedicated historical-climatology feature. Their metrics and training protocols should not be conflated.
 
 ## 1. Engineering results · JAX, GPU and reproducibility
