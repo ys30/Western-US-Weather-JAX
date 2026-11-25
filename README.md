@@ -56,6 +56,19 @@ Define ΔP = RMSE(P,S) − RMSE(P,H); ΔB = RMSE(B,S) − RMSE(B,H); and the int
 
 The full-year interaction is negative for **39 of 40** seed–case evaluations; observed-hot for **30 of 40**. These are **correlated initialization/case descriptions**, not 40 independent climatic replications or confirmatory significance tests. The smaller blend-column contrast is consistent with overlapping climatology information, but changing the residual anchor also changes the optimization target; this does **not** isolate a physical causal mechanism.
 
+### Full-year forecast-reference contrast (distinct from factorial interaction)
+
+Across the four target region–years, the **ten-seed mean full-year RMSE** of the **persistence-reference CNN with historical climatology channel (P+H)** exceeds that of the **blended-reference CNN with source-mean channel (B+S)** by **0.226–0.342 K**, commonly rounded to **0.23–0.34 K**. This is a comparison of where climatology enters the two model configurations; it is **not** the factorial interaction and should not be confused with the **39/40 negative interaction count**.
+
+| Target case | P+H full-year RMSE (K) | B+S full-year RMSE (K) | Improvement P+H − B+S (K) |
+| --- | ---: | ---: | ---: |
+| Southwest 2022 | 4.047 | 3.796 | 0.252 |
+| Southwest 2023 | 3.554 | 3.329 | 0.226 |
+| Southern Plains 2022 | 5.208 | 4.866 | 0.342 |
+| Southern Plains 2023 | 4.183 | 3.928 | 0.255 |
+
+Computed directly from [archived ten-seed factorial absolute-RMSE CSV](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/results/paper-v4/factorial_10seed_4case_absolute_rmse.csv). Both models include climatological information, but their residual reference and feature-channel configurations differ, so this does not identify a single mechanism.
+
 ### Absolute hot RMSE · mean across ten CNN seeds (K)
 
 | Case | P + historical CNN | B + source-mean CNN | B + historical CNN | Persistence baseline | Blend baseline |
