@@ -1,5 +1,8 @@
 # Recruiter evidence brief — ERA5 JAX GPU weather forecasting
 
+> **Current status note (November 2026):** Real ERA5 training on a Colab NVIDIA Tesla T4 has been completed and hardware-audited. The initial matched run measured 33.29 s GPU versus one 258.51 s CPU reference (a descriptive 7.76× ratio); three GPU repeats averaged 33.45 s (SD 1.92 s), with audited matched test RMSE 3.191155 K. This does **not** establish a distribution of paired CPU/GPU speedups. The instructions below describe acceptance procedures, and any statements that no GPU result exists or GPU work remains wholly unperformed are historical. The submitted *Atmospheric Research* manuscript is under review, not accepted or published. See [project README](../README.md) and [recruiter evidence](RECRUITER_EVIDENCE_BRIEF.md).
+
+
 **Project:** [Western-US-Weather-JAX](https://github.com/ys30/Western-US-Weather-JAX) · [Portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html)
 
 ## What I built
@@ -13,7 +16,7 @@ Developed a reproducible 24-hour-lead regional temperature forecasting workflow 
 - **Uncertainty:** in original-region 2022, truth-hot time-block bootstrap (1, 3, 7, 14 days; 1000 draws each) yielded intervals below zero for each heat-weighted CNN seed. Results remain limited to the datasets, test window and event definition.
 
 ## Responsible interpretation
-A compelling **JAX/HPC engineering and environmental machine-learning portfolio case**, with empirical evidence for heat-subset improvement over a stronger statistical baseline. It does **not** demonstrate uniform annual improvement, frozen-weight cross-region generalization, prospective forecast or warning-system validity, or a publication-ready independent external evaluation. The 2021 test was previously involved in model development.
+A compelling **JAX/HPC engineering and environmental machine-learning portfolio case**, with empirical evidence for heat-subset improvement over a stronger statistical baseline. It does **not** demonstrate uniform annual improvement, frozen-weight cross-region generalization, prospective forecast or warning-system validity, or an operational forecast evaluation. A research manuscript has since been submitted to *Atmospheric Research* and is under review; submission does not imply acceptance. The 2021 test was previously involved in model development.
 
 ## Evidence links
 - [Full engineering and scientific verification](ENGINEERING_STATUS.md)
