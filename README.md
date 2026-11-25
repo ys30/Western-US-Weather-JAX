@@ -2,11 +2,16 @@
 
 **Regional 24-hour temperature hindcasting with JAX — reproducible GPU engineering and a reference × climatology-channel research study.**
 
-[Portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html) · [Engineering evidence](docs/ENGINEERING_STATUS.md) · [Factorial research results](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/docs/PAPER_V4_FACTORIAL_RESULTS.md) · [CI runs](../../actions)
+[Portfolio case study](https://ys30.github.io/projects/western-us-weather-jax.html) · [Research release v4.5.3](https://github.com/ys30/Western-US-Weather-JAX/releases/tag/v4.5.3-research) · [Engineering evidence](docs/RECRUITER_EVIDENCE_BRIEF.md) · [Factorial research results](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/docs/PAPER_V4_FACTORIAL_RESULTS.md) · [CI runs](../../actions)
 
 This repository has **two related but distinct outcomes**. The engineering track verifies real ERA5 data pipelines, residual CNN training and NVIDIA GPU execution. The research track evaluates how supplying climatological information via a residual reference changes the *marginal* value of a dedicated historical-climatology feature. Their metrics and training protocols should not be conflated.
 
 ## 1. Engineering results · JAX, GPU and reproducibility
+
+**Current status:** GPU training and real ERA5 model evaluation have been performed; early planning/protocol documents in this repository may still contain historical, pre-acceptance language. The measured evidence below supersedes those earlier status notes. **Stack:** Python, JAX (`jax.numpy`, `jax.lax`, `jax.jit`), NumPy, xarray, NetCDF and Google Cloud Storage public ARCO-ERA5 Zarr. This CNN is implemented in **pure JAX, not Flax/Optax**; Flax and Optax are not required or claimed as used.
+
+**Data path:** [`scripts/fetch_arco_era5.py`](scripts/fetch_arco_era5.py) reads Google Cloud Storage's public ARCO-ERA5 Zarr dataset (`gs://gcp-public-data-arco-era5/...`), subselects geographic/time slices and produces local ERA5 NetCDF. Downstream CPU/GPU training jobs consume those bounded local files; they are **not** described as streaming model training directly from GCS.
+
 
 | Validated component | Evidence |
 | --- | --- |
@@ -29,7 +34,7 @@ The 7.76× result is **not** an end-to-end or statistically paired speedup distr
 
 ## 2. Research / paper results · Where climatology enters matters
 
-**Manuscript status:** private *Atmospheric Research* submission draft under preparation; **not published or peer reviewed**. The manuscript and submission-only figures are not stored here.
+**Manuscript status:** submitted to *Atmospheric Research* and **under peer review** (author-reported, as of November 2026); **not accepted or published**. The manuscript and submission-only files remain separate from this public code repository. Reproducible code is frozen at [v4.5.3-research](https://github.com/ys30/Western-US-Weather-JAX/releases/tag/v4.5.3-research).
 
 **Research question.** Does the dedicated historical climatology channel contribute equally when the residual reference is (P) 24-h persistence or (B) a validation-selected persistence–climatology blend? For each reference, separately trained CNNs use either a historical target-pretest climatology channel (H) or a source-training mean replacement (S).
 
@@ -64,6 +69,10 @@ The lowest mean CNN arm is **not** universally the blended historical arm (South
 
 **Verified primary numerical evidence:** [full 80-row annual/hot factorial CSV](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/results/paper-v4/factorial_10seed_4case_absolute_rmse.csv) · [case summary](https://github.com/ys30/Western-US-Weather-JAX/blob/paper-v4-factorial-reanalysis/results/paper-v4/factorial_case_summary.csv) · [successful 160-report numerical replay](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/42124190191) · [factorial analysis PR](https://github.com/ys30/Western-US-Weather-JAX/pull/1). These data currently live on the research analysis branch until that PR is merged.
 
+### Verification subset matters: predictor-hot vs verifying-hot
+
+The manuscript's original observed-hot analysis conditions on **verifying** ERA5 T2m ≥305 K; a post-submission optional analysis instead conditions on the **known 24-h-lag** temperature ≥305 K. The two can contain equal numbers of gridcell–times while selecting different observations. Re-evaluating archived four-arm CNN fields (no retraining) found negative interactions in **14/40** predictor-hot seed–case comparisons, versus **30/40** verifying-hot comparisons and **39/40** all-time comparisons. Therefore the negative full-year interaction does **not** imply a stable negative interaction for a forecast-time-known heat regime. This additional diagnostic is **not claimed to be in the submitted paper** unless formally added in a revision. See the [predictor-conditioned reference diagnostics](results/paper-v452/) and the original four-arm evidence linked above.
+
 ### Spatial and independent-observation context
 
 - The archived spatial diagnostics identify hot-sample coverage differences and edge-versus-interior sensitivity. The published public figures below are **earlier three-seed diagnostic subsets**, not new ten-seed spatial estimates.
@@ -92,10 +101,10 @@ The basic smoke run is not the full ERA5 factorial reproduction. To reproduce th
 python scripts/paper_v4_factorial_tables.py --root /path/to/extracted-artifacts --out results/paper-v4
 ```
 
-Reanalysis source training and target reports were produced in [three-seed factorial run 41714440020](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41714440020) and [seven-seed extension 41721732092](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41721732092). Full raw artifacts are **finite-retention**; results CSVs and scripts remain in GitHub, while permanent source/checkpoint/field archival deposit is still outstanding.
+Reanalysis source training and target reports were produced in [three-seed factorial run 41714440020](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41714440020) and [seven-seed extension 41721732092](https://github.com/ys30/Western-US-Weather-JAX/actions/runs/41721732092). Full raw artifacts are **finite-retention**; results CSVs and scripts remain in GitHub, while the dataset archive/public DOI should be verified against the published Zenodo record before it is cited; no private draft-preview token is included here.
 
 ## 4. Scope and interpretation
 
 This is a **retrospective ERA5 hindcasting and applied research engineering project**, not operational 24-h weather service validation. A model with frozen source weights can still use pre-test target climatology and recently available target-temperature inputs; “frozen weights” does not mean no target history. The observed-hot subset conditions on verifying temperature and is **not** event detection. Temporal bootstrap intervals describe sampling conditional on a fitted network; seed contrasts do not establish broad climate-population inference. GPU timing, locally retrained temperature models, four-arm frozen CNN comparisons, and station verification are separate protocols.
 
-For the current recruitment-facing overview, see [the two-track portfolio page](https://ys30.github.io/projects/western-us-weather-jax.html).
+For the recruitment-facing overview (which likewise distinguishes the GPU benchmark, frozen-weight paper, and later predictor-hot diagnostics), see [the two-track portfolio page](https://ys30.github.io/projects/western-us-weather-jax.html).
